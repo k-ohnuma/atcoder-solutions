@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
 use anyhow::{Context, Result};
-use api::route::{health::build_health_check_routers, version::build_version_routers};
+use interface::route::{health::build_health_check_routers, version::build_version_routers};
 use axum::Router;
 use tokio::net::TcpListener;
 use tower_http::{
