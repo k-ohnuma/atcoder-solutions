@@ -3,6 +3,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use anyhow::{Context, Result};
 use axum::Router;
 use interface::route::{health::build_health_check_routers, version::build_version_routers};
+use shared::env::{which_env, Environment};
 use tokio::net::TcpListener;
 use tower_http::{
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
@@ -17,22 +18,6 @@ async fn main() -> Result<()> {
     init_logger()?;
     run().await?;
     Ok(())
-}
-
-enum Environment {
-    Dev,
-    Stg,
-    Prd,
-}
-
-fn which_env() -> Result<Environment> {
-    let env = std::env::var("ENV")?;
-    match env.as_str() {
-        "dev" => Ok(Environment::Dev),
-        "stg" => Ok(Environment::Stg),
-        "prd" => Ok(Environment::Prd),
-        _ => Ok(Environment::Dev),
-    }
 }
 
 fn init_logger() -> Result<()> {
