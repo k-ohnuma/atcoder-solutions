@@ -108,6 +108,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "domain",
  "interface",
  "rstest",
  "tokio",
@@ -155,6 +156,10 @@ name = "cfg-if"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
+
+[[package]]
+name = "domain"
+version = "0.1.0"
 
 [[package]]
 name = "equivalent"
@@ -351,6 +356,10 @@ dependencies = [
  "equivalent",
  "hashbrown",
 ]
+
+[[package]]
+name = "infrastructure"
+version = "0.1.0"
 
 [[package]]
 name = "interface"
