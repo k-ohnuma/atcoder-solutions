@@ -8,3 +8,8 @@ name = "app"
 path = "src/bin/main.rs"
 
 [dependencies]
+axum = { version = "0.8.6", features = ["macros"] }
+tokio = { version = "1.47.1", features = ["full"] }
+
+[dev-dependencies]
+rstest = "0.26.1"
