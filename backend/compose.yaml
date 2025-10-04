@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+
+  postgres:
+    image: postgres:15
+    ports:
+      - 5432:5432
+    volumes:
+      - db:/var/lib/postgres/data
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+
+volumes:
+  db:
+    driver: local
