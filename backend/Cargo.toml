@@ -9,7 +9,7 @@ name = "app"
 path = "src/bin/main.rs"
 
 [workspace]
-members = [ "domain", "infrastructure","interface", "shared"]
+members = [ "domain", "infrastructure","interface", "registry", "shared"]
 
 [workspace.package]
 edition = "2024"
