@@ -222,6 +222,7 @@ dependencies = [
  "async-trait",
  "serde",
  "serde_json",
+ "shared",
  "thiserror",
 ]
 
@@ -661,6 +662,7 @@ dependencies = [
  "async-trait",
  "domain",
  "reqwest",
+ "shared",
  "thiserror",
 ]
 
@@ -1304,6 +1306,11 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
 ]
 
 [[package]]

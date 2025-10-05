@@ -1,24 +1,9 @@
 use async_trait::async_trait;
 use domain::{
-    model::atcoder_problems::ApiProblem,
-    ports::external::atcoder_problems::{AtcoderProblemsError, AtcoderProblemsPort},
+    model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
 };
-use reqwest::{Client, StatusCode};
-
-fn map_requwest_err(err: reqwest::Error) -> AtcoderProblemsError {
-    if err.is_connect() || err.is_timeout() {
-        return AtcoderProblemsError::ExternalUnavailable;
-    }
-
-    if let Some(s) = err.status() {
-        return match s {
-            StatusCode::NOT_FOUND => AtcoderProblemsError::NotFound,
-            _ => AtcoderProblemsError::ExternalUnavailable,
-        };
-    }
-
-    AtcoderProblemsError::Other(err.into())
-}
+use reqwest::Client;
+use shared::error::ExternalError;
 
 pub struct AtcoderProblemsClient {
     client: Client,
@@ -36,21 +21,21 @@ impl AtcoderProblemsClient {
 
 #[async_trait]
 impl AtcoderProblemsPort for AtcoderProblemsClient {
-    async fn fetch_problems(&self) -> Result<Vec<ApiProblem>, AtcoderProblemsError> {
+    async fn fetch_problems(&self) -> Result<Vec<ApiProblem>, ExternalError> {
         let json_endpoint = format!("{}/resources/problems.json", self.base_endpoint);
         let resp = self
             .client
             .get(json_endpoint)
             .send()
             .await
-            .map_err(|e| map_requwest_err(e))?
+            .map_err(ExternalError::from)?
             .error_for_status()
-            .map_err(|e| map_requwest_err(e))?;
+            .map_err(ExternalError::from)?;
 
         let json: Vec<ApiProblem> = resp
             .json()
             .await
-            .map_err(|_e| AtcoderProblemsError::InvalidJson)?;
+            .map_err(ExternalError::from)?;
         Ok(json)
     }
 }
