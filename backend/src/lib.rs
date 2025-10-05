@@ -3,6 +3,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use anyhow::{Context, Result};
 use axum::Router;
 use interface::route::{health::build_health_check_routers, version::build_version_routers};
+use registry::Registry;
 use shared::{
     config::AppConfig,
     env::{Environment, which_env},
@@ -41,9 +42,11 @@ pub fn init_logger() -> Result<()> {
 
 pub async fn run() -> Result<()> {
     let app_config = AppConfig::new()?;
+    let registry = Registry::new(app_config);
     let app = Router::new()
         .merge(build_health_check_routers())
         .merge(build_version_routers())
+        .with_state(registry)
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(

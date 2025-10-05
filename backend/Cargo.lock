@@ -184,6 +184,7 @@ dependencies = [
  "anyhow",
  "axum",
  "interface",
+ "registry",
  "shared",
  "tokio",
  "tower-http",
@@ -1230,6 +1231,7 @@ name = "interface"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "registry",
  "serde",
  "serde_json",
 ]
