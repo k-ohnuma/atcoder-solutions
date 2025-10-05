@@ -10,3 +10,10 @@ shared.workspace = true
 async-trait.workspace = true
 reqwest.workspace = true
 thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true
+rstest.workspace = true

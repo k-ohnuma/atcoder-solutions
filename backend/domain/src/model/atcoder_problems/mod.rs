@@ -1,9 +1,9 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct ApiProblem {
-    id: String,
-    contest_id: String,
-    problem_index: String,
-    name: String,
+    pub id: String,
+    pub contest_id: String,
+    pub problem_index: String,
+    pub name: String,
 }

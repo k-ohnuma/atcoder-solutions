@@ -1,0 +1,23 @@
+[
+  {
+    "id": "abc234_a",
+    "contest_id": "abc234",
+    "problem_index": "A",
+    "name": "Weird Function",
+    "title": "A. Weird Function"
+  },
+  {
+    "id": "abc234_b",
+    "contest_id": "abc234",
+    "problem_index": "B",
+    "name": "Longest Segment",
+    "title": "B. Longest Segment"
+  },
+  {
+    "id": "abc234_c",
+    "contest_id": "abc234",
+    "problem_index": "C",
+    "name": "Happy New Year!",
+    "title": "C. Happy New Year!"
+  }
+]
