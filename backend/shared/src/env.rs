@@ -15,4 +15,3 @@ pub fn which_env() -> Result<Environment> {
         _ => Ok(Environment::Dev),
     }
 }
-
