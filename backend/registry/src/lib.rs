@@ -1,14 +1,21 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use std::sync::Arc;
+
+use domain::ports::external::atcoder_problems::AtcoderProblemsPort;
+use infrastructure::{client::atcoder_problems::build_atcoder_problems_client, database::connect_database_with};
+use shared::config::AppConfig;
+
+pub struct Registroy {
+    atcoderProblemsClient: Arc<dyn AtcoderProblemsPort>
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Registroy {
+    pub fn new(config: AppConfig) -> Self {
+        let atcoder_problems_client = Arc::new(build_atcoder_problems_client(&config.atcoder_problems));
+        let pool = connect_database_with(&config.database);
+        
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        Self {
+            atcoderProblemsClient: atcoder_problems_client
+        }
     }
 }

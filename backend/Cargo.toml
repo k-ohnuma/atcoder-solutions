@@ -34,6 +34,7 @@ tracing-error = "0.2.1"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "uuid", "chrono", "macros", "postgres", "migrate"] }
 reqwest = {version = "0.12.23", features = ["json"]}
 
 #dev-dependencies
@@ -42,10 +43,7 @@ wiremock = "0.5"
 
 [dependencies]
 interface.workspace = true
-domain.workspace = true
-infrastructure.workspace = true
 shared.workspace = true
-registry.workspace = true
 
 anyhow.workspace = true
 axum.workspace = true
@@ -54,6 +52,3 @@ tower-http.workspace = true
 tracing-error.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-
-[dev-dependencies]
-rstest.workspace = true
