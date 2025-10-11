@@ -3,7 +3,7 @@ use domain::{
     model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
 };
 use reqwest::Client;
-use shared::error::ExternalError;
+use shared::error::external::ExternalError;
 
 pub struct AtcoderProblemsClient {
     client: Client,
@@ -50,7 +50,7 @@ mod tests {
         model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
     };
     use rstest::{fixture, rstest};
-    use shared::error::ExternalError;
+    use shared::error::external::ExternalError;
     use wiremock::{
         Mock, MockServer, ResponseTemplate,
         matchers::{method, path},

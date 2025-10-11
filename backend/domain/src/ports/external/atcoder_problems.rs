@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use shared::error::ExternalError;
+use shared::error::external::ExternalError;
 
 use crate::model::atcoder_problems::ApiProblem;
 
