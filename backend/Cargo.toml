@@ -22,6 +22,7 @@ domain = {path = "./domain"}
 infrastructure = {path = "./infrastructure"}
 shared = {path = "./shared"}
 registry = {path = "./registry"}
+usecase = {path = "./usecase/"}
 
 async-trait = "0.1.89"
 anyhow = "1.0.100"

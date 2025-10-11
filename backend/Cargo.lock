@@ -1234,6 +1234,8 @@ dependencies = [
  "registry",
  "serde",
  "serde_json",
+ "tracing",
+ "usecase",
 ]
 
 [[package]]
