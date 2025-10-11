@@ -32,12 +32,21 @@ erDiagram
     string name
   }
 
-  PROBLEMS {
+  CONTEST_SERIES {
     uuid id PK
-    string slug
-    string series
-    int  contest_number
-    string problem_letter
+    string code
+  }
+
+  CONTESTS {
+    uuid id PK
+    string code
+    string series_code FK
+  }
+
+  PROBLEMS {
+    string id PK
+    string contest_code FK
+    string problem_index
     string title
     timestamp created_at
     timestamp updated_at
