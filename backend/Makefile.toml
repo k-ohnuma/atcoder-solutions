@@ -9,6 +9,7 @@ DATABASE_PASSWORD = "password"
 DATABASE_NAME = "app"
 DATABASE_PORT_OUTER = 5432
 DATABASE_PORT_INNER = 5432
+ATCODER_PROBLEMS_BASE_ENDPOINT = "https://kenkoooo.com/atcoder"
 ENV = "dev"
 
 [tasks.set-env-docker.env]
