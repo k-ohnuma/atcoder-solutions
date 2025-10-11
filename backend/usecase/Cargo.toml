@@ -5,3 +5,8 @@ publish.workspace = true
 version.workspace = true
 
 [dependencies]
+domain.workspace = true
+shared.workspace = true
+derive-new.workspace = true
+thiserror.workspace = true
+itertools.workspace = true
