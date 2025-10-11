@@ -124,7 +124,9 @@ mod tests {
 
     #[rstest]
     #[tokio::test]
-    async fn fetch_problems_invalid_json(#[future(awt)] server_and_client: (MockServer, AtcoderProblemsClient)) {
+    async fn fetch_problems_invalid_json(
+        #[future(awt)] server_and_client: (MockServer, AtcoderProblemsClient),
+    ) {
         let server = server_and_client.0;
         let client = server_and_client.1;
         Mock::given(method("GET"))

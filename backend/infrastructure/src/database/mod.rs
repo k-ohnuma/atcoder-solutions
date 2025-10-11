@@ -25,4 +25,3 @@ impl ConnectionPool {
 pub fn connect_database_with(cfg: &DatabaseConfig) -> ConnectionPool {
     ConnectionPool(PgPool::connect_lazy_with(make_pg_connect_options(cfg)))
 }
-

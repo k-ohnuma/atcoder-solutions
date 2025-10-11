@@ -1,4 +1,3 @@
-pub mod ports;
-pub mod database;
 pub mod client;
-
+pub mod database;
+pub mod ports;

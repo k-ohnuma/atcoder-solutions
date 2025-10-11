@@ -1,7 +1,6 @@
 use sqlx::error::DatabaseError;
 use thiserror::Error;
 
-
 #[derive(Debug, Error)]
 pub enum RepositoryError {
     #[error("Failed to execute transaction.")]
@@ -36,7 +35,9 @@ impl From<sqlx::Error> for RepositoryError {
     fn from(err: sqlx::Error) -> Self {
         match err {
             sqlx::Error::RowNotFound => RepositoryError::NotFound,
-            sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => RepositoryError::Connection(err.to_string()),
+            sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => {
+                RepositoryError::Connection(err.to_string())
+            }
             sqlx::Error::Database(db_err) => map_database_error(&*db_err),
             _ => RepositoryError::Query(err.to_string()),
         }

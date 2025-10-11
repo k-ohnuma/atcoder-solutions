@@ -47,5 +47,3 @@ impl From<serde_json::Error> for ExternalError {
         ExternalError::InvalidJson(err.to_string())
     }
 }
-
-

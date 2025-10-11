@@ -67,7 +67,7 @@ impl From<ContestSeries> for String {
             ContestSeries::ARC => "ARC".into(),
             ContestSeries::AGC => "AGC".into(),
             ContestSeries::AHC => "AHC".into(),
-            _ => "OTHER".into()
+            _ => "OTHER".into(),
         }
     }
 }
@@ -79,7 +79,7 @@ impl From<ContestSeries> for &str {
             ContestSeries::ARC => "ARC",
             ContestSeries::AGC => "AGC",
             ContestSeries::AHC => "AHC",
-            _ => "OTHER".into()
+            _ => "OTHER".into(),
         }
     }
 }

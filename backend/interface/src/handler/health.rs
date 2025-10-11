@@ -11,4 +11,4 @@ pub async fn health_check_db(State(registry): State<Registry>) -> StatusCode {
     } else {
         StatusCode::INTERNAL_SERVER_ERROR
     }
-} 
+}
