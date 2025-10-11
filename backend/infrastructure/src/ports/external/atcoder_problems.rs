@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use domain::{
     model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
@@ -12,8 +14,17 @@ pub struct AtcoderProblemsClient {
 
 impl AtcoderProblemsClient {
     pub fn new(base: &str) -> Self {
+        let client = Client::builder()
+            .gzip(true)
+            .brotli(true)
+            .deflate(true)
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(30))
+            .build()
+            .expect("reqwest client build failed");
+
         Self {
-            client: Client::new(),
+            client,
             base_endpoint: base.into(),
         }
     }

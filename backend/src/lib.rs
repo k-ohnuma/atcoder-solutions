@@ -1,8 +1,8 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
-use anyhow::{Context, Result};
-use axum::Router;
-use interface::route::{health::build_health_check_routers, version::build_version_routers};
+use anyhow::{anyhow, Context, Result};
+use axum::{http::StatusCode, Router};
+use interface::{handler::problem::import_problem, route::{health::build_health_check_routers, version::build_version_routers}};
 use registry::Registry;
 use shared::{
     config::AppConfig,
@@ -46,7 +46,7 @@ pub async fn run() -> Result<()> {
     let app = Router::new()
         .merge(build_health_check_routers())
         .merge(build_version_routers())
-        .with_state(registry)
+        .with_state(registry.to_owned())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(
@@ -59,6 +59,17 @@ pub async fn run() -> Result<()> {
     let addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 8080);
     let listener = TcpListener::bind(addr).await?;
     tracing::info!("Listening on {}", addr);
+    tokio::spawn({
+        let reg = registry.to_owned();
+        async move {
+            loop {
+                tracing::info!("execute to fetch problems");
+                let _ = run_dayly_job(&reg).await;
+                tracing::info!("see you tommorow!");
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        }
+    });
     axum::serve(listener, app)
         .await
         .context("Unexpected error happened in server")
@@ -67,4 +78,12 @@ pub async fn run() -> Result<()> {
                 error.cause_chain = ?e,error.message = %e, "Unexpected error"
             )
         })
+}
+
+pub async fn run_dayly_job(reg: &Registry) -> Result<()> {
+    match import_problem(reg).await {
+        StatusCode::OK => Ok(()),
+        _ => Err(anyhow!("daily fetch failed")),
+    }?;
+    Ok(())
 }
