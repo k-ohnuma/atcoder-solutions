@@ -19,3 +19,4 @@ sqlx.workspace = true
 [dev-dependencies]
 wiremock.workspace = true
 rstest.workspace = true
+anyhow.workspace = true

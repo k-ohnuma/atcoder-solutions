@@ -1,5 +1,6 @@
 use super::atcoder_problems::ApiProblem;
 
+#[derive(Clone)]
 pub struct Problem {
     pub id: String,
     pub contest_code: String,
