@@ -1,10 +1,12 @@
 use std::sync::Arc;
 
 use domain::ports::{
-    external::atcoder_problems::AtcoderProblemsPort, repository::{health::HealthCheckRepository, problem::ProblemRepository},
+    external::atcoder_problems::AtcoderProblemsPort,
+    repository::{health::HealthCheckRepository, problem::ProblemRepository},
 };
 use infrastructure::{
-    client::atcoder_problems::build_atcoder_problems_client, database::connect_database_with,
+    client::atcoder_problems::build_atcoder_problems_client,
+    database::connect_database_with,
     ports::repository::{health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl},
 };
 use shared::config::AppConfig;
@@ -13,7 +15,7 @@ use shared::config::AppConfig;
 pub struct Registry {
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
     health_check_repository: Arc<dyn HealthCheckRepository>,
-    problem_repository: Arc<dyn ProblemRepository>
+    problem_repository: Arc<dyn ProblemRepository>,
 }
 
 impl Registry {
@@ -27,7 +29,7 @@ impl Registry {
         Self {
             atcoder_problems_port: atcoder_problems_client,
             health_check_repository,
-            problem_repository
+            problem_repository,
         }
     }
 

@@ -28,14 +28,15 @@ async fn create_records(pool: PgPool) -> Result<()> {
 
     repo.create_records(vec![p1, p2]).await?;
 
-    let (count,): (i64,) =
-        sqlx::query_as("SELECT COUNT(*) FROM contests")
-            .fetch_one(&pool)
-            .await?;
+    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM contests")
+        .fetch_one(&pool)
+        .await?;
 
     assert!(count == 1);
 
-    let (count, ) : (i64,) = sqlx::query_as("SELECT count(*) FROM problems").fetch_one(&pool).await?;
+    let (count,): (i64,) = sqlx::query_as("SELECT count(*) FROM problems")
+        .fetch_one(&pool)
+        .await?;
     assert!(count == 2);
 
     Ok(())
@@ -54,13 +55,19 @@ async fn upsert_records(pool: PgPool) -> Result<()> {
         title: "A - Example".into(),
     };
     repo.create_records(vec![p1.to_owned()]).await?;
-    let (title, ): (String, ) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'").fetch_one(&pool).await?;
+    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
+        .fetch_one(&pool)
+        .await?;
     assert_eq!(title, "A - Example");
 
-    let updated = Problem{title: "A - Example modified".into(), ..p1};
+    let updated = Problem {
+        title: "A - Example modified".into(),
+        ..p1
+    };
     repo.create_records(vec![updated]).await?;
-    let (title, ): (String, ) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'").fetch_one(&pool).await?;
+    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
+        .fetch_one(&pool)
+        .await?;
     assert_eq!(title, "A - Example modified");
     Ok(())
 }
-

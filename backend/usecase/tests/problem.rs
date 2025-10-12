@@ -38,11 +38,23 @@ impl ProblemRepository for DummyProblemsRepository {
 async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
     let port = Arc::new(DummyAtcoderProblemsPort {
         item: vec![
-            ApiProblem { id:"abc234_a".into(), contest_id:"abc234".into(), problem_index:"A".into(), name:"A - Example".into() },
-            ApiProblem { id:"abc234_b".into(), contest_id:"abc234".into(), problem_index:"B".into(), name:"B - Example".into() },
+            ApiProblem {
+                id: "abc234_a".into(),
+                contest_id: "abc234".into(),
+                problem_index: "A".into(),
+                name: "A - Example".into(),
+            },
+            ApiProblem {
+                id: "abc234_b".into(),
+                contest_id: "abc234".into(),
+                problem_index: "B".into(),
+                name: "B - Example".into(),
+            },
         ],
     });
-    let repo = Arc::new(DummyProblemsRepository { calls: Mutex::new(vec![]) });
+    let repo = Arc::new(DummyProblemsRepository {
+        calls: Mutex::new(vec![]),
+    });
 
     let uc = ImportProblemsUsecase::new(port, repo.clone());
     uc.execute().await.unwrap();
@@ -51,7 +63,7 @@ async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
     assert_eq!(calls.len(), 2);
     let sent = &calls[0];
     assert_eq!(sent.id, "abc234_a");
-    assert_eq!(sent.title, "A - Example"); 
+    assert_eq!(sent.title, "A - Example");
 
     Ok(())
 }

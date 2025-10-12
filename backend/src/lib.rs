@@ -1,8 +1,11 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
-use anyhow::{anyhow, Context, Result};
-use axum::{http::StatusCode, Router};
-use interface::{handler::problem::import_problem, route::{health::build_health_check_routers, version::build_version_routers}};
+use anyhow::{Context, Result, anyhow};
+use axum::{Router, http::StatusCode};
+use interface::{
+    handler::problem::import_problem,
+    route::{health::build_health_check_routers, version::build_version_routers},
+};
 use registry::Registry;
 use shared::{
     config::AppConfig,
