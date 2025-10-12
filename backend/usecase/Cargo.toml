@@ -10,3 +10,8 @@ shared.workspace = true
 derive-new.workspace = true
 thiserror.workspace = true
 itertools.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
