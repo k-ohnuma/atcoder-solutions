@@ -3,6 +3,7 @@ use anyhow::Result;
 pub struct AppConfig {
     pub atcoder_problems: AtcoderProblemsConfig,
     pub database: DatabaseConfig,
+    pub auth: AuthConfig,
 }
 
 impl AppConfig {
@@ -17,9 +18,14 @@ impl AppConfig {
             password: std::env::var("DATABASE_PASSWORD")?,
             database: std::env::var("DATABASE_NAME")?,
         };
+        let auth = AuthConfig {
+            project_id: std::env::var("FIREBASE_PROJECT_ID")?,
+        };
+
         Ok(Self {
             atcoder_problems,
             database,
+            auth,
         })
     }
 }
@@ -34,4 +40,8 @@ pub struct DatabaseConfig {
     pub username: String,
     pub password: String,
     pub database: String,
+}
+
+pub struct AuthConfig {
+    pub project_id: String,
 }

@@ -1,18 +1,22 @@
 use std::sync::Arc;
 
 use domain::ports::{
-    external::atcoder_problems::AtcoderProblemsPort,
+    external::{atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort},
     repository::{health::HealthCheckRepository, problem::ProblemRepository},
 };
 use infrastructure::{
     client::atcoder_problems::build_atcoder_problems_client,
     database::connect_database_with,
-    ports::repository::{health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl},
+    ports::{
+        external::auth::FirebaseAuthenticator,
+        repository::{health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl},
+    },
 };
 use shared::config::AppConfig;
 
 #[derive(Clone)]
 pub struct Registry {
+    auth_port: Arc<dyn AuthenticatorPort>,
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
     health_check_repository: Arc<dyn HealthCheckRepository>,
     problem_repository: Arc<dyn ProblemRepository>,
@@ -26,10 +30,13 @@ impl Registry {
         let health_check_repository = Arc::new(HealthCheckRepositoryImpl::new(pool.to_owned()));
         let problem_repository = Arc::new(ProblemRepositoryImpl::new(pool.to_owned()));
 
+        let authenticator = Arc::new(FirebaseAuthenticator::new(&config.auth.project_id));
+
         Self {
             atcoder_problems_port: atcoder_problems_client,
             health_check_repository,
             problem_repository,
+            auth_port: authenticator,
         }
     }
 
@@ -41,5 +48,8 @@ impl Registry {
     }
     pub fn atcoder_problems_port(&self) -> Arc<dyn AtcoderProblemsPort> {
         self.atcoder_problems_port.to_owned()
+    }
+    pub fn auth_port(&self) -> Arc<dyn AuthenticatorPort> {
+        self.auth_port.to_owned()
     }
 }
