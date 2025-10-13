@@ -1,6 +1,32 @@
 import Image from "next/image";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  // createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
-export default function Home() {
+export default async function Home() {
+  const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const auth = getAuth(app);
+  await setPersistence(auth, browserLocalPersistence);
+  const email = process.env.NEXT_PUBLIC_SAMPLE_EMAIL!;
+  const password = process.env.NEXT_PUBLIC_SAMPLE_PASSWORD!
+  // await createUserWithEmailAndPassword(auth, email, password);
+  await signInWithEmailAndPassword(auth, email, password);
+  const idToken = await auth.currentUser?.getIdToken();
+  console.log(idToken);
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
