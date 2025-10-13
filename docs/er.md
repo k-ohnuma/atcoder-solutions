@@ -18,10 +18,9 @@ erDiagram
   TAGS ||--o{ SOLUTION_TAGS : "タグは複数の解説に共有される"
 
   USERS {
-    uuid id PK
-    string firebase_uid
+    string id PK
     string username
-    string email
+    string color
     uuid role_id FK
     timestamp created_at
     timestamp updated_at
