@@ -6,3 +6,9 @@ VALUES
   (gen_random_uuid(), 'AHC', CURRENT_TIMESTAMP(3)),
   (gen_random_uuid(), 'OTHER', CURRENT_TIMESTAMP(3))
 ON CONFLICT(code) DO NOTHING;
+
+INSERT INTO roles(name)
+VALUES
+  ('user'),
+  ('admin')
+ON CONFLICT(name) DO NOTHING;

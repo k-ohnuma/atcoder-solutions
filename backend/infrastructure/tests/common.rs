@@ -13,3 +13,16 @@ pub async fn seed_contest_series(pool: &PgPool) -> Result<()> {
     }
     Ok(())
 }
+
+pub async fn seed_roles(pool: &PgPool) -> Result<()> {
+    for role in ["admin", "user"] {
+        sqlx::query!(
+            r#"
+            INSERT INTO roles (name)
+            VALUES ($1) ON CONFLICT DO NOTHING
+            "#,
+            role
+        ).execute(pool).await?;
+    }
+    Ok(())
+}
