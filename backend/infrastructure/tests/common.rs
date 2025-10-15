@@ -22,7 +22,9 @@ pub async fn seed_roles(pool: &PgPool) -> Result<()> {
             VALUES ($1) ON CONFLICT DO NOTHING
             "#,
             role
-        ).execute(pool).await?;
+        )
+        .execute(pool)
+        .await?;
     }
     Ok(())
 }

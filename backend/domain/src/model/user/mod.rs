@@ -5,7 +5,7 @@ use strum::{Display, EnumString};
 pub enum Role {
     #[default]
     User,
-    Admin
+    Admin,
 }
 
 pub struct User {

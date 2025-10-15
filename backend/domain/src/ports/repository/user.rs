@@ -8,4 +8,3 @@ pub trait UserRepository: Send + Sync {
     async fn create_user(&self, user: User) -> Result<(), RepositoryError>;
     async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError>;
 }
-

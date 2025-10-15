@@ -41,7 +41,8 @@ async fn user_records(pool: PgPool) -> Result<()> {
 
     let count = sqlx::query_scalar!("SELECT COUNT(*) FROM users")
         .fetch_one(&pool)
-        .await?.unwrap_or(0);
+        .await?
+        .unwrap_or(0);
     assert!(count == 2);
 
     Ok(())

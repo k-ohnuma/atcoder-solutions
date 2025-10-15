@@ -9,7 +9,10 @@ use infrastructure::{
     database::connect_database_with,
     ports::{
         external::auth::FirebaseAuthenticator,
-        repository::{health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl, user::UserRepositoryImpl},
+        repository::{
+            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
+            user::UserRepositoryImpl,
+        },
     },
 };
 use shared::config::AppConfig;
@@ -20,7 +23,7 @@ pub struct Registry {
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
     health_check_repository: Arc<dyn HealthCheckRepository>,
     problem_repository: Arc<dyn ProblemRepository>,
-    user_repository: Arc<dyn UserRepository>
+    user_repository: Arc<dyn UserRepository>,
 }
 
 impl Registry {
@@ -39,7 +42,7 @@ impl Registry {
             health_check_repository,
             problem_repository,
             auth_port: authenticator,
-            user_repository
+            user_repository,
         }
     }
 

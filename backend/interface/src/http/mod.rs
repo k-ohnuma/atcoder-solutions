@@ -3,7 +3,10 @@ use axum::{
     http::{StatusCode, header, request::Parts},
     response::IntoResponse,
 };
-use domain::{model::user::Role, ports::external::auth::{AuthError, Principal}};
+use domain::{
+    model::user::Role,
+    ports::external::auth::{AuthError, Principal},
+};
 
 use registry::Registry;
 
@@ -57,13 +60,17 @@ impl FromRequestParts<Registry> for AdminUser {
         state: &Registry,
     ) -> Result<Self, Self::Rejection> {
         let AuthUser(principal) = AuthUser::from_request_parts(parts, state).await?;
-        let user = state.user_repository().find_by_uid(principal.uid.as_str()).await.map_err(|_c| AuthRejection::Unavailable)?;
+        let user = state
+            .user_repository()
+            .find_by_uid(principal.uid.as_str())
+            .await
+            .map_err(|_c| AuthRejection::Unavailable)?;
 
         let role = user.role;
 
         match role {
             Role::Admin => return Ok(AdminUser(principal)),
-            _ => Err(AuthRejection::Forbidden)
+            _ => Err(AuthRejection::Forbidden),
         }
     }
 }
