@@ -106,3 +106,49 @@ async fn create_user_same_id_is_db_error_not_conflict(pool: PgPool) -> Result<()
 
     Ok(())
 }
+
+#[sqlx::test(migrations = "./migrations")]
+async fn find_by_uid(pool: PgPool) -> Result<()> {
+    seed_roles(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = UserRepositoryImpl::new(conn);
+
+    let u1 = make_user("id1", "bob1", "#000000");
+    let u2 = make_user("id2", "bob2", "#ffffff");
+    let u3 = make_user("id3", "bob3", "#ffffff");
+    for user in [u1, u2, u3] {
+        repo.create_user(user).await?;
+    }
+
+    let user = repo.find_by_uid("id1").await?;
+    assert_eq!(user.user_name, "bob1");
+    assert_eq!(user.color, "#000000");
+
+    let user = repo.find_by_uid("id3").await?;
+    assert_eq!(user.user_name, "bob3");
+    assert_eq!(user.color, "#ffffff");
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "./migrations")]
+async fn find_by_uid_no_record(pool: PgPool) -> Result<()> {
+    seed_roles(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = UserRepositoryImpl::new(conn);
+
+    let u1 = make_user("id1", "bob1", "#000000");
+    let u2 = make_user("id2", "bob2", "#ffffff");
+    let u3 = make_user("id3", "bob3", "#ffffff");
+    for user in [u1, u2, u3] {
+        repo.create_user(user).await?;
+    }
+
+    let err = repo.find_by_uid("id999").await.expect_err("should error");
+    let mat = matches!(err, RepositoryError::NotFound(_));
+    assert!(mat, "should be not found error");
+
+    Ok(())
+}

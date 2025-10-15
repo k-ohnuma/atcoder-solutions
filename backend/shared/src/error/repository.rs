@@ -6,8 +6,8 @@ pub enum RepositoryError {
     #[error("Failed to execute transaction.")]
     TransactionError(#[source] sqlx::Error),
 
-    #[error("Record not found.")]
-    NotFound,
+    #[error("Record not found.: {0}")]
+    NotFound(String),
 
     #[error("Unique constraint violation: {0}")]
     UniqueViolation(String),
@@ -34,7 +34,7 @@ pub enum RepositoryError {
 impl From<sqlx::Error> for RepositoryError {
     fn from(err: sqlx::Error) -> Self {
         match err {
-            sqlx::Error::RowNotFound => RepositoryError::NotFound,
+            sqlx::Error::RowNotFound => RepositoryError::NotFound(err.to_string()),
             sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => {
                 RepositoryError::Connection(err.to_string())
             }
