@@ -3,7 +3,7 @@ use derive_new::new;
 use domain::{model::user::User, ports::repository::user::UserRepository};
 use shared::error::repository::RepositoryError;
 
-use crate::database::ConnectionPool;
+use crate::{database::ConnectionPool, model::user::UserRow};
 
 #[derive(new)]
 pub struct UserRepositoryImpl {
@@ -24,11 +24,31 @@ impl UserRepository for UserRepositoryImpl {
             user.role.to_string(),
             user.user_name,
             user.color
-        ).fetch_optional(self.db.inner_ref()).await.map_err(RepositoryError::from)?;
+        )
+        .fetch_optional(self.db.inner_ref())
+        .await
+        .map_err(RepositoryError::from)?;
 
         if inserted.is_none() {
-            return Err(RepositoryError::UniqueViolation(format!("user_name: {}", user.user_name)));
+            return Err(RepositoryError::UniqueViolation(format!(
+                "user_name: {}",
+                user.user_name
+            )));
         }
         Ok(())
+    }
+    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
+        let user = sqlx::query_as!(
+            UserRow,
+            r#"
+            SELECT * FROM users WHERE id = $1
+            "#,
+            uid,
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(RepositoryError::from)?;
+
+        Ok(User::from(user))
     }
 }
