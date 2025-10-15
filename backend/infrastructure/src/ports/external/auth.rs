@@ -129,7 +129,7 @@ impl AuthenticatorPort for FirebaseAuthenticator {
 
         Ok(Principal {
             uid: data.claims.sub,
-            email: data.claims.email.unwrap(),
+            email: data.claims.email.ok_or(AuthError::Unauthorized)?,
         })
     }
 }
