@@ -84,7 +84,7 @@ impl FirebaseAuthenticator {
                 project_id: project_id.into(),
                 jwks_url: jwks_url.into(),
             },
-            jwks: JwksCache::new(jwks_url.into()),
+            jwks: JwksCache::new(jwks_url),
         }
     }
 }
