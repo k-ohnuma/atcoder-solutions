@@ -1,6 +1,4 @@
-mod common;
 use anyhow::Result;
-use common::seed_roles;
 use domain::{
     model::user::{Role, User},
     ports::repository::user::UserRepository,
@@ -8,6 +6,21 @@ use domain::{
 use infrastructure::{database::ConnectionPool, ports::repository::user::UserRepositoryImpl};
 use shared::error::repository::RepositoryError;
 use sqlx::PgPool;
+
+pub async fn seed_roles(pool: &PgPool) -> Result<()> {
+    for role in ["admin", "user"] {
+        sqlx::query!(
+            r#"
+            INSERT INTO roles (name)
+            VALUES ($1) ON CONFLICT DO NOTHING
+            "#,
+            role
+        )
+        .execute(pool)
+        .await?;
+    }
+    Ok(())
+}
 
 fn make_user(id: &str, name: &str, color: &str) -> User {
     User {
