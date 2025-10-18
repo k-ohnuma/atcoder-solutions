@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type Props = { href?: string; className?: string, appName: string };
+type Props = { href?: string; className?: string; appName: string };
 export function Logo({ href = "/", className, appName }: Props) {
   const inner = (
     <span

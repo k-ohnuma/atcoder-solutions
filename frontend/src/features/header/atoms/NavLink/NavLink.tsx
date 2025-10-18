@@ -18,12 +18,15 @@ export function NavLink({ href, children, exact = false, className }: Props) {
       href={href}
       className={[
         "px-3 py-2 text-sm transition-colors",
-        active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+        active
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground",
         className,
-      ].filter(Boolean).join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {children}
     </Link>
   );
 }
-
