@@ -2,6 +2,9 @@ name: CI for backend
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "frontend/**"
+      - "docs/**"
   pull_request:
     paths-ignore:
       - "frontend/**"
