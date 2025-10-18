@@ -119,3 +119,22 @@ args = ["compose", "up", "-d", "postgres"]
 extend = "set-env-docker"
 command = "docker"
 args = ["compose", "down"]
+
+[tasks.ci-test]
+dependencies = ["before-build"]
+run_task = "test"
+
+[tasks.ci-clippy]
+command = "cargo"
+args = ["clippy", "--all-targets", "--all-features", "--locked", "--", "-D", "warnings"]
+
+[tasks.ci-fmt]
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+
+[tasks.gitpush]
+dependencies = ["ci-test", "ci-clippy", "ci-fmt"]
+script = [
+    "branch=$(git rev-parse --abbrev-ref HEAD)",
+    "git push origin $branch"
+]

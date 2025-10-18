@@ -1,11 +1,22 @@
 use anyhow::Result;
-use common::seed_contest_series;
 use domain::model::problem::Problem;
 use domain::ports::repository::problem::ProblemRepository;
 use infrastructure::{database::ConnectionPool, ports::repository::problem::ProblemRepositoryImpl};
 use sqlx::PgPool;
 
-pub mod common;
+#[cfg(test)]
+pub async fn seed_contest_series(pool: &PgPool) -> Result<()> {
+    for code in ["ABC", "ARC", "AGC", "AHC", "OTHER"] {
+        sqlx::query!(
+            r#"INSERT INTO contest_series (code)
+               VALUES ($1) ON CONFLICT (code) DO NOTHING"#,
+            code
+        )
+        .execute(pool)
+        .await?;
+    }
+    Ok(())
+}
 
 #[sqlx::test(migrations = "./migrations")]
 async fn create_records(pool: PgPool) -> Result<()> {

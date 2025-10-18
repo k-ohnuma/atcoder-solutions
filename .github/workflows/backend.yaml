@@ -1,0 +1,47 @@
+name: CI for backend
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths-ignore:
+      - "frontend/**"
+      - "docs/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: rustup show
+        run: rustup show
+
+      - name: install components
+        run: rustup component add clippy rustfmt
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            backend -> target
+
+      - name: install nextest and cargo-make
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest,cargo-make
+
+      - name: build
+        run: cargo make ci-test --no-run --locked
+
+      - name: clippy
+        run: cargo make ci-clippy
+
+      - name: fmt
+        run: cargo make ci-fmt
+
+      - name: test
+        run: cargo make ci-test
+

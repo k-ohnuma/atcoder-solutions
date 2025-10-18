@@ -69,7 +69,7 @@ impl FromRequestParts<Registry> for AdminUser {
         let role = user.role;
 
         match role {
-            Role::Admin => return Ok(AdminUser(principal)),
+            Role::Admin => Ok(AdminUser(principal)),
             _ => Err(AuthRejection::Forbidden),
         }
     }

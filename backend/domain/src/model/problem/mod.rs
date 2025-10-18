@@ -80,7 +80,7 @@ impl From<ContestSeries> for &str {
             ContestSeries::ARC => "ARC",
             ContestSeries::AGC => "AGC",
             ContestSeries::AHC => "AHC",
-            _ => "OTHER".into(),
+            _ => "OTHER",
         }
     }
 }
