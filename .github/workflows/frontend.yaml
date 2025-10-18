@@ -1,0 +1,39 @@
+name: CI for frontend
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "backend/**"
+      - "docs/**"
+  pull_request:
+    paths-ignore:
+      - "backend/**"
+      - "docs/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/package.json
+          cache-dependency-path: frontend/package-lock.json
+          cache: 'npm'
+
+      - name: install dependency
+        run: npm ci
+
+      - name: type-check
+        run: npm run tc
+
+      - name: lint
+        run: npm run lint
+
+      - name: fmt
+        run: npm run format:check
+
