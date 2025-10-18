@@ -22,7 +22,7 @@ export default async function Home() {
   const auth = getAuth(app);
   await setPersistence(auth, browserLocalPersistence);
   const email = process.env.NEXT_PUBLIC_SAMPLE_EMAIL!;
-  const password = process.env.NEXT_PUBLIC_SAMPLE_PASSWORD!
+  const password = process.env.NEXT_PUBLIC_SAMPLE_PASSWORD!;
   // await createUserWithEmailAndPassword(auth, email, password);
   await signInWithEmailAndPassword(auth, email, password);
   const idToken = await auth.currentUser?.getIdToken();
