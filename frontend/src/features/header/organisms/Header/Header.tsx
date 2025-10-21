@@ -1,3 +1,4 @@
+import { css } from "styled-system/css";
 import { Logo } from "@/shared/ui/atoms/Logo";
 import { NavList, type NavItem } from "../../molecules/NavList";
 
@@ -14,11 +15,31 @@ export function Header({
   appName: string;
 }) {
   return (
-    <header className="w-full border-b">
-      <div className="mx-auto flex h-14 max-w-6xl items-center px-4">
-        <Logo className="mr-4" appName={appName} />
+    <header
+      className={css({
+        w: "full",
+        borderBottomWidth: "1px",
+      })}
+    >
+      <div
+        className={css({
+          mx: "auto",
+          display: "flex",
+          h: "14",
+          alignItems: "center",
+          px: "4",
+        })}
+      >
+        <Logo className={css({ mr: "4" })} appName={appName} />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div
+          className={css({
+            ml: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: "2",
+          })}
+        >
           <NavList items={items} />
         </div>
       </div>
