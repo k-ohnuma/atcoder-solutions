@@ -6,13 +6,9 @@ import {
   FieldPath,
   FieldValues,
 } from "react-hook-form";
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-} from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { fieldRootStyle } from "./style";
 
 type Props<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -35,22 +31,24 @@ export function RhfTextField<TFieldValues extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <Field className="grid gap-1">
-          <FieldLabel htmlFor={name}>{label}</FieldLabel>
-          <Input
-            id={name}
-            type={type}
-            placeholder={placeholder}
-            {...field}
-            aria-invalid={!!fieldState.error}
-          />
-          {description && <FieldDescription>{description}</FieldDescription>}
-          {fieldState.error?.message && (
-            <FieldError>{fieldState.error.message}</FieldError>
-          )}
-        </Field>
-      )}
+      render={({ field, fieldState }) => {
+        return (
+          <Field.Root className={fieldRootStyle} invalid={!!fieldState.error}>
+            <Field.Label htmlFor={name}>{label}</Field.Label>
+            <Input
+              id={name}
+              type={type}
+              placeholder={placeholder}
+              {...field}
+              aria-invalid={fieldState.error ? "true" : undefined}
+            />
+            {description && <Field.HelperText>{description}</Field.HelperText>}
+            {fieldState.error?.message && (
+              <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>
+            )}
+          </Field.Root>
+        );
+      }}
     />
   );
 }

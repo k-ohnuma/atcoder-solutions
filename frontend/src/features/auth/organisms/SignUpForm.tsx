@@ -12,6 +12,7 @@ import {
   PasswordField,
   UserNameField,
 } from "../molecules";
+import { formStyle } from "./style/Form/formStyle";
 
 const schema = z
   .object({
@@ -50,7 +51,7 @@ export function SignUpForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className={formStyle}>
       <UserNameField control={control} />
       <EmailField control={control} />
       <PasswordField control={control} />

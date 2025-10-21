@@ -19,21 +19,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: frontend/package.json
-          cache-dependency-path: frontend/package-lock.json
-          cache: 'npm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache: 'pnpm'
 
       - name: install dependency
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: type-check
-        run: npm run tc
+        run: pnpm run tc
 
       - name: lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: fmt
-        run: npm run format:check
+        run: pnpm run format:check
 

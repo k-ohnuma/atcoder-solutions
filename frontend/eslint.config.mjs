@@ -23,6 +23,7 @@ const eslintConfig = [
     },
     plugins: { "@typescript-eslint": tseslint },
     rules: {
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
@@ -70,6 +71,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "styled-system",
+      "src/components/ui/styled/utils/create-style-context.tsx",
     ],
   },
 ];
