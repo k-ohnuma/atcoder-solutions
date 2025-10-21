@@ -5,23 +5,21 @@ type Props = { href?: string; className?: string; appName: string };
 export function Logo({ href = "/", className, appName }: Props) {
   const wrapper = css({
     display: "inline-flex",
-    alignItems: 'center',
+    alignItems: "center",
     gap: "2",
     fontWeight: "semibold",
-    verticalAlign: 'middle'
-  })
+    verticalAlign: "middle",
+  });
 
   const icon = css({
-    display: 'inline-block',
+    display: "inline-block",
     h: "5",
     w: "5",
     rounded: "md",
-    bg: "beige"
-  })
+    bg: "beige",
+  });
   const inner = (
-    <span
-      className={cx(wrapper, className)}
-    >
+    <span className={cx(wrapper, className)}>
       <span className={icon} />
       <span>{appName}</span>
     </span>

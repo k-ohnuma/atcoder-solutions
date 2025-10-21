@@ -10,16 +10,16 @@ export function AuthTemplate({
   children: React.ReactNode;
 }) {
   const mainStyle = css({
-    maxWidth: 'xl',
+    maxWidth: "xl",
     px: "4",
-    py: '8',
-    mx: 'auto'
-  })
+    py: "8",
+    mx: "auto",
+  });
   const titleStyle = css({
-    mb: '6',
-    fontWeight: 'semibold',
-    fontSize: '2xl'
-  })
+    mb: "6",
+    fontWeight: "semibold",
+    fontSize: "2xl",
+  });
   return (
     <main className={mainStyle}>
       <h1 className={titleStyle}>{title}</h1>
