@@ -63,7 +63,7 @@ export function RhfToggleField<TFieldValues extends FieldValues>({
                   <ToggleGroup.Item
                     key={c.value}
                     value={c.value}
-                    className={toggleItemClass({ color: c.value as any })}
+                    className={toggleItemClass({color: c.value as any})}
                   >
                     {c.value && (
                       <span
