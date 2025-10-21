@@ -71,6 +71,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "styled-system",
+      "src/components/ui/styled/utils/create-style-context.tsx",
     ],
   },
 ];
