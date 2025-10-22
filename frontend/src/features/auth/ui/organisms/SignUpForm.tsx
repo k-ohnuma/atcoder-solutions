@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -13,25 +12,12 @@ import {
   UserNameField,
 } from "../molecules";
 import { formStyle } from "./style/Form/formStyle";
-
-const schema = z
-  .object({
-    userName: z.string().min(1, "ユーザー名を入力してください"),
-    email: z.email({ error: "メールアドレスの形式が正しくありません" }),
-    password: z.string().min(1, "パスワードを入力してください"),
-    confirm: z.string(),
-    color: z.string().min(1, "選択してください"),
-  })
-  .refine((v) => v.password === v.confirm, {
-    path: ["confirm"],
-    message: "パスワードが一致しません",
-  });
-
-type FormValues = z.infer<typeof schema>;
+import { signUpSchema, SignUpSchema } from "../../model/schema";
+import { onSubmitSignUp } from "../../lib/submit";
 
 export function SignUpForm() {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<SignUpSchema>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       userName: "",
       email: "",
@@ -46,12 +32,8 @@ export function SignUpForm() {
     formState: { isSubmitting },
   } = form;
 
-  const onSubmit = async (values: FormValues) => {
-    console.log(values);
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={formStyle}>
+    <form onSubmit={handleSubmit(onSubmitSignUp)} className={formStyle}>
       <UserNameField control={control} />
       <EmailField control={control} />
       <PasswordField control={control} />
