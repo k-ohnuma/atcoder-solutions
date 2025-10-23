@@ -1,0 +1,95 @@
+use std::sync::{Arc, Mutex};
+
+use anyhow::Result;
+use async_trait::async_trait;
+use domain::{
+    model::user::{Color, Role, User},
+    ports::repository::user::UserRepository,
+};
+use shared::error::repository::RepositoryError;
+use usecase::user::{
+    UserError,
+    create_user::{CreateUserInput, CreateUserUsecase},
+};
+
+struct DummyUserRepository {
+    calls: Mutex<Vec<User>>,
+}
+
+#[async_trait]
+impl UserRepository for DummyUserRepository {
+    async fn create_user(&self, user: User) -> Result<(), RepositoryError> {
+        let id = user.id.as_str();
+        match id {
+            "conflict" => return Err(RepositoryError::UniqueViolation("already exist".into())),
+            _ => {}
+        }
+        self.calls.lock().unwrap().push(user);
+        Ok(())
+    }
+    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
+        if uid == "valid id" {
+            return Ok(User {
+                id: uid.into(),
+                role: Role::default(),
+                color: Color::default(),
+                user_name: "valid user".into(),
+            });
+        }
+        Err(RepositoryError::NotFound("Not found".into()))
+    }
+}
+
+#[tokio::test]
+async fn usecase_create_user_ok() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+    });
+    let uc = CreateUserUsecase::new(repo.to_owned());
+
+    let input = CreateUserInput {
+        uid: "valid".into(),
+        user_name: "user_name".into(),
+        color: Color::Red,
+    };
+
+    let t = uc.execute(input).await;
+    assert!(t.is_ok());
+    let output = t.unwrap();
+    let c2 = output.color;
+    assert_eq!(c2, Color::Red);
+    assert_eq!(output.user_name, "user_name");
+
+    let calls = repo.calls.lock().unwrap();
+    assert!(calls.len() == 1);
+
+    let user = &calls[0];
+    let m = &user.role;
+
+    assert!(matches!(m, Role::User));
+    assert_eq!(user.user_name, "user_name");
+    assert_eq!(user.id, "valid");
+    assert!(matches!(user.color, Color::Red));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn usecase_create_user_conflict() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+    });
+    let uc = CreateUserUsecase::new(repo.to_owned());
+
+    let input = CreateUserInput {
+        uid: "conflict".into(),
+        user_name: "user_name".into(),
+        color: Color::Red,
+    };
+
+    let t = uc.execute(input).await.expect_err("conf");
+
+    matches!(t, UserError::Conflict(_));
+    //
+    Ok(())
+}

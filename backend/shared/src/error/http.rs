@@ -1,0 +1,52 @@
+use axum::{Json, http::StatusCode, response::IntoResponse};
+use serde::Serialize;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum HttpError {
+    #[error("Bad Request: {0}")]
+    BadRequest(String),
+
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
+
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
+
+    #[error("Not Found: {0}")]
+    NotFound(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
+
+    #[error("Internal Server Error: {0}")]
+    Internal(String),
+}
+
+impl HttpError {
+    pub fn status_code(&self) -> StatusCode {
+        match self {
+            HttpError::BadRequest(_) => StatusCode::BAD_REQUEST,
+            HttpError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            HttpError::Forbidden(_) => StatusCode::FORBIDDEN,
+            HttpError::NotFound(_) => StatusCode::NOT_FOUND,
+            HttpError::Conflict(_) => StatusCode::CONFLICT,
+            HttpError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct ErrorResponse {
+    error: String,
+}
+
+impl IntoResponse for HttpError {
+    fn into_response(self) -> axum::response::Response {
+        let status = self.status_code();
+        let body = Json(ErrorResponse {
+            error: self.to_string(),
+        });
+        (status, body).into_response()
+    }
+}

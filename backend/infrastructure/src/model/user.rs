@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
-use domain::model::user::{Role, User};
+use domain::model::user::{Color, Role, User};
 
 pub struct UserRow {
     pub id: String,
@@ -17,7 +17,8 @@ impl From<UserRow> for User {
         Self {
             id: value.id,
             role: Role::from_str(value.role.as_str()).expect("role must be admin or user"),
-            color: value.color,
+            color: Color::from_str(value.color.as_str())
+                .unwrap_or_else(|_| panic!("color is invalid: {}", value.color.as_str())),
             user_name: value.user_name,
         }
     }
