@@ -14,6 +14,7 @@ import {
 import { formStyle } from "./style/Form/formStyle";
 import { signUpSchema, SignUpSchema } from "../../model/schema";
 import { onSubmitSignUp } from "../../lib/submit";
+import { css } from "styled-system/css";
 
 export function SignUpForm() {
   const form = useForm<SignUpSchema>({
@@ -33,7 +34,13 @@ export function SignUpForm() {
   } = form;
 
   return (
-    <form onSubmit={handleSubmit(onSubmitSignUp)} className={formStyle}>
+    <form onSubmit={handleSubmit(async(value) => {
+      try {
+        await onSubmitSignUp(value);
+      } catch(e: any) {
+        form.setError("root", {message: e.message})
+      }
+    })} className={formStyle}>
       <UserNameField control={control} />
       <EmailField control={control} />
       <PasswordField control={control} />
@@ -41,7 +48,15 @@ export function SignUpForm() {
       <ColorField control={control} />
 
       {form.formState.errors.root?.message && (
-        <p className="rounded-md border border-red-300 p-3 text-sm text-red-700">
+        // <p className="rounded-md border border-red-300 p-3 text-sm text-red-700">
+        <p className={css({
+          borderColor: 'red.300',
+          borderStyle: 'solid',
+          borderWidth: 'thick',
+          p: '3',
+          color: 'red.700',
+          fontSize: 'sm'
+        })}>
           {form.formState.errors.root.message}
         </p>
       )}

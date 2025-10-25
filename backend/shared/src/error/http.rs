@@ -1,6 +1,8 @@
-use axum::{Json, http::StatusCode, response::IntoResponse};
+use axum::{http::StatusCode, response::IntoResponse};
 use serde::Serialize;
 use thiserror::Error;
+
+use crate::response::ApiResponse;
 
 #[derive(Debug, Error)]
 pub enum HttpError {
@@ -44,9 +46,7 @@ pub struct ErrorResponse {
 impl IntoResponse for HttpError {
     fn into_response(self) -> axum::response::Response {
         let status = self.status_code();
-        let body = Json(ErrorResponse {
-            error: self.to_string(),
-        });
-        (status, body).into_response()
+        let body: ApiResponse<()> = ApiResponse::err(status, self.to_string());
+        body.into_response()
     }
 }
