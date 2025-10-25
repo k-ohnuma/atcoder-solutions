@@ -4,7 +4,10 @@ use anyhow::{Context, Result, anyhow};
 use axum::{Router, http::StatusCode};
 use interface::{
     handler::problem::import_problem,
-    route::{health::build_health_check_routers, version::build_version_routers},
+    route::{
+        health::build_health_check_routers, user::build_user_routers,
+        version::build_version_routers,
+    },
 };
 use registry::Registry;
 use shared::{
@@ -49,6 +52,7 @@ pub async fn run() -> Result<()> {
     let app = Router::new()
         .merge(build_health_check_routers())
         .merge(build_version_routers())
+        .merge(build_user_routers())
         .with_state(registry.to_owned())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateRequestIdLayer::x_request_id())

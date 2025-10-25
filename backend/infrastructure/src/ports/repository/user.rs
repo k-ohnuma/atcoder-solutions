@@ -23,7 +23,7 @@ impl UserRepository for UserRepositoryImpl {
             user.id,
             user.role.to_string(),
             user.user_name,
-            user.color
+            user.color.to_string()
         )
         .fetch_optional(self.db.inner_ref())
         .await

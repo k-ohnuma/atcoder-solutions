@@ -1478,6 +1478,9 @@ dependencies = [
  "registry",
  "serde",
  "serde_json",
+ "shared",
+ "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "usecase",
 ]
@@ -2537,6 +2540,7 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "axum",
  "reqwest",
  "serde",
  "serde_json",
