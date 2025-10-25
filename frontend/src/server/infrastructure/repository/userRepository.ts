@@ -12,17 +12,19 @@ export class UserRepositoryImpl implements UserRepository {
   }
 
   private createReqPath = () => {
-    return 'users';
-  }
+    return "users";
+  };
 
-  async create(input: Pick<User, 'userName' | 'color'>, token: string): Promise<Resp<User>> {
+  async create(
+    input: Pick<User, "userName" | "color">,
+    token: string,
+  ): Promise<Resp<User>> {
     const path = this.createReqPath();
     const body = {
       userName: input.userName,
-      color: input.color
-    }
-    const user = await this.client.postWithToken<User>(path, token, body)
-    return user
+      color: input.color,
+    };
+    const user = await this.client.postWithToken<User>(path, token, body);
+    return user;
   }
-
 }

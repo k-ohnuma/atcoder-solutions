@@ -4,17 +4,17 @@ import z from "zod";
 type FirebaseConfig = {
   projectId: string;
   clientEmail: string;
-  privateKey: string
+  privateKey: string;
 };
 
 type AppConfig = {
-  appName: string,
-  apiBaseEndpoint: string
-}
+  appName: string;
+  apiBaseEndpoint: string;
+};
 
 type BackendConfig = {
   firebaseConfig: FirebaseConfig;
-  appConfig: AppConfig
+  appConfig: AppConfig;
 };
 
 const envSchema = z.object({
@@ -36,12 +36,10 @@ export const backendConfig: BackendConfig = {
   firebaseConfig: {
     projectId: env.FIREBASE_PROJECT_ID,
     clientEmail: env.FIREBASE_CLIENT_EMAIL,
-    privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+    privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
   },
   appConfig: {
     appName: env.APP_NAME,
-    apiBaseEndpoint: env.API_BASE_ENDPOINT
-  }
+    apiBaseEndpoint: env.API_BASE_ENDPOINT,
+  },
 };
-
-

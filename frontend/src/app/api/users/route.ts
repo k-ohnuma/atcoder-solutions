@@ -31,8 +31,5 @@ export async function POST(req: NextRequest) {
       { status: created.status },
     );
   }
-  return NextResponse.json(
-    { ok: true, data: created.data  },
-    { status: 200 },
-  );
+  return NextResponse.json({ ok: true, data: created.data }, { status: 200 });
 }

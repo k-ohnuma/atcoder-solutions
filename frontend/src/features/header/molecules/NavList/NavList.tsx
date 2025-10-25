@@ -25,9 +25,9 @@ export function NavList({ items }: { items: NavItem[] }) {
             className={css({
               px: 3,
               py: 2,
-              fontSize: 'sm',
-              color: 'fg.muted',
-              cursor: 'pointer'
+              fontSize: "sm",
+              color: "fg.muted",
+              cursor: "pointer",
             })}
           >
             {it.label}

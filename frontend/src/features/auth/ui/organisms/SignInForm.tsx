@@ -26,16 +26,18 @@ export function SignInForm() {
 
   const router = useRouter();
 
-
   return (
-    <form onSubmit={handleSubmit(async(value) => {
-      try {
-        await onSubmitSignIn(value);
-        router.push('/');
-      } catch(e: any) {
-        form.setError("root", {message: e.message})
-      }
-    })} className={formStyle}>
+    <form
+      onSubmit={handleSubmit(async (value) => {
+        try {
+          await onSubmitSignIn(value);
+          router.push("/");
+        } catch (e: any) {
+          form.setError("root", { message: e.message });
+        }
+      })}
+      className={formStyle}
+    >
       {form.formState.errors.root?.message && (
         <p
           className={css({

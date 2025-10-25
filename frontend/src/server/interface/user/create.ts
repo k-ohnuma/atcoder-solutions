@@ -3,7 +3,7 @@ import z from "zod";
 
 export const createUserRequest = z.object({
   userName: z.string().min(1),
-  color: colorScheme
+  color: colorScheme,
 });
 
 export type CreateUserRequest = z.infer<typeof createUserRequest>;

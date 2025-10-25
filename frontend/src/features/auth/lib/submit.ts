@@ -52,7 +52,7 @@ export const onSubmitSignIn = async (values: SignInSchema) => {
   }
 };
 
-export const onSubmitSignout = async() => {
+export const onSubmitSignout = async () => {
   const auth = getFirebaseAuth();
-  await signOut(auth)
-}
+  await signOut(auth);
+};

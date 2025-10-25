@@ -19,7 +19,6 @@ export function Header({ appName }: { items?: NavItem[]; appName: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const auth = getFirebaseAuth();
 
-
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -28,12 +27,13 @@ export function Header({ appName }: { items?: NavItem[]; appName: string }) {
   }, [auth]);
 
   const router = useRouter();
-  const handleSignOut = async() => {
+  const handleSignOut = async () => {
     await onSubmitSignout();
-    router.push('/');
-
-  }
-  const loginItems: NavItem[] = [{ label: "ログアウト", onClick: handleSignOut }];
+    router.push("/");
+  };
+  const loginItems: NavItem[] = [
+    { label: "ログアウト", onClick: handleSignOut },
+  ];
   const items = isLoggedIn ? loginItems : nonLoginItems;
   return (
     <header

@@ -53,12 +53,14 @@ export class BackendApiClient {
       const res = await fetch(url, init);
       return await res.json();
     } catch (e) {
-      console.error(`failed to send a request ${url}, method: ${method}, ${e}`.trim());
+      console.error(
+        `failed to send a request ${url}, method: ${method}, ${e}`.trim(),
+      );
       return {
         ok: false,
         status: 500,
-        error: 'internal server error'
-      }
+        error: "internal server error",
+      };
     }
   }
 
@@ -74,7 +76,11 @@ export class BackendApiClient {
     return this.request({ path, method: "POST", body });
   }
 
-  async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
+  async postWithToken<T>(
+    path: string,
+    token: string,
+    body: JsonValue,
+  ): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
   }
 }
