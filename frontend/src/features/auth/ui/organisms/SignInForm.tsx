@@ -7,7 +7,8 @@ import { EmailField, PasswordField } from "../molecules";
 import { css } from "styled-system/css";
 import { formStyle } from "./style/Form/formStyle";
 import { signInSchema, SignInSchema } from "../../model/schema";
-import { onSubmitSignUp } from "../../lib/submit";
+import { onSubmitSignIn } from "../../lib/submit";
+import { useRouter } from "next/navigation";
 
 export function SignInForm() {
   const form = useForm<SignInSchema>({
@@ -23,30 +24,37 @@ export function SignInForm() {
     formState: { isSubmitting },
   } = form;
 
-  const onSubmit = async (values: SignInSchema) => {
-    console.log(values);
-  };
+  const router = useRouter();
+
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={formStyle}>
-      <EmailField control={control} />
-      <PasswordField control={control} />
-
+    <form onSubmit={handleSubmit(async(value) => {
+      try {
+        await onSubmitSignIn(value);
+        router.push('/');
+      } catch(e: any) {
+        form.setError("root", {message: e.message})
+      }
+    })} className={formStyle}>
       {form.formState.errors.root?.message && (
         <p
           className={css({
-            rounded: "md",
-            border: "blue",
+            borderColor: "red.300",
+            borderStyle: "solid",
+            borderWidth: "thick",
             p: "3",
+            color: "red.700",
             fontSize: "sm",
           })}
         >
           {form.formState.errors.root.message}
         </p>
       )}
+      <EmailField control={control} />
+      <PasswordField control={control} />
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "送信中..." : "新規登録"}
+        {isSubmitting ? "送信中..." : "ログイン"}
       </Button>
     </form>
   );
