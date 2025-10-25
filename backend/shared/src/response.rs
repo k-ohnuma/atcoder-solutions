@@ -50,4 +50,3 @@ where
         (status, Json(self)).into_response()
     }
 }
-
