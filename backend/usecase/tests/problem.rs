@@ -3,7 +3,10 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
-    model::{atcoder_problems::ApiProblem, problem::{ContestSeries, Problem}},
+    model::{
+        atcoder_problems::ApiProblem,
+        problem::{ContestSeries, Problem},
+    },
     ports::{
         external::atcoder_problems::AtcoderProblemsPort, repository::problem::ProblemRepository,
     },
@@ -32,7 +35,10 @@ impl ProblemRepository for DummyProblemsRepository {
         self.calls.lock().unwrap().extend(problems);
         Ok(())
     }
-    async fn get_problems_by_contest_series(&self, _series: ContestSeries) -> Result<Vec<Problem>, RepositoryError> {
+    async fn get_problems_by_contest_series(
+        &self,
+        _series: ContestSeries,
+    ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
 }

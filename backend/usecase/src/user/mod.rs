@@ -3,8 +3,6 @@ pub mod create_user;
 use shared::error::{http::HttpError, repository::RepositoryError};
 use thiserror::Error;
 
-
-
 #[derive(Debug, Error)]
 pub enum UserError {
     #[error("{0}")]

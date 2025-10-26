@@ -5,7 +5,6 @@ use domain::{
     model::problem::{ContestSeries, Problem},
     ports::repository::problem::ProblemRepository,
 };
-use shared::error::repository::RepositoryError;
 
 use super::ProblemError;
 
@@ -20,7 +19,7 @@ impl GetProblemsByContestSeriesUsecase {
             .problem_repository
             .get_problems_by_contest_series(series)
             .await
-            .map_err(RepositoryError::from)?;
+            .map_err(ProblemError::from)?;
         Ok(pbs)
     }
 }

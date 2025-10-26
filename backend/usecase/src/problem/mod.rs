@@ -39,4 +39,3 @@ impl From<ProblemError> for HttpError {
         }
     }
 }
-

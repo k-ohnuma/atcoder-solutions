@@ -32,5 +32,5 @@ pub struct ContestSeriesRow {
     // ABC, ARC, ...
     pub code: ContestSeries,
     // 作成日時
-    pub created_at: DateTime<Utc>
+    pub created_at: DateTime<Utc>,
 }

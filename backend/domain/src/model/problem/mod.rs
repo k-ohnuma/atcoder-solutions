@@ -1,4 +1,4 @@
-use strum::{Display, EnumString};
+use strum::Display;
 
 use super::atcoder_problems::ApiProblem;
 

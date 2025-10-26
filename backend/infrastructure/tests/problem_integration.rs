@@ -65,6 +65,36 @@ async fn upsert_records(pool: PgPool) -> Result<()> {
         problem_index: "a".into(),
         title: "A - Example".into(),
     };
+    repo.create_records(vec![p1.to_owned()]).await?;
+    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
+        .fetch_one(&pool)
+        .await?;
+    assert_eq!(title, "A - Example");
+
+    let updated = Problem {
+        title: "A - Example modified".into(),
+        ..p1
+    };
+    repo.create_records(vec![updated]).await?;
+    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
+        .fetch_one(&pool)
+        .await?;
+    assert_eq!(title, "A - Example modified");
+    Ok(())
+}
+
+#[sqlx::test(migrations = "./migrations")]
+async fn get_problems_by_contest_series(pool: PgPool) -> Result<()> {
+    seed_contest_series(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = ProblemRepositoryImpl::new(conn);
+    let p1 = Problem {
+        id: "abc300_a".into(),
+        contest_code: "abc300".into(),
+        problem_index: "a".into(),
+        title: "A - Example".into(),
+    };
     let p2 = Problem {
         id: "abc300_b".into(),
         contest_code: "abc300".into(),
@@ -86,47 +116,20 @@ async fn upsert_records(pool: PgPool) -> Result<()> {
 
     repo.create_records(vec![p1, p2, p3, p4]).await?;
 
-    let abcs = repo.get_problems_by_contest_series(ContestSeries::ABC).await?;
-    let arcs = repo.get_problems_by_contest_series(ContestSeries::ARC).await?;
+    let abcs = repo
+        .get_problems_by_contest_series(ContestSeries::ABC)
+        .await?;
+    let arcs = repo
+        .get_problems_by_contest_series(ContestSeries::ARC)
+        .await?;
     assert!(abcs.len() == 3);
     assert!(arcs.len() == 1);
 
     println!("{:?}", abcs);
 
     let ids: Vec<&str> = abcs.iter().map(|e| e.id.as_str()).collect();
-    assert_eq!(ids, vec!["abc001_c", "abc300_a", "abc300_b"]);
+    assert_eq!(ids, vec!["abc300_a", "abc300_b", "abc001_c"]);
 
     assert_eq!(arcs[0].id, "arc001_b");
     Ok(())
 }
-
-#[sqlx::test(migrations = "./migrations")]
-async fn get_problems_by_contest_series(pool: PgPool) -> Result<()> {
-    seed_contest_series(&pool).await?;
-
-    let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn);
-    let p1 = Problem {
-        id: "abc300_a".into(),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
-    };
-    repo.create_records(vec![p1.to_owned()]).await?;
-    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
-        .fetch_one(&pool)
-        .await?;
-    assert_eq!(title, "A - Example");
-
-    let updated = Problem {
-        title: "A - Example modified".into(),
-        ..p1
-    };
-    repo.create_records(vec![updated]).await?;
-    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
-        .fetch_one(&pool)
-        .await?;
-    assert_eq!(title, "A - Example modified");
-    Ok(())
-}
-

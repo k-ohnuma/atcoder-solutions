@@ -49,7 +49,10 @@ impl ProblemRepository for ProblemRepositoryImpl {
             .map_err(RepositoryError::TransactionError)?;
         Ok(())
     }
-    async fn get_problems_by_contest_series(&self, series: ContestSeries) -> Result<Vec<Problem>, RepositoryError> {
+    async fn get_problems_by_contest_series(
+        &self,
+        series: ContestSeries,
+    ) -> Result<Vec<Problem>, RepositoryError> {
         let problems: Vec<Problem> = sqlx::query_as!(
             Problem,
             r#"
@@ -61,7 +64,10 @@ impl ProblemRepository for ProblemRepositoryImpl {
             ORDER BY p.contest_code DESC
             "#,
             series.to_string(),
-        ).fetch_all(self.db.inner_ref()).await.map_err(RepositoryError::from)?;
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(RepositoryError::from)?;
         Ok(problems)
     }
 }

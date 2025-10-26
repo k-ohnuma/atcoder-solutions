@@ -7,4 +7,3 @@ pub fn build_problem_routers() -> Router<Registry> {
     let routers = Router::new().route("/", get(get_problems_by_contest_series_handler));
     Router::new().nest("/problems", routers)
 }
-
