@@ -58,9 +58,9 @@ impl ProblemRepository for ProblemRepositoryImpl {
             JOIN contests c ON c.code = p.contest_code
             JOIN contest_series s ON s.code = c.series_code
             WHERE s.code = $1
-            ORDER BY p.id
+            ORDER BY p.contest_code DESC
             "#,
-            series.to_string()
+            series.to_string(),
         ).fetch_all(self.db.inner_ref()).await.map_err(RepositoryError::from)?;
         Ok(problems)
     }
