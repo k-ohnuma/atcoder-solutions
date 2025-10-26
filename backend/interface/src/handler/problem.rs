@@ -1,7 +1,7 @@
 use axum::http::StatusCode;
 use registry::Registry;
 use tracing::error;
-use usecase::problem::ImportProblemsUsecase;
+use usecase::problem::create::ImportProblemsUsecase;
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
     let atcoder_problems_port = reg.atcoder_problems_port();
@@ -16,3 +16,5 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
         }
     }
 }
+
+
