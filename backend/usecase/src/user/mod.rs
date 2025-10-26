@@ -29,8 +29,8 @@ impl From<UserError> for HttpError {
 impl From<RepositoryError> for UserError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::TransactionError(msg) => UserError::DBError(msg.to_string()),
             RepositoryError::NotFound(msg) => UserError::NotFound(msg),
+            RepositoryError::TransactionError(msg) => UserError::DBError(msg.to_string()),
             RepositoryError::UniqueViolation(msg) => UserError::Conflict(msg),
             RepositoryError::ForeignKeyViolation(msg) => UserError::DBError(msg.to_string()),
             RepositoryError::NotNullViolation(msg) => UserError::DBError(msg.to_string()),

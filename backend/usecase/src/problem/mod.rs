@@ -1,34 +1,41 @@
-use std::sync::Arc;
+use shared::error::{http::HttpError, repository::RepositoryError};
+use thiserror::Error;
 
-use derive_new::new;
-use domain::{
-    model::problem::Problem,
-    ports::{
-        external::atcoder_problems::AtcoderProblemsPort, repository::problem::ProblemRepository,
-    },
-};
-use itertools::Itertools;
-use shared::error::{external::ExternalError, repository::RepositoryError};
+pub mod create;
+pub mod get_problems_by_contest_series;
 
-#[derive(thiserror::Error, Debug)]
-pub enum ImportUsecaseError {
-    #[error(transparent)]
-    Fetch(#[from] ExternalError),
-    #[error(transparent)]
-    Repository(#[from] RepositoryError),
+#[derive(Debug, Error)]
+pub enum ProblemError {
+    #[error("{0}")]
+    BadRequest(String),
+    #[error("{0}")]
+    DBError(String),
+    #[error("{0}")]
+    NotFound(String),
 }
 
-#[derive(new)]
-pub struct ImportProblemsUsecase {
-    atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
-    problem_repository: Arc<dyn ProblemRepository>,
+impl From<RepositoryError> for ProblemError {
+    fn from(value: RepositoryError) -> Self {
+        match value {
+            RepositoryError::NotFound(msg) => ProblemError::NotFound(msg),
+            RepositoryError::TransactionError(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::UniqueViolation(msg) => ProblemError::DBError(msg),
+            RepositoryError::ForeignKeyViolation(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::NotNullViolation(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::CheckViolation(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::Connection(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::Query(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::Unexpected(msg) => ProblemError::DBError(msg.to_string()),
+        }
+    }
 }
 
-impl ImportProblemsUsecase {
-    pub async fn execute(&self) -> Result<(), ImportUsecaseError> {
-        let api_items = self.atcoder_problems_port.fetch_problems().await?;
-        let problems = api_items.into_iter().map(Problem::from).collect_vec();
-        self.problem_repository.create_records(problems).await?;
-        Ok(())
+impl From<ProblemError> for HttpError {
+    fn from(value: ProblemError) -> Self {
+        match value {
+            ProblemError::BadRequest(reason) => HttpError::BadRequest(reason),
+            ProblemError::NotFound(reason) => HttpError::NotFound(reason),
+            ProblemError::DBError(reason) => HttpError::Internal(reason),
+        }
     }
 }

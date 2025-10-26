@@ -1,6 +1,8 @@
+use strum::Display;
+
 use super::atcoder_problems::ApiProblem;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Problem {
     pub id: String,
     pub contest_code: String,
@@ -19,7 +21,7 @@ impl From<ApiProblem> for Problem {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Display)]
 pub enum ContestSeries {
     ABC,
     ARC,
