@@ -1,6 +1,6 @@
 import "server-only";
 import { BackendApiClient } from "@/server/utils/apiClient";
-import { backendConfig } from "@/shared/config/backend";
+import { serverConfig } from "@/shared/config/backend";
 import { Resp } from "@/server/response";
 import {
   ContestSeries,
@@ -11,7 +11,7 @@ import {
 export class ProblemRepositoryImpl implements ProblemRepository {
   private client: BackendApiClient;
   constructor() {
-    const baseEndpoint = backendConfig.appConfig.apiBaseEndpoint;
+    const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
   }
 

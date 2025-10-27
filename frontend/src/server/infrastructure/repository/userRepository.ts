@@ -1,13 +1,13 @@
 import "server-only";
 import { User, UserRepository } from "@/server/domain/user";
 import { BackendApiClient } from "@/server/utils/apiClient";
-import { backendConfig } from "@/shared/config/backend";
+import { serverConfig } from "@/shared/config/backend";
 import { Resp } from "@/server/response";
 
 export class UserRepositoryImpl implements UserRepository {
   private client: BackendApiClient;
   constructor() {
-    const baseEndpoint = backendConfig.appConfig.apiBaseEndpoint;
+    const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
   }
 
