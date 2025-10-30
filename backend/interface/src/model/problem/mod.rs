@@ -2,6 +2,7 @@ use domain::model::problem::Problem;
 use serde::Serialize;
 
 pub mod get_problems_by_contest_series;
+pub mod get_contest_group_by_contest_series;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]

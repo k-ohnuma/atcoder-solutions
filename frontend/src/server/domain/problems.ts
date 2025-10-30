@@ -10,7 +10,9 @@ export interface Problem {
   problemIndex: string;
   title: string;
 }
+export type ContestGroupCollection = Map<string, Problem[]>;
 
 export interface ProblemRepository {
   getProblemsByContestSeries(series: ContestSeries): Promise<Resp<Problem[]>>;
+  getContestGroupByContestSeries(series: ContestSeries): Promise<Resp<ContestGroupCollection>>;
 }

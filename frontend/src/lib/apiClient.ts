@@ -1,3 +1,6 @@
+import { ContestGroupCollection } from "@/server/domain/problems";
+import { Problem } from "@/shared/model/problem";
+
 export type Resp<T> =
   | { ok: true; data: T; status: 200 }
   | { ok: false; error: string; status: number };
@@ -101,5 +104,18 @@ export class ApiClient {
     if (resp.ok ) return resp.data
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return [] as T
+  };
+  getContestGroupByContestSeries = async(contestSeries: string): Promise<ContestGroupCollection> => {
+    const path = "problems/contest-group";
+    const resp = await this.get<Record<string, Problem[]>>(path, { series: contestSeries });
+    if (resp.ok) {
+      const map: Map<string, Problem[]> = new Map<string, Problem[]>(
+        Object.entries(resp.data).map(([contestId, problems]) => [contestId, problems])
+      );
+      return map
+
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return new Map()
   };
 }

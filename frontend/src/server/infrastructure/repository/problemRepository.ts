@@ -3,6 +3,7 @@ import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 import { Resp } from "@/server/response";
 import {
+  ContestGroupCollection,
   ContestSeries,
   Problem,
   ProblemRepository,
@@ -18,6 +19,9 @@ export class ProblemRepositoryImpl implements ProblemRepository {
   private getProblemsByContestSeriesPath = () => {
     return "problems";
   };
+  private getContestGroupByContestSeriesPath = () => {
+    return "problems/contest-group";
+  };
 
   getProblemsByContestSeries = async (
     series: ContestSeries,
@@ -25,5 +29,12 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     const params = { series };
     const path = this.getProblemsByContestSeriesPath();
     return await this.client.get<Problem[]>(path, params);
+  };
+  getContestGroupByContestSeries = async (
+    series: ContestSeries,
+  ): Promise<Resp<ContestGroupCollection>> => {
+    const params = { series };
+    const path = this.getContestGroupByContestSeriesPath();
+    return await this.client.get<ContestGroupCollection>(path, params);
   };
 }
