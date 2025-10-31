@@ -19,6 +19,7 @@ jsonwebtoken.workspace = true
 tracing.workspace = true
 base64.workspace = true
 chrono.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 wiremock.workspace = true
