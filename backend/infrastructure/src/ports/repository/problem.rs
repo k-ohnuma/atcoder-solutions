@@ -1,3 +1,4 @@
+// TODO: トランザクションをusecaseに寄せる(日時実行しか使ってないので優先度低)
 use std::collections::HashSet;
 
 use async_trait::async_trait;
