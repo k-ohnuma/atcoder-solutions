@@ -38,7 +38,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(())
     }
     async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
-        let user = sqlx::query_as!(
+        let user_row = sqlx::query_as!(
             UserRow,
             r#"
             SELECT * FROM users WHERE id = $1
@@ -49,6 +49,6 @@ impl UserRepository for UserRepositoryImpl {
         .await
         .map_err(RepositoryError::from)?;
 
-        Ok(User::from(user))
+        Ok(user_row.try_into()?)
     }
 }

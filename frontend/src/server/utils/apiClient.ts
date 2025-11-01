@@ -9,6 +9,8 @@ type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue };
 
+type QueryParams = Record<string, string>;
+
 export class BackendApiClient {
   private baseEndpoint: string;
   constructor(baseEndpoint: string) {
@@ -24,13 +26,21 @@ export class BackendApiClient {
     path,
     token,
     body,
+    params,
   }: {
     method: "GET" | "POST";
     path: string;
     token?: string;
     body?: JsonValue;
+    params?: Record<string, string>;
   }): Promise<Resp<T>> {
     const url = new URL(path.replace(/^\//, ""), this.baseEndpoint);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        url.searchParams.append(key, value);
+      }
+    }
 
     const reqHeaders: Record<string, string> = {
       Accept: "application/json, text/plain;q=0.8, */*;q=0.5",
@@ -64,8 +74,8 @@ export class BackendApiClient {
     }
   }
 
-  async get<T>(path: string): Promise<Resp<T>> {
-    return this.request({ method: "GET", path });
+  async get<T>(path: string, params?: QueryParams): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, params });
   }
 
   async getWithToken<T>(path: string, token: string): Promise<Resp<T>> {

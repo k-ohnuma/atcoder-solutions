@@ -578,11 +578,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "chrono",
  "serde",
  "serde_json",
  "shared",
  "strum",
  "thiserror 2.0.17",
+ "uuid",
 ]
 
 [[package]]
@@ -1456,6 +1458,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "uuid",
  "wiremock",
 ]
 
@@ -1483,6 +1486,7 @@ dependencies = [
  "tokio",
  "tracing",
  "usecase",
+ "uuid",
 ]
 
 [[package]]
@@ -3399,6 +3403,7 @@ dependencies = [
  "shared",
  "thiserror 2.0.17",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -3415,6 +3420,7 @@ checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
 dependencies = [
  "getrandom 0.3.3",
  "js-sys",
+ "serde",
  "wasm-bindgen",
 ]
 

@@ -6,7 +6,7 @@ use interface::{
     handler::problem::import_problem,
     route::{
         health::build_health_check_routers, problem::build_problem_routers,
-        user::build_user_routers, version::build_version_routers,
+        solution::build_solution_routers, user::build_user_routers, version::build_version_routers,
     },
 };
 use registry::Registry;
@@ -54,6 +54,7 @@ pub async fn run() -> Result<()> {
         .merge(build_version_routers())
         .merge(build_user_routers())
         .merge(build_problem_routers())
+        .merge(build_solution_routers())
         .with_state(registry.to_owned())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateRequestIdLayer::x_request_id())

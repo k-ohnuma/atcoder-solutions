@@ -6,7 +6,7 @@ use domain::{
     ports::repository::problem::ProblemRepository,
 };
 
-use super::ProblemError;
+use crate::model::problem::ProblemError;
 
 #[derive(new)]
 pub struct GetProblemsByContestSeriesUsecase {
@@ -14,7 +14,7 @@ pub struct GetProblemsByContestSeriesUsecase {
 }
 
 impl GetProblemsByContestSeriesUsecase {
-    pub async fn execute(&self, series: ContestSeries) -> Result<Vec<Problem>, ProblemError> {
+    pub async fn run(&self, series: ContestSeries) -> Result<Vec<Problem>, ProblemError> {
         let pbs = self
             .problem_repository
             .get_problems_by_contest_series(series)
