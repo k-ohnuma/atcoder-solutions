@@ -4,4 +4,3 @@ use serde::Deserialize;
 pub struct GetContestGroupByContestSeriesRequestParams {
     pub series: String,
 }
-

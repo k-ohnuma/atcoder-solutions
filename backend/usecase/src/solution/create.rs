@@ -18,7 +18,6 @@ pub struct CreateSolutionInput {
     pub tags: Vec<String>,
 }
 
-
 pub fn from_create_solution_input_for_solution(
     uuid: Uuid,
     input: &CreateSolutionInput,

@@ -4,7 +4,10 @@ use domain::ports::{
     external::{
         atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort, id::IdProviderPort,
     },
-    repository::{health::HealthCheckRepository, problem::ProblemRepository, solution::tx::SolutionTxManager, user::UserRepository},
+    repository::{
+        health::HealthCheckRepository, problem::ProblemRepository, solution::tx::SolutionTxManager,
+        user::UserRepository,
+    },
 };
 use infrastructure::{
     client::atcoder_problems::build_atcoder_problems_client,
@@ -12,7 +15,8 @@ use infrastructure::{
     ports::{
         external::{auth::FirebaseAuthenticator, id::UuidProvider},
         repository::{
-            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl, solution::tx::SolutionTransactionManager, user::UserRepositoryImpl
+            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
+            solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
         },
     },
 };
@@ -26,7 +30,7 @@ pub struct Registry {
     problem_repository: Arc<dyn ProblemRepository>,
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
-    solution_tx_manager: Arc<dyn SolutionTxManager>
+    solution_tx_manager: Arc<dyn SolutionTxManager>,
 }
 
 impl Registry {
@@ -50,7 +54,7 @@ impl Registry {
             auth_port: authenticator,
             user_repository,
             id_provider,
-            solution_tx_manager
+            solution_tx_manager,
         }
     }
 

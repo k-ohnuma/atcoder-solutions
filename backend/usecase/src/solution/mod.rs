@@ -41,4 +41,3 @@ impl From<RepositoryError> for SolutionError {
         }
     }
 }
-

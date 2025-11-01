@@ -5,7 +5,8 @@ use axum::{Router, http::StatusCode};
 use interface::{
     handler::problem::import_problem,
     route::{
-        health::build_health_check_routers, problem::build_problem_routers, solution::build_solution_routers, user::build_user_routers, version::build_version_routers
+        health::build_health_check_routers, problem::build_problem_routers,
+        solution::build_solution_routers, user::build_user_routers, version::build_version_routers,
     },
 };
 use registry::Registry;

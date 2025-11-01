@@ -27,8 +27,6 @@ pub struct CreateSolutionResponse {
 
 impl From<Uuid> for CreateSolutionResponse {
     fn from(value: Uuid) -> Self {
-        Self {
-            solution_id: value
-        }
+        Self { solution_id: value }
     }
 }
