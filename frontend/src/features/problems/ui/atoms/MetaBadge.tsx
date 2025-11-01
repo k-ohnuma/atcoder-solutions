@@ -10,7 +10,10 @@ export const MetaBadge = ({
   title?: string;
 }) => {
   return (
-    <span title={title} className={css({ display: "inline-flex", fontSize: 'sm' })}>
+    <span
+      title={title}
+      className={css({ display: "inline-flex", fontSize: "sm" })}
+    >
       <Badge>{children}</Badge>
     </span>
   );

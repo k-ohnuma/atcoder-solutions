@@ -11,14 +11,18 @@ export default async function Home() {
 
   // return <ProblemsTemplate problemsMap={contestGroupCollection} />;
   return (
-    <Table.Root variant={'outline'}>
+    <Table.Root variant={"outline"}>
       <Table.Body>
         {list.map(([contestId, problems]) => {
           return (
             <Table.Row key={contestId}>
               <Table.Cell>{contestId}</Table.Cell>
               {problems.map((problem) => {
-                return <Table.Cell key={problem.id}>{`${problem.problemIndex}. ${problem.title}`}</Table.Cell>;
+                return (
+                  <Table.Cell
+                    key={problem.id}
+                  >{`${problem.problemIndex}. ${problem.title}`}</Table.Cell>
+                );
               })}
             </Table.Row>
           );

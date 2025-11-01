@@ -24,4 +24,3 @@ export async function GET(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, data: problems.data }, { status: 200 });
 }
-

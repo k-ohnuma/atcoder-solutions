@@ -10,7 +10,7 @@ type FirebaseConfig = {
 type AppConfig = {
   appName: string;
   apiBaseEndpoint: string;
-  appOrigin: string
+  appOrigin: string;
 };
 
 type ServerConfig = {
@@ -24,7 +24,7 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z.string(),
   APP_NAME: z.string(),
   API_BASE_ENDPOINT: z.string(),
-  APP_ORIGIN: z.string()
+  APP_ORIGIN: z.string(),
 });
 const env = envSchema.parse({
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
@@ -32,7 +32,7 @@ const env = envSchema.parse({
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
   APP_NAME: process.env.APP_NAME,
   API_BASE_ENDPOINT: process.env.API_BASE_ENDPOINT,
-  APP_ORIGIN: process.env.APP_ORIGIN
+  APP_ORIGIN: process.env.APP_ORIGIN,
 });
 
 export const serverConfig: ServerConfig = {
@@ -44,6 +44,6 @@ export const serverConfig: ServerConfig = {
   appConfig: {
     appName: env.APP_NAME,
     apiBaseEndpoint: env.API_BASE_ENDPOINT,
-    appOrigin: env.APP_ORIGIN
+    appOrigin: env.APP_ORIGIN,
   },
 };

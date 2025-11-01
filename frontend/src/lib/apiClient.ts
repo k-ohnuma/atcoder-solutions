@@ -101,21 +101,27 @@ export class ApiClient {
   getProblemsByContestSeries = async <T>(contestSeries: string): Promise<T> => {
     const path = "problems";
     const resp = await this.get<T>(path, { series: contestSeries });
-    if (resp.ok ) return resp.data
+    if (resp.ok) return resp.data;
     console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return [] as T
+    return [] as T;
   };
-  getContestGroupByContestSeries = async(contestSeries: string): Promise<ContestGroupCollection> => {
+  getContestGroupByContestSeries = async (
+    contestSeries: string,
+  ): Promise<ContestGroupCollection> => {
     const path = "problems/contest-group";
-    const resp = await this.get<Record<string, Problem[]>>(path, { series: contestSeries });
+    const resp = await this.get<Record<string, Problem[]>>(path, {
+      series: contestSeries,
+    });
     if (resp.ok) {
       const map: Map<string, Problem[]> = new Map<string, Problem[]>(
-        Object.entries(resp.data).map(([contestId, problems]) => [contestId, problems])
+        Object.entries(resp.data).map(([contestId, problems]) => [
+          contestId,
+          problems,
+        ]),
       );
-      return map
-
+      return map;
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return new Map()
+    return new Map();
   };
 }
