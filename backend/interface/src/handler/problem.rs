@@ -25,7 +25,7 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
     let problems_repository = reg.problem_repository();
     let usecase = ImportProblemsUsecase::new(atcoder_problems_port, problems_repository);
 
-    match usecase.execute().await {
+    match usecase.run().await {
         Ok(_) => StatusCode::OK,
         Err(e) => {
             error!(error = ?e);
@@ -44,7 +44,7 @@ pub async fn get_problems_by_contest_series_handler(
     // とんでもないやつが来たらOTHERに分類される
     let series = ContestSeries::from(query.series);
 
-    let problems = usecase.execute(series).await?;
+    let problems = usecase.run(series).await?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
@@ -59,7 +59,7 @@ pub async fn get_contest_group_by_contest_series_handler(
     // とんでもないやつが来たらOTHERに分類される
     let series = ContestSeries::from(query.series);
 
-    let problem_map = usecase.execute(series).await?;
+    let problem_map = usecase.run(series).await?;
     let resp = problem_map
         .0
         .into_iter()

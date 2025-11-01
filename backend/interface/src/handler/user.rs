@@ -19,10 +19,7 @@ pub async fn create_user_handler(
     let create_user_input =
         try_from_create_user_request_for_create_user_input(req, uid).map_err(HttpError::from)?;
     let repo = CreateUserUsecase::new(registry.user_repository());
-    let res = repo
-        .execute(create_user_input)
-        .await
-        .map_err(HttpError::from)?;
+    let res = repo.run(create_user_input).await.map_err(HttpError::from)?;
 
     Ok(Json(ApiResponse::ok(res.into())))
 }

@@ -37,7 +37,7 @@ pub struct CreateUserUsecase {
 }
 
 impl CreateUserUsecase {
-    pub async fn execute(&self, input: CreateUserInput) -> Result<CreateUserOutput, UserError> {
+    pub async fn run(&self, input: CreateUserInput) -> Result<CreateUserOutput, UserError> {
         let user = User::from(input);
         self.user_repository
             .create_user(user.to_owned())

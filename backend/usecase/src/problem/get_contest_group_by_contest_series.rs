@@ -27,10 +27,7 @@ pub struct GetContestGroupByContestSeriesUsecase {
 }
 
 impl GetContestGroupByContestSeriesUsecase {
-    pub async fn execute(
-        &self,
-        series: ContestSeries,
-    ) -> Result<ContestGroupCollection, ProblemError> {
+    pub async fn run(&self, series: ContestSeries) -> Result<ContestGroupCollection, ProblemError> {
         let mut pbs = self
             .problem_repository
             .get_problems_by_contest_series(series)

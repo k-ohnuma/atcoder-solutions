@@ -11,7 +11,7 @@ use itertools::Itertools;
 use shared::error::{external::ExternalError, repository::RepositoryError};
 
 #[derive(thiserror::Error, Debug)]
-pub enum ImportUsecaseError {
+pub enum ImportProblemsUsecaseError {
     #[error(transparent)]
     Fetch(#[from] ExternalError),
     #[error(transparent)]
@@ -25,7 +25,7 @@ pub struct ImportProblemsUsecase {
 }
 
 impl ImportProblemsUsecase {
-    pub async fn execute(&self) -> Result<(), ImportUsecaseError> {
+    pub async fn run(&self) -> Result<(), ImportProblemsUsecaseError> {
         let api_items = self.atcoder_problems_port.fetch_problems().await?;
         let problems = api_items.into_iter().map(Problem::from).collect_vec();
         self.problem_repository.create_records(problems).await?;
