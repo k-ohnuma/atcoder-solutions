@@ -4,7 +4,7 @@ use domain::ports::{
     external::{
         atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort, id::IdProviderPort,
     },
-    repository::{health::HealthCheckRepository, problem::ProblemRepository, user::UserRepository},
+    repository::{health::HealthCheckRepository, problem::ProblemRepository, solution::tx::SolutionTxManager, user::UserRepository},
 };
 use infrastructure::{
     client::atcoder_problems::build_atcoder_problems_client,
@@ -12,8 +12,7 @@ use infrastructure::{
     ports::{
         external::{auth::FirebaseAuthenticator, id::UuidProvider},
         repository::{
-            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
-            user::UserRepositoryImpl,
+            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl, solution::tx::SolutionTransactionManager, user::UserRepositoryImpl
         },
     },
 };
@@ -27,6 +26,7 @@ pub struct Registry {
     problem_repository: Arc<dyn ProblemRepository>,
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
+    solution_tx_manager: Arc<dyn SolutionTxManager>
 }
 
 impl Registry {
@@ -41,6 +41,7 @@ impl Registry {
         let authenticator = Arc::new(FirebaseAuthenticator::new(&config.auth.project_id));
 
         let id_provider = Arc::new(UuidProvider::new());
+        let solution_tx_manager = Arc::new(SolutionTransactionManager::new(pool.to_owned()));
 
         Self {
             atcoder_problems_port: atcoder_problems_client,
@@ -49,6 +50,7 @@ impl Registry {
             auth_port: authenticator,
             user_repository,
             id_provider,
+            solution_tx_manager
         }
     }
 
@@ -69,5 +71,8 @@ impl Registry {
     }
     pub fn id_provider_port(&self) -> Arc<dyn IdProviderPort> {
         self.id_provider.to_owned()
+    }
+    pub fn solution_tx_manager(&self) -> Arc<dyn SolutionTxManager> {
+        self.solution_tx_manager.to_owned()
     }
 }

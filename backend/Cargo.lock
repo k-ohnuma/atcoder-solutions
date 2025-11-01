@@ -1486,6 +1486,7 @@ dependencies = [
  "tokio",
  "tracing",
  "usecase",
+ "uuid",
 ]
 
 [[package]]
@@ -3402,6 +3403,7 @@ dependencies = [
  "shared",
  "thiserror 2.0.17",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
