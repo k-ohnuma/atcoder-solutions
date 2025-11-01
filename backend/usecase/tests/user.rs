@@ -7,9 +7,9 @@ use domain::{
     ports::repository::user::UserRepository,
 };
 use shared::error::repository::RepositoryError;
-use usecase::user::{
-    UserError,
-    create_user::{CreateUserInput, CreateUserUsecase},
+use usecase::{
+    model::user::{UserError, create::CreateUserInput},
+    user::create_user::CreateUserUsecase,
 };
 
 struct DummyUserRepository {
@@ -53,7 +53,7 @@ async fn usecase_create_user_ok() -> Result<()> {
         color: Color::Red,
     };
 
-    let t = uc.execute(input).await;
+    let t = uc.run(input).await;
     assert!(t.is_ok());
     let output = t.unwrap();
     let c2 = output.color;
@@ -87,7 +87,7 @@ async fn usecase_create_user_conflict() -> Result<()> {
         color: Color::Red,
     };
 
-    let t = uc.execute(input).await.expect_err("conf");
+    let t = uc.run(input).await.expect_err("conf");
 
     matches!(t, UserError::Conflict(_));
     //

@@ -66,7 +66,7 @@ async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
     });
 
     let uc = ImportProblemsUsecase::new(port, repo.clone());
-    uc.execute().await.unwrap();
+    uc.run().await.unwrap();
 
     let calls = repo.calls.lock().unwrap();
     assert_eq!(calls.len(), 2);
