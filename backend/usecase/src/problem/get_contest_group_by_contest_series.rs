@@ -1,25 +1,11 @@
-use std::{cmp::Reverse, collections::BTreeMap, sync::Arc};
+use std::sync::Arc;
 
 use derive_new::new;
-use domain::{
-    model::problem::{ContestSeries, Problem},
-    ports::repository::problem::ProblemRepository,
+use domain::{model::problem::ContestSeries, ports::repository::problem::ProblemRepository};
+
+use crate::model::problem::{
+    ProblemError, get_contest_group_by_contest_series::ContestGroupCollection,
 };
-
-use super::ProblemError;
-
-pub struct ContestGroupCollection(pub BTreeMap<Reverse<String>, Vec<Problem>>);
-
-impl From<Vec<Problem>> for ContestGroupCollection {
-    fn from(value: Vec<Problem>) -> Self {
-        let mut map = BTreeMap::new();
-        for p in value {
-            let contest = p.contest_code.to_owned();
-            map.entry(Reverse(contest)).or_insert(Vec::new()).push(p);
-        }
-        Self(map)
-    }
-}
 
 #[derive(new)]
 pub struct GetContestGroupByContestSeriesUsecase {

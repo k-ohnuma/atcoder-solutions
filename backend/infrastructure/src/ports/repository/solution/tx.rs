@@ -107,7 +107,7 @@ impl TagRepositoryTx for SolutionUnitOfWork {
         let rows = sqlx::query!(
             r#"
             WITH input(tag) AS (
-              SELECT DISTINCT trim(t) FROM UNNEST($1::text[]) AS t WHERE trim(t) <> ''
+              SELECT DISTINCT trim(t) FROM UNNEST($1::text[]) AS t WHERE trim(t) != ''
             ),
             ins AS (
               INSERT INTO tags(name)

@@ -6,7 +6,7 @@ use domain::{
     ports::repository::problem::ProblemRepository,
 };
 
-use super::ProblemError;
+use crate::model::problem::ProblemError;
 
 #[derive(new)]
 pub struct GetProblemsByContestSeriesUsecase {

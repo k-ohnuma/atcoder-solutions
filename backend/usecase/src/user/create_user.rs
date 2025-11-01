@@ -1,35 +1,12 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{
-    model::user::{Color, Role, User},
-    ports::repository::user::UserRepository,
+use domain::{model::user::User, ports::repository::user::UserRepository};
+
+use crate::model::user::{
+    UserError,
+    create::{CreateUserInput, CreateUserOutput},
 };
-
-use super::UserError;
-
-pub struct CreateUserInput {
-    pub uid: String,
-    pub user_name: String,
-    pub color: Color,
-}
-
-impl From<CreateUserInput> for User {
-    fn from(value: CreateUserInput) -> Self {
-        Self {
-            id: value.uid,
-            role: Role::default(),
-            color: value.color,
-            user_name: value.user_name,
-        }
-    }
-}
-
-#[derive(new, Debug)]
-pub struct CreateUserOutput {
-    pub user_name: String,
-    pub color: Color,
-}
 
 #[derive(new)]
 pub struct CreateUserUsecase {

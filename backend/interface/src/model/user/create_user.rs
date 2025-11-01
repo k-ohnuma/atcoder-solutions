@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use domain::model::user::Color;
 use serde::{Deserialize, Serialize};
-use usecase::user::{
+use usecase::model::user::{
     UserError,
-    create_user::{CreateUserInput, CreateUserOutput},
+    create::{CreateUserInput, CreateUserOutput},
 };
 
 #[derive(Deserialize, Clone)]

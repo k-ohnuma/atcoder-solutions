@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use usecase::solution::create::CreateSolutionInput;
+use usecase::model::solution::create::CreateSolutionInput;
 use uuid::Uuid;
 
 #[derive(Deserialize)]

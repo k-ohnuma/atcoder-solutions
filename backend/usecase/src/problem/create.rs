@@ -8,15 +8,8 @@ use domain::{
     },
 };
 use itertools::Itertools;
-use shared::error::{external::ExternalError, repository::RepositoryError};
 
-#[derive(thiserror::Error, Debug)]
-pub enum ImportProblemsUsecaseError {
-    #[error(transparent)]
-    Fetch(#[from] ExternalError),
-    #[error(transparent)]
-    Repository(#[from] RepositoryError),
-}
+use crate::model::problem::create::ImportProblemsUsecaseError;
 
 #[derive(new)]
 pub struct ImportProblemsUsecase {
