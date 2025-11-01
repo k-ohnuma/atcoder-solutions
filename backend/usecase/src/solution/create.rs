@@ -31,8 +31,10 @@ impl CreateSolutionUsecase {
             .dedup()
             .collect_vec();
 
-        uow.tags().upsert(&tags).await?;
-        uow.solutions().create(&solution).await?;
+        let tag_ids = uow.tags().upsert(&tags).await?;
+        let solution_id = uow.solutions().create(&solution).await?;
+
+        uow.solutions().replace_tags(solution_id, &tag_ids).await?;
 
         uow.commit().await?;
 
