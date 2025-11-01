@@ -32,7 +32,7 @@ impl SolutionUnitOfWork {
         Self { tx }
     }
     fn conn(&mut self) -> &mut sqlx::PgConnection {
-        self.tx.as_mut().as_mut()
+        self.tx.as_mut()
     }
 }
 
@@ -74,7 +74,7 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
     async fn replace_tags(
         &mut self,
         solution_id: Uuid,
-        tag_ids: &Vec<Uuid>,
+        tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError> {
         sqlx::query!(
             "DELETE FROM solution_tags WHERE solution_id = $1 AND NOT (tag_id = ANY($2))",
@@ -100,7 +100,7 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
 
 #[async_trait]
 impl TagRepositoryTx for SolutionUnitOfWork {
-    async fn upsert(&mut self, names: &Vec<String>) -> Result<Vec<Uuid>, RepositoryError> {
+    async fn upsert(&mut self, names: &[String]) -> Result<Vec<Uuid>, RepositoryError> {
         if names.is_empty() {
             return Ok(vec![]);
         }

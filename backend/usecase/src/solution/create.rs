@@ -24,7 +24,6 @@ impl CreateSolutionUsecase {
 
         let tags = input
             .tags
-            .to_owned()
             .into_iter()
             .filter(|e| !e.trim().is_empty())
             .sorted()

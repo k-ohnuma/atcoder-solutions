@@ -10,13 +10,13 @@ pub trait SolutionRespositoryTx: Send + Sync {
     async fn replace_tags(
         &mut self,
         solution_id: Uuid,
-        tag_id: &Vec<Uuid>,
+        tag_id: &[Uuid],
     ) -> Result<(), RepositoryError>;
 }
 
 #[async_trait]
 pub trait TagRepositoryTx: Send + Sync {
-    async fn upsert(&mut self, names: &Vec<String>) -> Result<Vec<Uuid>, RepositoryError>;
+    async fn upsert(&mut self, names: &[String]) -> Result<Vec<Uuid>, RepositoryError>;
 }
 
 #[async_trait]
