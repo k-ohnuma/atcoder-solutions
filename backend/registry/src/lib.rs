@@ -17,10 +17,11 @@ use infrastructure::{
         repository::{
             health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
             solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
-        },
+        }, service::solution::SolutionServiceImpl,
     },
 };
 use shared::config::AppConfig;
+use usecase::service::solution::SolutionService;
 
 #[derive(Clone)]
 pub struct Registry {
@@ -31,6 +32,7 @@ pub struct Registry {
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
     solution_tx_manager: Arc<dyn SolutionTxManager>,
+    solution_service: Arc<dyn SolutionService>
 }
 
 impl Registry {
@@ -47,6 +49,8 @@ impl Registry {
         let id_provider = Arc::new(UuidProvider::new());
         let solution_tx_manager = Arc::new(SolutionTransactionManager::new(pool.to_owned()));
 
+        let solution_service = Arc::new(SolutionServiceImpl::new(pool.to_owned()));
+
         Self {
             atcoder_problems_port: atcoder_problems_client,
             health_check_repository,
@@ -55,6 +59,7 @@ impl Registry {
             user_repository,
             id_provider,
             solution_tx_manager,
+            solution_service
         }
     }
 
@@ -78,5 +83,8 @@ impl Registry {
     }
     pub fn solution_tx_manager(&self) -> Arc<dyn SolutionTxManager> {
         self.solution_tx_manager.to_owned()
+    }
+    pub fn solution_service(&self) -> Arc<dyn SolutionService> {
+        self.solution_service.to_owned()
     }
 }
