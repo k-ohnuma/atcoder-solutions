@@ -28,6 +28,9 @@ impl SolutionService for SolutionServiceImpl {
             problem_id
         ).fetch_all(self.db.inner_ref()).await?;
 
-        Ok(solutions.into_iter().map(SolutionListItemView::from).collect())
+        Ok(solutions
+            .into_iter()
+            .map(SolutionListItemView::from)
+            .collect())
     }
 }

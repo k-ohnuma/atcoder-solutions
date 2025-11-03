@@ -17,7 +17,8 @@ use infrastructure::{
         repository::{
             health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
             solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
-        }, service::solution::SolutionServiceImpl,
+        },
+        service::solution::SolutionServiceImpl,
     },
 };
 use shared::config::AppConfig;
@@ -32,7 +33,7 @@ pub struct Registry {
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
     solution_tx_manager: Arc<dyn SolutionTxManager>,
-    solution_service: Arc<dyn SolutionService>
+    solution_service: Arc<dyn SolutionService>,
 }
 
 impl Registry {
@@ -59,7 +60,7 @@ impl Registry {
             user_repository,
             id_provider,
             solution_tx_manager,
-            solution_service
+            solution_service,
         }
     }
 

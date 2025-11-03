@@ -1,3 +1,3 @@
 pub mod problems;
-pub mod user;
 pub mod solution;
+pub mod user;

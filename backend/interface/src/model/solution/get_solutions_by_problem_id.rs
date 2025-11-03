@@ -21,10 +21,17 @@ pub struct GetSolutionsByProblemIdResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-
 impl From<SolutionListItemView> for GetSolutionsByProblemIdResponse {
     fn from(value: SolutionListItemView) -> Self {
-        let SolutionListItemView {id, title,  problem_id, user_id, user_name, created_at, updated_at} = value;
+        let SolutionListItemView {
+            id,
+            title,
+            problem_id,
+            user_id,
+            user_name,
+            created_at,
+            updated_at,
+        } = value;
 
         Self {
             id,
@@ -33,7 +40,7 @@ impl From<SolutionListItemView> for GetSolutionsByProblemIdResponse {
             user_id,
             user_name,
             created_at,
-            updated_at
+            updated_at,
         }
     }
 }
