@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 pub struct SolutionListItemView {
     pub id: Uuid,
+    pub title: String,
     pub problem_id: String,
     pub user_id: String,
     pub user_name: String,

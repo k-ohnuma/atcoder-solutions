@@ -59,13 +59,14 @@ impl UnitOfWork for SolutionUnitOfWork {
 impl SolutionRespositoryTx for SolutionUnitOfWork {
     async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError> {
         sqlx::query!(
-            r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url)
-               VALUES ($1,$2,$3,$4,$5)"#,
+            r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
+               VALUES ($1,$2,$3,$4,$5,$6)"#,
             s.id,
             s.problem_id,
             s.user_id,
             s.body_md,
-            s.submit_url
+            s.submit_url,
+            s.title
         )
         .execute(self.conn())
         .await?;

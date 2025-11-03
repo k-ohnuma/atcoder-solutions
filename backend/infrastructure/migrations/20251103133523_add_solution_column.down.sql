@@ -1,0 +1,2 @@
+ALTER TABLE solutions
+  DROP COLUMN IF EXISTS title;

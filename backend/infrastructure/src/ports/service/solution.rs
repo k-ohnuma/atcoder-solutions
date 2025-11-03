@@ -19,7 +19,7 @@ impl SolutionService for SolutionServiceImpl {
         let solutions = sqlx::query_as!(
             SolutionListItemViewRaw,
             r#"
-                SELECT s.id, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at
+                SELECT s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at
                 FROM solutions s
                 JOIN users u on s.user_id = u.id
                 WHERE s.problem_id = $1

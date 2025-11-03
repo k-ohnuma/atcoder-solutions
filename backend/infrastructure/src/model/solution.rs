@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 pub struct SolutionListItemViewRaw {
     pub id: Uuid,
+    pub title: String,
     pub problem_id: String,
     pub user_id: String,
     pub user_name: String,
@@ -15,6 +16,7 @@ impl From<SolutionListItemViewRaw> for SolutionListItemView {
     fn from(value: SolutionListItemViewRaw) -> Self {
         let SolutionListItemViewRaw {
             id,
+            title,
             problem_id,
             user_id,
             user_name,
@@ -24,6 +26,7 @@ impl From<SolutionListItemViewRaw> for SolutionListItemView {
 
         Self {
             id,
+            title,
             problem_id,
             user_id,
             user_name,
