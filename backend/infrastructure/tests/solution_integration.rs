@@ -84,6 +84,7 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
 
     let solution = Solution {
         id: sol_id,
+        title: "title".into(),
         problem_id: "abc300_a".into(),
         user_id: "id".into(),
         body_md: "# midashi ## what is dp?".into(),
@@ -138,6 +139,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let sol_id = Uuid::now_v7();
     let sol = Solution {
         id: sol_id,
+        title: "title".into(),
         problem_id: "abc300_a".into(),
         user_id: "id".into(),
         body_md: "X".into(),
