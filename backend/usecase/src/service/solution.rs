@@ -8,6 +8,6 @@ use crate::dto::solution::SolutionListItemView;
 pub trait SolutionService: Send + Sync {
     async fn get_solutions_by_problem_id(
         &self,
-        problem_id: &str,
+        problem_id: String,
     ) -> Result<Vec<SolutionListItemView>, RepositoryError>;
 }

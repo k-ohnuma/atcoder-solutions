@@ -7,6 +7,8 @@ version.workspace = true
 [dependencies]
 domain.workspace = true
 shared.workspace = true
+usecase.workspace = true
+
 async-trait.workspace = true
 derive-new.workspace = true
 reqwest.workspace = true
