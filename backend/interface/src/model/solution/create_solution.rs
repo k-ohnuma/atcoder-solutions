@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 pub struct CreateSolutionRequest {
     problem_id: String,
+    title: String,
     body_md: String,
     submit_url: String,
     tags: Vec<String>,
@@ -13,6 +14,7 @@ pub struct CreateSolutionRequest {
 pub fn from_req_for_input(user_id: String, req: CreateSolutionRequest) -> CreateSolutionInput {
     CreateSolutionInput {
         user_id,
+        title: req.title,
         problem_id: req.problem_id,
         body_md: req.body_md,
         submit_url: req.submit_url,

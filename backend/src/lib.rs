@@ -31,18 +31,31 @@ pub fn init_logger() -> Result<()> {
     };
     let env_filter = tracing_subscriber::EnvFilter::from(log_level);
 
-    let subscriber = tracing_subscriber::fmt::layer()
-        .json()
-        .with_file(true)
-        .with_line_number(true)
-        .with_target(false);
+    if matches!(env, Environment::Dev) {
+        let subscriber = tracing_subscriber::fmt::layer()
+            .pretty()
+            .with_ansi(true)
+            .with_file(true)
+            .with_line_number(true)
+            .with_target(false);
+        tracing_subscriber::registry()
+            .with(subscriber)
+            .with(env_filter)
+            .with(ErrorLayer::default())
+            .try_init()?;
+    } else {
+        let subscriber = tracing_subscriber::fmt::layer()
+            .json()
+            .with_file(true)
+            .with_line_number(true)
+            .with_target(false);
 
-    tracing_subscriber::registry()
-        .with(subscriber)
-        .with(env_filter)
-        .with(ErrorLayer::default())
-        .try_init()?;
-
+        tracing_subscriber::registry()
+            .with(subscriber)
+            .with(env_filter)
+            .with(ErrorLayer::default())
+            .try_init()?;
+    }
     Ok(())
 }
 
