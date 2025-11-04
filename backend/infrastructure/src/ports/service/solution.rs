@@ -1,7 +1,11 @@
 use async_trait::async_trait;
 use derive_new::new;
 use shared::error::repository::RepositoryError;
-use usecase::{dto::solution::SolutionListItemView, service::solution::SolutionService};
+use usecase::{
+    dto::solution::{SolutionListItemView, SolutionView},
+    service::solution::SolutionService,
+};
+use uuid::Uuid;
 
 use crate::{database::ConnectionPool, model::solution::SolutionListItemViewRaw};
 
@@ -32,5 +36,23 @@ impl SolutionService for SolutionServiceImpl {
             .into_iter()
             .map(SolutionListItemView::from)
             .collect())
+    }
+    async fn get_solution_by_solution_id(
+        &self,
+        solution_id: Uuid,
+    ) -> Result<SolutionView, RepositoryError> {
+        let solution = sqlx::query_as!(
+            SolutionView,
+            r#"
+                SELECT s.id, s.title, s.problem_id, p.title as problem_title, s.user_id, u.user_name, s.body_md, s.submit_url, s.created_at, s.updated_at
+                FROM solutions s
+                JOIN users u on s.user_id = u.id
+                JOIN problems p on s.problem_id = p.id
+                WHERE s.id = $1
+            "#,
+            solution_id
+        ).fetch_one(self.db.inner_ref()).await?;
+
+        Ok(solution)
     }
 }

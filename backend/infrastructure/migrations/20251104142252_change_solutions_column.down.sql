@@ -1,0 +1,2 @@
+ALTER TABLE solutions
+  ALTER COLUMN submit_url DROP NOT NULL;
