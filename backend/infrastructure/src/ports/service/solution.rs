@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 use derive_new::new;
 use shared::error::repository::RepositoryError;
-use usecase::{dto::solution::{SolutionListItemView, SolutionView}, service::solution::SolutionService};
+use usecase::{
+    dto::solution::{SolutionListItemView, SolutionView},
+    service::solution::SolutionService,
+};
 use uuid::Uuid;
 
 use crate::{database::ConnectionPool, model::solution::SolutionListItemViewRaw};
