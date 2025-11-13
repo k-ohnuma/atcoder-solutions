@@ -12,9 +12,6 @@
     "format:check": "prettier --check .",
     "prepare": "panda codegen"
   },
-  "volta": {
-    "node": "22.11.0"
-  },
   "dependencies": {
     "@ark-ui/react": "^5.26.2",
     "@hookform/resolvers": "^5.2.2",

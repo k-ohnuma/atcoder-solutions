@@ -33,7 +33,7 @@ run_task = [
 
 [tasks.run]
 extend = "set-env-local"
-# dependencies = ["before-build"]
+dependencies = ["before-build"]
 command = "cargo"
 args = ["run", "${@}"]
 

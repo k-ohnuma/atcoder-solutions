@@ -34,10 +34,10 @@ impl JwksCache {
         }
     }
     pub async fn get(&self) -> Result<JwkSet, AuthError> {
-        if let Some((set, at, ttl)) = self.inner.read().await.clone() {
-            if at.elapsed().unwrap_or_default() < ttl {
-                return Ok(set);
-            }
+        if let Some((set, at, ttl)) = self.inner.read().await.clone()
+            && at.elapsed().unwrap_or_default() < ttl
+        {
+            return Ok(set);
         }
         let resp = reqwest::get(self.url.as_str())
             .await
