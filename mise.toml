@@ -1,0 +1,4 @@
+[tools]
+node = "22.11.0"
+pnpm = "latest"
+rust = "1.89.0"

@@ -1,0 +1,38 @@
+[config]
+default_to_workspace = false
+
+[tasks.before-build]
+run_task = [
+    { name = [
+        "compose-up-db",
+        "migrate",
+    ] },
+]
+
+[tasks.dev]
+command = "pnpm"
+args = ["run", "dev"]
+
+[tasks.type-check]
+command = "pnpm"
+args = ["run", "tc"]
+
+[tasks.fmt]
+command = "pnpm"
+args = ["run", "format:write"]
+
+[tasks.fmtc]
+command = "pnpm"
+args = ["run", "format:check"]
+
+[tasks.lint]
+command = "pnpm"
+args = ["run", "lint"]
+
+[tasks.gitpush]
+dependencies = ["type-check", "fmtc", "lint"]
+script = [
+    "branch=$(git rev-parse --abbrev-ref HEAD)",
+    "git push origin $branch"
+]
+
