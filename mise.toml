@@ -1,7 +1,12 @@
 [tools]
 "cargo:cargo-nextest" = "latest"
 "cargo:sqlx-cli" = "0.7.3"
+"cargo:taplo-cli" = "latest"
 node = "22.11.0"
 "npm:@biomejs/biome" = "latest"
 pnpm = "latest"
 rust = "1.89.0"
+
+[tasks.taplo]
+description = "run toml formatter"
+run = "taplo format"

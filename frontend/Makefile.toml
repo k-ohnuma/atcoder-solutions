@@ -3,40 +3,39 @@ default_to_workspace = false
 
 [tasks.before-build]
 run_task = [
-    { name = [
-        "compose-up-db",
-        "migrate",
-    ] },
+  { name = [
+    "compose-up-db",
+    "migrate",
+  ] },
 ]
 
 [tasks.dev]
-command = "pnpm"
 args = ["run", "dev"]
+command = "pnpm"
 
 [tasks.type-check]
-command = "pnpm"
 args = ["run", "tc"]
+command = "pnpm"
 
 [tasks.fmt]
-command = "pnpm"
 args = ["run", "format:write"]
+command = "pnpm"
 
 [tasks.fmtc]
-command = "pnpm"
 args = ["run", "format:check"]
+command = "pnpm"
 
 [tasks.check]
-command = "pnpm"
 args = ["run", "check:check"]
+command = "pnpm"
 
 [tasks.lint]
-command = "pnpm"
 args = ["run", "lint"]
+command = "pnpm"
 
 [tasks.gitpush]
 dependencies = ["type-check", "fmtc", "lint", "check"]
 script = [
-    "branch=$(git rev-parse --abbrev-ref HEAD)",
-    "git push origin $branch"
+  "branch=$(git rev-parse --abbrev-ref HEAD)",
+  "git push origin $branch",
 ]
-

@@ -1,16 +1,16 @@
 [package]
-name = "domain"
 edition.workspace = true
+name = "domain"
 publish.workspace = true
 version.workspace = true
 
 [dependencies]
-async-trait.workspace = true
 anyhow.workspace = true
-thiserror.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shared.workspace = true
 strum.workspace = true
+thiserror.workspace = true
 uuid.workspace = true
-chrono.workspace = true

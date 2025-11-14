@@ -1,6 +1,6 @@
 [package]
-name = "backend"
 edition.workspace = true
+name = "backend"
 publish.workspace = true
 version.workspace = true
 
@@ -9,7 +9,14 @@ name = "app"
 path = "src/bin/main.rs"
 
 [workspace]
-members = [ "domain", "infrastructure","interface", "registry", "shared", "usecase"]
+members = [
+  "domain",
+  "infrastructure",
+  "interface",
+  "registry",
+  "shared",
+  "usecase",
+]
 
 [workspace.package]
 edition = "2024"
@@ -17,32 +24,44 @@ publish = false
 version = "0.1.0"
 
 [workspace.dependencies]
-interface = {path = "./interface"}
-domain = {path = "./domain"}
-infrastructure = {path = "./infrastructure"}
-shared = {path = "./shared"}
-registry = {path = "./registry"}
-usecase = {path = "./usecase/"}
+domain = { path = "./domain" }
+infrastructure = { path = "./infrastructure" }
+interface = { path = "./interface" }
+registry = { path = "./registry" }
+shared = { path = "./shared" }
+usecase = { path = "./usecase/" }
 
-async-trait = "0.1.89"
 anyhow = "1.0.100"
+async-trait = "0.1.89"
 axum = { version = "0.8.6", features = ["macros"] }
+base64 = { version = "0.22.1" }
+chrono = { version = "0.4.42", features = ["serde"] }
 derive-new = "0.7.0"
+itertools = "0.14.0"
+jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
+reqwest = { version = "0.12.23", features = [
+  "gzip",
+  "json",
+  "brotli",
+  "deflate",
+] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+sqlx = { version = "0.7.3", features = [
+  "runtime-tokio",
+  "uuid",
+  "chrono",
+  "macros",
+  "postgres",
+  "migrate",
+] }
+strum = { version = "0.27.2", features = ["derive"] }
+thiserror = "2.0.17"
 tokio = { version = "1.47.1", features = ["full"] }
 tower-http = { version = "0.6.6", features = ["trace", "cors", "request-id"] }
-thiserror = "2.0.17"
 tracing = "0.1.41"
 tracing-error = "0.2.1"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
-sqlx = { version = "0.7.3", features = ["runtime-tokio", "uuid", "chrono", "macros", "postgres", "migrate"] }
-reqwest = { version = "0.12.23", features = ["gzip", "json", "brotli", "deflate"] }
-strum = { version = "0.27.2", features = ["derive"] }
-itertools = "0.14.0"
-jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
-base64 = { version = "0.22.1" }
-chrono = { version = "0.4.42", features = ["serde"] }
 uuid = { version = "1.18.1", features = ["v7", "serde"] }
 
 #dev-dependencies
@@ -51,13 +70,13 @@ wiremock = "0.5"
 
 [dependencies]
 interface.workspace = true
-shared.workspace = true
 registry.workspace = true
+shared.workspace = true
 
 anyhow.workspace = true
 axum.workspace = true
 tokio.workspace = true
 tower-http.workspace = true
-tracing-error.workspace = true
 tracing.workspace = true
+tracing-error.workspace = true
 tracing-subscriber.workspace = true

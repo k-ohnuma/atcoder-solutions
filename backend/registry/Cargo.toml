@@ -1,11 +1,11 @@
 [package]
-name = "registry"
 edition.workspace = true
+name = "registry"
 publish.workspace = true
 version.workspace = true
 
 [dependencies]
 domain.workspace = true
-shared.workspace = true
 infrastructure.workspace = true
+shared.workspace = true
 usecase.workspace = true

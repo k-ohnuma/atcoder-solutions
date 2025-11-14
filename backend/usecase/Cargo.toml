@@ -1,18 +1,18 @@
 [package]
-name = "usecase"
 edition.workspace = true
+name = "usecase"
 publish.workspace = true
 version.workspace = true
 
 [dependencies]
-domain.workspace = true
-shared.workspace = true
-derive-new.workspace = true
-thiserror.workspace = true
-itertools.workspace = true
-uuid.workspace = true
 async-trait.workspace = true
 chrono.workspace = true
+derive-new.workspace = true
+domain.workspace = true
+itertools.workspace = true
+shared.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
