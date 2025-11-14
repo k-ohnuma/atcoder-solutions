@@ -1,6 +1,6 @@
 import { getApps, initializeApp } from "firebase/app";
-import { clientConfig } from "../config/client";
 import { Auth, getAuth } from "firebase/auth";
+import { clientConfig } from "../config/client";
 
 const getFirebaseApp = () => {
   if (getApps().length >= 1) {

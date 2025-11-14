@@ -1,7 +1,6 @@
+import { NextRequest, NextResponse } from "next/server";
 import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
 import { getProblemsByContestSeriesQueryParams } from "@/server/interface/problem/get";
-import { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());

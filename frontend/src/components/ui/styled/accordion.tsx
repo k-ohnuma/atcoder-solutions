@@ -39,12 +39,11 @@ export const ItemTrigger = withContext<HTMLButtonElement, Assign<HTMLStyledProps
   "itemTrigger",
 );
 
-export {
-  AccordionContext as Context,
-  AccordionItemContext as ItemContext,
-} from "@ark-ui/react/accordion";
-
 export type {
   AccordionFocusChangeDetails as FocusChangeDetails,
   AccordionValueChangeDetails as ValueChangeDetails,
+} from "@ark-ui/react/accordion";
+export {
+  AccordionContext as Context,
+  AccordionItemContext as ItemContext,
 } from "@ark-ui/react/accordion";

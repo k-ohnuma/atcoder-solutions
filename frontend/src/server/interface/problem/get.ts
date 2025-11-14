@@ -1,5 +1,5 @@
-import { contestSeries } from "@/server/domain/problems";
 import z from "zod";
+import { contestSeries } from "@/server/domain/problems";
 
 export const getProblemsByContestSeriesQueryParams = z.object({
   series: contestSeries,

@@ -1,6 +1,6 @@
+import { NextRequest } from "next/server";
 import { auth, firebaseAdmin } from "@/shared/firebase/backend";
 import { Resp } from "../response";
-import { NextRequest } from "next/server";
 
 export async function authenticateRequest(request: NextRequest): Promise<Resp<string>> {
   const authHeader = request.headers.get("Authorization");

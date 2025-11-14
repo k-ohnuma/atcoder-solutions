@@ -1,7 +1,7 @@
 import "server-only";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { serverConfig } from "../config/backend";
 import { getAuth } from "firebase-admin/auth";
+import { serverConfig } from "../config/backend";
 
 export const firebaseAdmin =
   getApps()[0] ??

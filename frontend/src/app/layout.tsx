@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { clientConfig } from "@/shared/config/client";
 import { Header } from "@/features/header/organisms/Header/Header";
+import { clientConfig } from "@/shared/config/client";
 
 export const metadata: Metadata = {
   title: clientConfig.appConfig.appName,

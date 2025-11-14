@@ -1,8 +1,7 @@
+import { NextRequest, NextResponse } from "next/server";
 import { UserRepositoryImpl } from "@/server/infrastructure/repository/userRepository";
 import { createUserRequest } from "@/server/interface/user/create";
 import { authenticateRequest } from "@/server/utils/authRequest";
-import { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const authUser = await authenticateRequest(req);

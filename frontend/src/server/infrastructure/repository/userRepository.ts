@@ -1,8 +1,8 @@
 import "server-only";
 import { User, UserRepository } from "@/server/domain/user";
+import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-import { Resp } from "@/server/response";
 
 export class UserRepositoryImpl implements UserRepository {
   private client: BackendApiClient;

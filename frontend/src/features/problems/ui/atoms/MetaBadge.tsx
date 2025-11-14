@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
 import React from "react";
 import { css } from "styled-system/css";
+import { Badge } from "@/components/ui/badge";
 
 export const MetaBadge = ({ children, title }: { children: React.ReactNode; title?: string }) => {
   return (

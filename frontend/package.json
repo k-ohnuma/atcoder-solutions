@@ -10,6 +10,8 @@
     "tc": "tsc --noEmit",
     "format:write": "biome format --write",
     "format:check": "biome format",
+    "check:write": "biome check --write",
+    "check:check": "biome check",
     "prepare": "panda codegen"
   },
   "dependencies": {

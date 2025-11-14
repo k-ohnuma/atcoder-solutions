@@ -1,6 +1,6 @@
+import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignInSchema, SignUpSchema } from "../model/schema";
-import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 export const onSubmitSignUp = async (values: SignUpSchema) => {
   const auth = getFirebaseAuth();

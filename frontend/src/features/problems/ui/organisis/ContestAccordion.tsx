@@ -1,6 +1,6 @@
+import { ChevronDownIcon } from "lucide-react";
 import { Accordion } from "@/components/ui/accordion";
 import { Problem } from "@/server/domain/problems";
-import { ChevronDownIcon } from "lucide-react";
 import { ProblemsList } from "./ProblemList";
 
 export function ContestAccordion({ problemsMap }: { problemsMap: Map<string, Problem[]> }) {

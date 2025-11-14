@@ -1,5 +1,5 @@
-import { Problem } from "@/shared/model/problem";
 import { ContestGroupCollection } from "@/server/domain/problems";
+import { Problem } from "@/shared/model/problem";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
 

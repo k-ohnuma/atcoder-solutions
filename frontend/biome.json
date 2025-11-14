@@ -10,7 +10,7 @@
   },
   "formatter": {
     "enabled": true,
-    "formatWithErrors": false,
+    "formatWithErrors": true,
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
@@ -19,7 +19,7 @@
     "bracketSameLine": false,
     "bracketSpacing": true,
     "expand": "auto",
-    "useEditorconfig": true,
+    "useEditorconfig": false,
     "includes": ["**", "!**/jest.config.js", "!**/node_modules/", "!**/.next/", "!**/.public/", "!**/pnpm-lock.yaml/"]
   },
   "linter": {
@@ -136,12 +136,7 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": {
-          "level": "on",
-          "options": {
-            "groups": [":PACKAGE:", ":BLANK_LINE:", ":PATH:"]
-          }
-        }
+        "organizeImports": "on"
       }
     }
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldPath, type Control, type FieldValues } from "react-hook-form";
+import { type Control, FieldPath, type FieldValues } from "react-hook-form";
 import { RhfToggleField } from "../atoms/RhfToggleField";
 
 const toggleItems = [

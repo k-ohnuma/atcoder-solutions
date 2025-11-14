@@ -1,6 +1,6 @@
+import { css } from "styled-system/css";
 import { Problem } from "@/shared/model/problem";
 import { ContestAccordion } from "../organisis/ContestAccordion";
-import { css } from "styled-system/css";
 
 export const ProblemsTemplate = ({ problemsMap }: { problemsMap: Map<string, Problem[]> }) => {
   return (
