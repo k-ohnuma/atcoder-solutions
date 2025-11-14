@@ -5,6 +5,4 @@ export const getProblemsByContestSeriesQueryParams = z.object({
   series: contestSeries,
 });
 
-export type GetProblemsByContestSeriesQueryParams = z.infer<
-  typeof getProblemsByContestSeriesQueryParams
->;
+export type GetProblemsByContestSeriesQueryParams = z.infer<typeof getProblemsByContestSeriesQueryParams>;

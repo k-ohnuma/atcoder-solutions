@@ -31,9 +31,7 @@ export function Header({ appName }: { items?: NavItem[]; appName: string }) {
     await onSubmitSignout();
     router.push("/");
   };
-  const loginItems: NavItem[] = [
-    { label: "ログアウト", onClick: handleSignOut },
-  ];
+  const loginItems: NavItem[] = [{ label: "ログアウト", onClick: handleSignOut }];
   const items = isLoggedIn ? loginItems : nonLoginItems;
   return (
     <header

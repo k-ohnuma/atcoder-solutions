@@ -1,11 +1,8 @@
-import { DecodedIdToken } from "firebase-admin/auth";
 import { auth, firebaseAdmin } from "@/shared/firebase/backend";
 import { Resp } from "../response";
 import { NextRequest } from "next/server";
 
-export async function authenticateRequest(
-  request: NextRequest,
-): Promise<Resp<string>> {
+export async function authenticateRequest(request: NextRequest): Promise<Resp<string>> {
   const authHeader = request.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

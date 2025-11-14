@@ -1,17 +1,9 @@
-import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
+import { ContestGroupCollection } from "@/server/domain/problems";
 
-export type Resp<T> =
-  | { ok: true; data: T; status: 200 }
-  | { ok: false; error: string; status: number };
+export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
 
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 type QueryParams = Record<string, string>;
 
@@ -67,9 +59,7 @@ export class ApiClient {
       const res = await fetch(url, init);
       return await res.json();
     } catch (e) {
-      console.error(
-        `failed to send a request ${url}, method: ${method}, ${e}`.trim(),
-      );
+      console.error(`failed to send a request ${url}, method: ${method}, ${e}`.trim());
       return {
         ok: false,
         status: 500,
@@ -81,21 +71,17 @@ export class ApiClient {
     return this.request({ method: "GET", path, params });
   }
 
-  private async getWithToken<T>(path: string, token: string): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, token });
-  }
+  // private async _getWithToken<T>(path: string, token: string): Promise<Resp<T>> {
+  //   return this.request({ method: "GET", path, token });
+  // }
 
-  private async post<T>(path: string, body: JsonValue): Promise<Resp<T>> {
-    return this.request({ path, method: "POST", body });
-  }
-
-  private async postWithToken<T>(
-    path: string,
-    token: string,
-    body: JsonValue,
-  ): Promise<Resp<T>> {
-    return this.request({ path, method: "POST", body, token });
-  }
+  // private async _post<T>(path: string, body: JsonValue): Promise<Resp<T>> {
+  //   return this.request({ path, method: "POST", body });
+  // }
+  //
+  // private async _postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
+  //   return this.request({ path, method: "POST", body, token });
+  // }
 
   // problems
   getProblemsByContestSeries = async <T>(contestSeries: string): Promise<T> => {
@@ -105,19 +91,14 @@ export class ApiClient {
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return [] as T;
   };
-  getContestGroupByContestSeries = async (
-    contestSeries: string,
-  ): Promise<ContestGroupCollection> => {
+  getContestGroupByContestSeries = async (contestSeries: string): Promise<ContestGroupCollection> => {
     const path = "problems/contest-group";
     const resp = await this.get<Record<string, Problem[]>>(path, {
       series: contestSeries,
     });
     if (resp.ok) {
       const map: Map<string, Problem[]> = new Map<string, Problem[]>(
-        Object.entries(resp.data).map(([contestId, problems]) => [
-          contestId,
-          problems,
-        ]),
+        Object.entries(resp.data).map(([contestId, problems]) => [contestId, problems]),
       );
       return map;
     }

@@ -37,11 +37,7 @@ const toggleItems = [
     label: "灰",
   },
 ];
-export function ColorField<T extends FieldValues>({
-  control,
-}: {
-  control: Control<T>;
-}) {
+export function ColorField<T extends FieldValues>({ control }: { control: Control<T> }) {
   return (
     <RhfToggleField
       control={control}

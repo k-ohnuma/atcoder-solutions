@@ -13,13 +13,9 @@ export const signUpSchema = z
     password: z
       .string()
       .min(1, "パスワードを入力してください")
-      .refine(
-        (val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(val),
-        {
-          message:
-            "パスワードは6文字以上で、大文字・小文字・数字をすべて含めてください",
-        },
-      ),
+      .refine((val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(val), {
+        message: "パスワードは6文字以上で、大文字・小文字・数字をすべて含めてください",
+      }),
     confirm: z.string(),
     color: z.string().min(1, "選択してください"),
   })

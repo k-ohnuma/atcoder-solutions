@@ -1,25 +1,13 @@
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignInSchema, SignUpSchema } from "../model/schema";
-import {
-  createUserWithEmailAndPassword,
-  deleteUser,
-  signInWithEmailAndPassword,
-  signOut,
-  UserCredential,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 export const onSubmitSignUp = async (values: SignUpSchema) => {
-  let cred: UserCredential | undefined;
   const auth = getFirebaseAuth();
   const email = values.email;
   const password = values.password;
   // とりあえずfirebaseの時点でこけたらそこで終了させる
-  try {
-    cred = await createUserWithEmailAndPassword(auth, email, password);
-  } catch (e: any) {
-    throw e;
-  }
-
+  const cred = await createUserWithEmailAndPassword(auth, email, password).catch((_e) => undefined);
   if (!cred) throw new Error("internal server error: cred is undefined");
   // firebaseが成功して、DBへの格納がこけたらfirebaseもロールバックしなきゃ
   try {
@@ -45,11 +33,7 @@ export const onSubmitSignIn = async (values: SignInSchema) => {
   const auth = getFirebaseAuth();
   const email = values.email;
   const password = values.password;
-  try {
-    const _cred = await signInWithEmailAndPassword(auth, email, password);
-  } catch (e: any) {
-    throw e;
-  }
+  const _cred = await signInWithEmailAndPassword(auth, email, password);
 };
 
 export const onSubmitSignout = async () => {

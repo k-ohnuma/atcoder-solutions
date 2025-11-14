@@ -1,16 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import {
-  ColorField,
-  ConfirmPasswordField,
-  EmailField,
-  PasswordField,
-  UserNameField,
-} from "../molecules";
+import { ColorField, ConfirmPasswordField, EmailField, PasswordField, UserNameField } from "../molecules";
 import { formStyle } from "./style/Form/formStyle";
 import { signUpSchema, SignUpSchema } from "../../model/schema";
 import { onSubmitSignUp } from "../../lib/submit";

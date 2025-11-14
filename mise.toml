@@ -1,4 +1,7 @@
 [tools]
+"cargo:cargo-nextest" = "latest"
+"cargo:sqlx-cli" = "0.7.3"
 node = "22.11.0"
+"npm:@biomejs/biome" = "latest"
 pnpm = "latest"
 rust = "1.89.0"

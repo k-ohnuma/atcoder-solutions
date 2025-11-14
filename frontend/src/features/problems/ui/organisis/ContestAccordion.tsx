@@ -3,11 +3,7 @@ import { Problem } from "@/server/domain/problems";
 import { ChevronDownIcon } from "lucide-react";
 import { ProblemsList } from "./ProblemList";
 
-export function ContestAccordion({
-  problemsMap,
-}: {
-  problemsMap: Map<string, Problem[]>;
-}) {
+export function ContestAccordion({ problemsMap }: { problemsMap: Map<string, Problem[]> }) {
   const list = [...problemsMap.entries()];
   return (
     <Accordion.Root multiple>

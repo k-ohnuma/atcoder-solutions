@@ -11,11 +11,7 @@ export default defineConfig({
   // Whether to use css reset
   preflight: true,
 
-  presets: [
-    presetBase,
-    presetPanda,
-    createPreset({ accentColor: amber, grayColor: sand, radius: "sm" }),
-  ],
+  presets: [presetBase, presetPanda, createPreset({ accentColor: amber, grayColor: sand, radius: "sm" })],
 
   // Where to look for your css declarations
   include: ["./src/**/*.{js,jsx,ts,tsx}", "./pages/**/*.{js,jsx,ts,tsx}"],
