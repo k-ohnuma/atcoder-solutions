@@ -1,5 +1,5 @@
-export { UserNameField } from "./UserNameField";
+export { ColorField } from "./ColorField";
+export { ConfirmPasswordField } from "./ConfirmPasswordField";
 export { EmailField } from "./EmailField";
 export { PasswordField } from "./PasswordField";
-export { ConfirmPasswordField } from "./ConfirmPasswordField";
-export { ColorField } from "./ColorField";
+export { UserNameField } from "./UserNameField";

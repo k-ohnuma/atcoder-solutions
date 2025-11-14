@@ -1,13 +1,13 @@
 "use client";
 
-import { css } from "styled-system/css";
-import { Logo } from "@/shared/ui/atoms/Logo";
-import { NavList, type NavItem } from "../../molecules/NavList";
-import { useEffect, useState } from "react";
-import { getFirebaseAuth } from "@/shared/firebase/client";
 import { onAuthStateChanged } from "firebase/auth";
-import { onSubmitSignout } from "@/features/auth/lib/submit";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { css } from "styled-system/css";
+import { onSubmitSignout } from "@/features/auth/lib/submit";
+import { getFirebaseAuth } from "@/shared/firebase/client";
+import { Logo } from "@/shared/ui/atoms/Logo";
+import { type NavItem, NavList } from "../../molecules/NavList";
 
 const nonLoginItems: NavItem[] = [
   { href: "/signin", label: "ログイン" },
@@ -31,9 +31,7 @@ export function Header({ appName }: { items?: NavItem[]; appName: string }) {
     await onSubmitSignout();
     router.push("/");
   };
-  const loginItems: NavItem[] = [
-    { label: "ログアウト", onClick: handleSignOut },
-  ];
+  const loginItems: NavItem[] = [{ label: "ログアウト", onClick: handleSignOut }];
   const items = isLoggedIn ? loginItems : nonLoginItems;
   return (
     <header

@@ -22,6 +22,7 @@ export function NavList({ items }: { items: NavItem[] }) {
           <button
             onClick={it.onClick}
             key={it.label}
+            type="button"
             className={css({
               px: 3,
               py: 2,

@@ -1,14 +1,14 @@
 import {
+  createContext,
   type ElementType,
   type ForwardRefExoticComponent,
+  forwardRef,
   type PropsWithoutRef,
   type RefAttributes,
-  createContext,
-  forwardRef,
   useContext,
 } from "react";
 import { cx } from "styled-system/css";
-import { type StyledComponent, isCssProperty, styled } from "styled-system/jsx";
+import { isCssProperty, type StyledComponent, styled } from "styled-system/jsx";
 
 type Props = Record<string, unknown>;
 type Recipe = {
@@ -18,13 +18,8 @@ type Recipe = {
 type Slot<R extends Recipe> = keyof ReturnType<R>;
 type Options = { forwardProps?: string[] };
 
-const shouldForwardProp = (
-  prop: string,
-  variantKeys: string[],
-  options: Options = {},
-) =>
-  options.forwardProps?.includes(prop) ||
-  (!variantKeys.includes(prop) && !isCssProperty(prop));
+const shouldForwardProp = (prop: string, variantKeys: string[], options: Options = {}) =>
+  options.forwardProps?.includes(prop) || (!variantKeys.includes(prop) && !isCssProperty(prop));
 
 export const createStyleContext = <R extends Recipe>(recipe: R) => {
   const StyleContext = createContext<Record<Slot<R>, string> | null>(null);
@@ -52,8 +47,7 @@ export const createStyleContext = <R extends Recipe>(recipe: R) => {
       Component,
       {},
       {
-        shouldForwardProp: (prop, variantKeys) =>
-          shouldForwardProp(prop, variantKeys, options),
+        shouldForwardProp: (prop, variantKeys) => shouldForwardProp(prop, variantKeys, options),
       },
     ) as StyledComponent<ElementType>;
     const StyledSlotProvider = forwardRef<T, P>((props, ref) => {
@@ -62,11 +56,7 @@ export const createStyleContext = <R extends Recipe>(recipe: R) => {
 
       return (
         <StyleContext.Provider value={slotStyles}>
-          <StyledComponent
-            {...otherProps}
-            ref={ref}
-            className={cx(slotStyles?.[slot], props.className)}
-          />
+          <StyledComponent {...otherProps} ref={ref} className={cx(slotStyles?.[slot], props.className)} />
         </StyleContext.Provider>
       );
     });
@@ -83,13 +73,7 @@ export const createStyleContext = <R extends Recipe>(recipe: R) => {
     const StyledComponent = styled(Component);
     const StyledSlotComponent = forwardRef<T, P>((props, ref) => {
       const slotStyles = useContext(StyleContext);
-      return (
-        <StyledComponent
-          {...props}
-          ref={ref}
-          className={cx(slotStyles?.[slot], props.className)}
-        />
-      );
+      return <StyledComponent {...props} ref={ref} className={cx(slotStyles?.[slot], props.className)} />;
     });
     // @ts-expect-error
     StyledSlotComponent.displayName = Component.displayName || Component.name;

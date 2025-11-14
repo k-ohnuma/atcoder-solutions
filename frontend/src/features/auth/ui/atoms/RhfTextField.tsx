@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Controller,
-  type Control,
-  FieldPath,
-  FieldValues,
-} from "react-hook-form";
+import { type Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { fieldRootStyle } from "./style";
@@ -43,9 +38,7 @@ export function RhfTextField<TFieldValues extends FieldValues>({
               aria-invalid={fieldState.error ? "true" : undefined}
             />
             {description && <Field.HelperText>{description}</Field.HelperText>}
-            {fieldState.error?.message && (
-              <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>
-            )}
+            {fieldState.error?.message && <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>}
           </Field.Root>
         );
       }}

@@ -1,13 +1,8 @@
 import "server-only";
+import { ContestGroupCollection, ContestSeries, Problem, ProblemRepository } from "@/server/domain/problems";
+import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-import { Resp } from "@/server/response";
-import {
-  ContestGroupCollection,
-  ContestSeries,
-  Problem,
-  ProblemRepository,
-} from "@/server/domain/problems";
 
 export class ProblemRepositoryImpl implements ProblemRepository {
   private client: BackendApiClient;
@@ -23,16 +18,12 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     return "problems/contest-group";
   };
 
-  getProblemsByContestSeries = async (
-    series: ContestSeries,
-  ): Promise<Resp<Problem[]>> => {
+  getProblemsByContestSeries = async (series: ContestSeries): Promise<Resp<Problem[]>> => {
     const params = { series };
     const path = this.getProblemsByContestSeriesPath();
     return await this.client.get<Problem[]>(path, params);
   };
-  getContestGroupByContestSeries = async (
-    series: ContestSeries,
-  ): Promise<Resp<ContestGroupCollection>> => {
+  getContestGroupByContestSeries = async (series: ContestSeries): Promise<Resp<ContestGroupCollection>> => {
     const params = { series };
     const path = this.getContestGroupByContestSeriesPath();
     return await this.client.get<ContestGroupCollection>(path, params);

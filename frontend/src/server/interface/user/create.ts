@@ -1,5 +1,5 @@
-import { colorScheme } from "@/server/domain/user";
 import z from "zod";
+import { colorScheme } from "@/server/domain/user";
 
 export const createUserRequest = z.object({
   userName: z.string().min(1),

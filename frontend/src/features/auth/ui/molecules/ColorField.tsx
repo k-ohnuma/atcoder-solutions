@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldPath, type Control, type FieldValues } from "react-hook-form";
+import { type Control, FieldPath, type FieldValues } from "react-hook-form";
 import { RhfToggleField } from "../atoms/RhfToggleField";
 
 const toggleItems = [
@@ -37,11 +37,7 @@ const toggleItems = [
     label: "灰",
   },
 ];
-export function ColorField<T extends FieldValues>({
-  control,
-}: {
-  control: Control<T>;
-}) {
+export function ColorField<T extends FieldValues>({ control }: { control: Control<T> }) {
   return (
     <RhfToggleField
       control={control}

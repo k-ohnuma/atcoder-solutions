@@ -2,13 +2,7 @@
 
 import { css } from "styled-system/css";
 
-export function AuthTemplate({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+export function AuthTemplate({ title, children }: { title: string; children: React.ReactNode }) {
   const mainStyle = css({
     maxWidth: "xl",
     px: "4",

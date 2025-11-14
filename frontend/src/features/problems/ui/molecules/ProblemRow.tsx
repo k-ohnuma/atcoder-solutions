@@ -1,7 +1,7 @@
-import { Problem } from "@/shared/model/problem";
 import Link from "next/link";
-import { MetaBadge, ProblemIndex } from "../atoms";
 import { css } from "styled-system/css";
+import { Problem } from "@/shared/model/problem";
+import { MetaBadge, ProblemIndex } from "../atoms";
 
 export function ProblemRow({ p }: { p: Problem }) {
   const href = `/problems/${p.id}`;

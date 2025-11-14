@@ -1,8 +1,8 @@
 import "server-only";
 import { User, UserRepository } from "@/server/domain/user";
+import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-import { Resp } from "@/server/response";
 
 export class UserRepositoryImpl implements UserRepository {
   private client: BackendApiClient;
@@ -15,10 +15,7 @@ export class UserRepositoryImpl implements UserRepository {
     return "users";
   };
 
-  async create(
-    input: Pick<User, "userName" | "color">,
-    token: string,
-  ): Promise<Resp<User>> {
+  async create(input: Pick<User, "userName" | "color">, token: string): Promise<Resp<User>> {
     const path = this.createReqPath();
     const body = {
       userName: input.userName,

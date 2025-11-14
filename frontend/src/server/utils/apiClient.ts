@@ -1,13 +1,7 @@
 import "server-only";
 import { Resp } from "../response";
 
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 type QueryParams = Record<string, string>;
 
@@ -63,9 +57,7 @@ export class BackendApiClient {
       const res = await fetch(url, init);
       return await res.json();
     } catch (e) {
-      console.error(
-        `failed to send a request ${url}, method: ${method}, ${e}`.trim(),
-      );
+      console.error(`failed to send a request ${url}, method: ${method}, ${e}`.trim());
       return {
         ok: false,
         status: 500,
@@ -86,11 +78,7 @@ export class BackendApiClient {
     return this.request({ path, method: "POST", body });
   }
 
-  async postWithToken<T>(
-    path: string,
-    token: string,
-    body: JsonValue,
-  ): Promise<Resp<T>> {
+  async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
   }
 }

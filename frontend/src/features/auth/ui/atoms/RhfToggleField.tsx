@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  Controller,
-  type Control,
-  FieldPath,
-  FieldValues,
-} from "react-hook-form";
+import { type Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { css } from "styled-system/css";
 import { Field } from "@/components/ui/field";
 import { ToggleGroup } from "@/components/ui/toggle-group";
-import { fieldRootStyle } from "./style";
-import { css } from "styled-system/css";
 import { dotClass, toggleItemClass } from "../molecules/style/colorRecipe";
+import { fieldRootStyle } from "./style";
 
 type ToggleItem = {
   label: string;
@@ -60,17 +55,8 @@ export function RhfToggleField<TFieldValues extends FieldValues>({
             >
               {toggleItems.map((c) => {
                 return (
-                  <ToggleGroup.Item
-                    key={c.value}
-                    value={c.value}
-                    className={toggleItemClass({ color: c.value as any })}
-                  >
-                    {c.value && (
-                      <span
-                        aria-hidden
-                        className={dotClass({ color: c.value as any })}
-                      />
-                    )}
+                  <ToggleGroup.Item key={c.value} value={c.value} className={toggleItemClass({ color: c.value as any })}>
+                    {c.value && <span aria-hidden className={dotClass({ color: c.value as any })} />}
                     {c.label}
                   </ToggleGroup.Item>
                 );
@@ -78,9 +64,7 @@ export function RhfToggleField<TFieldValues extends FieldValues>({
             </ToggleGroup.Root>
 
             {description && <Field.HelperText>{description}</Field.HelperText>}
-            {fieldState.error?.message && (
-              <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>
-            )}
+            {fieldState.error?.message && <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>}
           </Field.Root>
         );
       }}

@@ -1,6 +1,6 @@
+import { css } from "styled-system/css";
 import { Problem } from "@/server/domain/problems";
 import { ProblemRow } from "../molecules/ProblemRow";
-import { css } from "styled-system/css";
 
 export function ProblemsList({ problems }: { problems: Problem[] }) {
   return (

@@ -1,12 +1,8 @@
 "use client";
-import { FieldPath, type Control, type FieldValues } from "react-hook-form";
+import { type Control, FieldPath, type FieldValues } from "react-hook-form";
 import { RhfTextField } from "../atoms/RhfTextField";
 
-export function UserNameField<T extends FieldValues>({
-  control,
-}: {
-  control: Control<T>;
-}) {
+export function UserNameField<T extends FieldValues>({ control }: { control: Control<T> }) {
   return (
     <RhfTextField<T>
       control={control}
