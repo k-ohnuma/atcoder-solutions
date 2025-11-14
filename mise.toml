@@ -23,3 +23,8 @@ run = "yamlfmt ."
 [tasks.yamlcheck]
 description = "run yaml check"
 run = "yamlfmt -lint ."
+
+[tasks.check]
+run = [
+  { tasks = ["taplocheck", "yamlcheck"] },
+]
