@@ -25,12 +25,16 @@ args = ["run", "format:write"]
 command = "pnpm"
 args = ["run", "format:check"]
 
+[tasks.check]
+command = "pnpm"
+args = ["run", "check:check"]
+
 [tasks.lint]
 command = "pnpm"
 args = ["run", "lint"]
 
 [tasks.gitpush]
-dependencies = ["type-check", "fmtc", "lint"]
+dependencies = ["type-check", "fmtc", "lint", "check"]
 script = [
     "branch=$(git rev-parse --abbrev-ref HEAD)",
     "git push origin $branch"
