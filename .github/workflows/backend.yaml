@@ -31,10 +31,10 @@ jobs:
         with:
           tool: nextest,cargo-make
       - name: build
-        run: cargo make ci-test --no-run --locked
+        run: cargo make test --no-run --locked
       - name: clippy
-        run: cargo make ci-clippy
+        run: cargo make clippy
       - name: fmt
-        run: cargo make ci-fmt
+        run: cargo make fmtc
       - name: test
-        run: cargo make ci-test
+        run: cargo make test

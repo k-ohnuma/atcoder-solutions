@@ -107,5 +107,6 @@ pub async fn run_dayly_job(reg: &Registry) -> Result<()> {
         StatusCode::OK => Ok(()),
         _ => Err(anyhow!("daily fetch failed")),
     }?;
+
     Ok(())
 }

@@ -1,12 +1,6 @@
 [tools]
-"cargo:cargo-nextest" = "latest"
-"cargo:sqlx-cli" = "0.7.3"
 "cargo:taplo-cli" = "latest"
 "go:github.com/google/yamlfmt/cmd/yamlfmt" = "latest"
-node = "22.11.0"
-"npm:@biomejs/biome" = "latest"
-pnpm = "latest"
-rust = "1.89.0"
 
 [tasks.taplo]
 description = "run toml formatter"
@@ -24,7 +18,29 @@ run = "yamlfmt ."
 description = "run yaml check"
 run = "yamlfmt -lint ."
 
-[tasks.check]
+[tasks."lint:ci"]
 run = [
   { tasks = ["taplocheck", "yamlcheck"] },
 ]
+
+[tasks."frontend:ci"]
+description = "ci for frontend"
+dir = "frontend"
+run = "mise run ci"
+
+[tasks."backend:ci"]
+description = "ci for backend"
+dir = "backend"
+run = "mise run ci"
+
+[tasks.before-push]
+run = [
+  { tasks = ["frontend:ci", "lint:ci", "backend:ci"] },
+]
+
+[tasks.gitpush]
+depends = ["before-push"]
+run = '''
+branch=$(git rev-parse --abbrev-ref HEAD)
+git push origin $branch
+'''

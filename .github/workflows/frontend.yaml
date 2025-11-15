@@ -17,14 +17,14 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: jdx/mise-action@v3
         with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: frontend/package.json
-          cache-dependency-path: frontend/pnpm-lock.yaml
-          cache: 'pnpm'
+          version: 2025.11.4
+          install: true
+          cache: true
+          cache_key_prefix: "mise-cache-frontend"
+          experimental: false
+          working_directory: frontend
       - name: Dependency restore
         id: cache-restore
         uses: actions/cache@v4
@@ -33,11 +33,5 @@ jobs:
           key: js-depend-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
       - name: Dependency installing
         run: pnpm install --frozen-lockfile
-      - name: type-check
-        run: pnpm run tc
-      - name: lint
-        run: pnpm run lint
-      - name: fmt
-        run: pnpm run format:check
       - name: check
-        run: pnpm run check:check
+        run: mise run ci

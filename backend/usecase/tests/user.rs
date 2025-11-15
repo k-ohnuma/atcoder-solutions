@@ -20,9 +20,8 @@ struct DummyUserRepository {
 impl UserRepository for DummyUserRepository {
     async fn create_user(&self, user: User) -> Result<(), RepositoryError> {
         let id = user.id.as_str();
-        match id {
-            "conflict" => return Err(RepositoryError::UniqueViolation("already exist".into())),
-            _ => {}
+        if id == "conflict" {
+            return Err(RepositoryError::UniqueViolation("already exist".into()));
         }
         self.calls.lock().unwrap().push(user);
         Ok(())
