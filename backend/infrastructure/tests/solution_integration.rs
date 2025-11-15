@@ -135,7 +135,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let cp = ConnectionPool::new(pool.to_owned());
     let tm = SolutionTransactionManager::new(cp);
     let mut uow = tm.begin().await.unwrap();
-    let tags = uow.tags().upsert(&vec!["ok".into()]).await.unwrap();
+    let tags = uow.tags().upsert(&["ok".into()]).await.unwrap();
     let sol_id = Uuid::now_v7();
     let sol = Solution {
         id: sol_id,
@@ -152,12 +152,10 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     // 存在していないUUIDを突っ込む
     bad.push(Uuid::now_v7());
 
-    let _err = uow
-        .solutions()
+    uow.solutions()
         .replace_tags(sol_id, &bad)
         .await
-        .err()
-        .expect("should fail");
+        .expect_err("should fail");
 
     let cnt: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM solution_tags WHERE solution_id = $1")
         .bind(sol_id)
