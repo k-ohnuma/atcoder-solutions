@@ -1,20 +1,20 @@
 [package]
-name = "interface"
-version.workspace = true
 edition.workspace = true
+name = "interface"
 publish.workspace = true
+version.workspace = true
 
 [dependencies]
+async-trait.workspace = true
+axum.workspace = true
+chrono.workspace = true
 domain.workspace = true
 registry.workspace = true
-shared.workspace = true
-usecase.workspace = true
-axum.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tracing.workspace = true
-async-trait.workspace = true
+shared.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
+tracing.workspace = true
+usecase.workspace = true
 uuid.workspace = true
-chrono.workspace = true

@@ -4,7 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
       network: host
-
   postgres:
     image: postgres:15
     ports:
@@ -15,7 +14,6 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: password
       POSTGRES_DB: app
-
 volumes:
   db:
     driver: local

@@ -1,7 +1,30 @@
 [tools]
 "cargo:cargo-nextest" = "latest"
 "cargo:sqlx-cli" = "0.7.3"
+"cargo:taplo-cli" = "latest"
+"go:github.com/google/yamlfmt/cmd/yamlfmt" = "latest"
 node = "22.11.0"
 "npm:@biomejs/biome" = "latest"
 pnpm = "latest"
 rust = "1.89.0"
+
+[tasks.taplo]
+description = "run toml formatter"
+run = "taplo format"
+
+[tasks.taplocheck]
+description = "run toml check"
+run = "taplo format --check"
+
+[tasks.yamlfmt]
+description = "run yaml formatter"
+run = "yamlfmt ."
+
+[tasks.yamlcheck]
+description = "run yaml check"
+run = "yamlfmt -lint ."
+
+[tasks.check]
+run = [
+  { tasks = ["taplocheck", "yamlcheck"] },
+]

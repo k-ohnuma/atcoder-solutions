@@ -1,0 +1,27 @@
+name: lint for toml and yaml
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**"
+      - "!**/**.yaml"
+      - "!**/**.yml"
+      - "!**/**.toml"
+  pull_request:
+    paths-ignore:
+      - "**"
+      - "!**/**.yaml"
+      - "!**/**.yml"
+      - "!**/**.toml"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: lint TOML
+        run: npx @taplo/cli format --check
+      - uses: actions/setup-go@v5
+      - name: install yamlfmt
+        run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+      - name: lint YAML
+        run: yamlfmt -lint .

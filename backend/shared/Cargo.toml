@@ -1,15 +1,15 @@
 [package]
-name = "shared"
 edition.workspace = true
+name = "shared"
 publish.workspace = true
 version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-thiserror.workspace = true
+axum.workspace = true
 reqwest.workspace = true
-tracing.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true
-axum.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
