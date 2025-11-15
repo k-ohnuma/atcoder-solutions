@@ -20,14 +20,22 @@ jobs:
       - uses: jdx/mise-action@v3
         with:
           version: 2025.11.4
-          install: true
+          install: false
           cache: true
           experimental: false
           working_directory: backend
+      - name: rustup show
+        run: rustup show
+      - name: install components
+        run: rustup component add clippy rustfmt
       - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
             backend -> target
+      - name: install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
       - name: ci
         run: mise run ci
