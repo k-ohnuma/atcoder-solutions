@@ -1,7 +1,7 @@
 [tools]
 "cargo:cargo-nextest" = "latest"
 "cargo:sqlx-cli" = "0.7.3"
-rust = "1.88.0"
+rust = "1.89.0"
 rust-analyzer = "2025-11-10"
 
 [env]
@@ -98,8 +98,9 @@ depends = ["before-ci"]
 run = "cargo nextest run --workspace --status-level all"
 
 [tasks.ci]
-depends = ["before-ci", "build"]
+depends = ["before-ci"]
 run = [
+  { task = "build" },
   { tasks = [
     "format:check",
     "clippy",
