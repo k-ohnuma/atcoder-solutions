@@ -1,0 +1,81 @@
+# NOTE: miseでのCIがうまくいかない(jdx/mise-action#237)のでCIでまわすものだけ設定しておく
+
+[config]
+default_to_workspace = false
+
+[env]
+ATCODER_PROBLEMS_BASE_ENDPOINT = "https://kenkoooo.com/atcoder"
+DATABASE_NAME = "app"
+DATABASE_PASSWORD = "password"
+DATABASE_PORT_INNER = 5432
+DATABASE_PORT_OUTER = 5432
+DATABASE_USERNAME = "app"
+ENV = "dev"
+FIREBASE_PROJECT_ID = "atcoder-solutions"
+HOST = "0.0.0.0"
+PORT = 8080
+
+[tasks.set-env-docker.env]
+DATABASE_HOST = "postgres"
+DATABASE_PORT = "${DATABASE_PORT_INNER}"
+DATABASE_URL = "postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?user=${DATABASE_USERNAME}&password=${DATABASE_PASSWORD}"
+
+[tasks.set-env-local.env]
+DATABASE_HOST = "localhost"
+DATABASE_PORT = "${DATABASE_PORT_OUTER}"
+DATABASE_URL = "postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?user=${DATABASE_USERNAME}&password=${DATABASE_PASSWORD}"
+
+[tasks.before-build]
+run_task = [
+  { name = [
+    "compose-up-db",
+    "migrate",
+  ] },
+]
+
+[tasks.test]
+args = [
+  "nextest",
+  "run",
+  "--workspace",
+  "--status-level",
+  "all",
+  "${@}",
+]
+command = "cargo"
+dependencies = ["before-build"]
+extend = "set-env-local"
+install_crate = { crate_name = "cargo-nextest", binary = "cargo", test_arg = [
+  "nextest",
+  "--help",
+] }
+
+[tasks.migrate]
+extend = "set-env-local"
+install_crate = { crate_name = "sqlx-cli", binary = "sqlx", test_arg = "--help" }
+script = '''
+#!/bin/bash
+until sqlx migrate run --source infrastructure/migrations; do
+    sleep 1
+done
+'''
+
+[tasks.compose-up-db]
+args = ["compose", "up", "-d", "postgres"]
+command = "docker"
+
+[tasks.clippy]
+args = [
+  "clippy",
+  "--all-targets",
+  "--all-features",
+  "--locked",
+  "--",
+  "-D",
+  "warnings",
+]
+command = "cargo"
+
+[tasks.fmtc]
+args = ["fmt", "--all", "--", "--check"]
+command = "cargo"

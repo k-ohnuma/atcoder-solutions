@@ -17,14 +17,6 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v3
-        with:
-          version: 2025.11.4
-          install: false
-          cache: true
-          cache_key_prefix: "mise-cache-backend"
-          experimental: false
-          working_directory: backend
       - name: rustup show
         run: rustup show
       - name: install components
@@ -34,5 +26,15 @@ jobs:
         with:
           workspaces: |
             backend -> target
-      - name: ci
-        run: mise run ci
+      - name: install nextest and cargo-make
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest,cargo-make
+      - name: build
+        run: cargo make test --no-run --locked
+      - name: clippy
+        run: cargo make clippy
+      - name: fmt
+        run: cargo make fmtc
+      - name: test
+        run: cargo make test
