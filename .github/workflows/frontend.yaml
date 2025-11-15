@@ -25,7 +25,13 @@ jobs:
           node-version-file: frontend/package.json
           cache-dependency-path: frontend/pnpm-lock.yaml
           cache: 'pnpm'
-      - name: install dependency
+      - name: Dependency restore
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: js-depend-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+      - name: Dependency installing
         run: pnpm install --frozen-lockfile
       - name: type-check
         run: pnpm run tc
