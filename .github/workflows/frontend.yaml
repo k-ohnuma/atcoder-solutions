@@ -22,6 +22,7 @@ jobs:
           version: 2025.11.4
           install: true
           cache: true
+          cache_key_prefix: "mise-cache-frontend"
           experimental: false
           working_directory: frontend
       - name: Dependency restore

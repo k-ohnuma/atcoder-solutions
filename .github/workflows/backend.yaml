@@ -22,6 +22,7 @@ jobs:
           version: 2025.11.4
           install: false
           cache: true
+          cache_key_prefix: "mise-cache-backend"
           experimental: false
           working_directory: backend
       - name: rustup show

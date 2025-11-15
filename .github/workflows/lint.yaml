@@ -23,6 +23,7 @@ jobs:
           version: 2025.11.4
           install: true
           cache: true
+          cache_key_prefix: "mise-cache-lint"
           experimental: false
       - name: ci
         run: mise run lint:ci
