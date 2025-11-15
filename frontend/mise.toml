@@ -1,0 +1,42 @@
+[tools]
+node = "22.11.0"
+"npm:@biomejs/biome" = "latest"
+pnpm = "latest"
+
+[tasks."dev"]
+description = "pnpm run dev"
+run = "pnpm run dev"
+
+[tasks."type-check"]
+alias = "tc"
+description = "pnpm run tc"
+run = "pnpm run tc"
+
+[tasks."format:write"]
+alias = "fmt"
+description = "run biome formatter"
+run = "pnpm run format:write"
+
+[tasks."fmt:check"]
+alias = "fmtc"
+description = "check biome format"
+run = "pnpm run format:check"
+
+[tasks."lint"]
+description = "check lint"
+run = "pnpm run lint"
+
+[tasks."check"]
+alias = "c"
+description = "check biome"
+run = "pnpm run check:check"
+
+[tasks."ci"]
+run = [
+  { tasks = [
+    "type-check",
+    "fmt:check",
+    "lint",
+    "check",
+  ] },
+]
