@@ -1,26 +1,20 @@
 "use client";
 
-import { type Control, Controller, FieldPath, FieldValues } from "react-hook-form";
-import { css } from "styled-system/css";
-import { Field } from "@/components/ui/field";
-import { ToggleGroup } from "@/components/ui/toggle-group";
-import { dotClass, toggleItemClass } from "../molecules/style/colorRecipe";
-import { fieldRootStyle } from "./style";
+import * as React from "react";
+import { type Control, FieldPath, FieldValues } from "react-hook-form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type ToggleItem = {
   label: string;
   value: string;
-  dotColor?: string;
-  onColor?: string;
 };
+
 type Props<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   toggleItems: ToggleItem[];
-  toggleType: "single";
-  type?: React.ComponentProps<"input">["type"];
-  placeholder?: string;
   description?: string;
 };
 
@@ -32,42 +26,32 @@ export function RhfToggleField<TFieldValues extends FieldValues>({
   description,
 }: Props<TFieldValues>) {
   return (
-    <Controller
+    <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => {
-        return (
-          <Field.Root className={fieldRootStyle} invalid={!!fieldState.error}>
-            <Field.Label htmlFor={name}>{label}</Field.Label>
-            <ToggleGroup.Root
-              id={name}
-              value={field.value}
-              onValueChange={(v) => {
-                field.onChange(v.value[0]);
-              }}
-              aria-describedby={fieldState.error ? `${name}-msg` : undefined}
-              className={css({
-                display: "flex",
-                gap: "2",
-                justifyContent: "space-between",
-                border: "none",
-              })}
-            >
-              {toggleItems.map((c) => {
-                return (
-                  <ToggleGroup.Item key={c.value} value={c.value} className={toggleItemClass({ color: c.value as any })}>
-                    {c.value && <span aria-hidden className={dotClass({ color: c.value as any })} />}
-                    {c.label}
-                  </ToggleGroup.Item>
-                );
-              })}
-            </ToggleGroup.Root>
+      render={({ field }) => (
+        <FormItem className="grid gap-2">
+          <FormLabel>{label}</FormLabel>
 
-            {description && <Field.HelperText>{description}</Field.HelperText>}
-            {fieldState.error?.message && <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>}
-          </Field.Root>
-        );
-      }}
+          <FormControl>
+            <ToggleGroup
+              type="single"
+              value={field.value}
+              onValueChange={(v) => field.onChange(v)}
+              className="flex justify-between gap-2"
+            >
+              {toggleItems.map((c) => (
+                <ToggleGroupItem key={c.value} value={c.value} className="gap-2">
+                  {c.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </FormControl>
+
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
     />
   );
 }
