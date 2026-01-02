@@ -29,11 +29,9 @@ impl ProblemRepository for ProblemRepositoryImpl {
         {
             let contests = problems
                 .iter()
-                .map(|e| {
-                    (
-                        e.contest_code.as_str(),
-                        ContestSeries::from(e.contest_code.as_str()),
-                    )
+                .filter_map(|e| {
+                    let series = ContestSeries::try_from(e.contest_code.as_str()).ok()?;
+                    Some((e.contest_code.as_str(), series))
                 })
                 .collect::<HashSet<(&str, ContestSeries)>>();
 
