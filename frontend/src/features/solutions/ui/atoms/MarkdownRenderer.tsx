@@ -3,65 +3,51 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { css } from "styled-system/css";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import type { Components } from "react-markdown";
 
 type MarkdownRendererProps = {
   value: string;
 };
 
+const components: Components = {
+  code({ className, children, ...rest }) {
+    const match = /language-(\w+)/.exec(className ?? "");
+    const code = String(children).replace(/\n$/, "");
+
+    if (match) {
+      return (
+        <SyntaxHighlighter
+          style={oneDark}
+          language={match[1]}
+          PreTag="div"
+          className={className}
+        >
+          {code}
+        </SyntaxHighlighter>
+      );
+    }
+    return (
+      <code className={className} {...rest}>
+        {children}
+      </code>
+    );
+  },
+};
+
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ value }) => {
   return (
-    <div
-      className={css({
-        w: "full",
-        h: "full",
-        overflowY: "auto",
-        fontSize: "sm",
-        // prose 的な感じを自作
-        "& h1": { fontSize: "2xl", fontWeight: "bold", mt: 4, mb: 2 },
-        "& h2": { fontSize: "xl", fontWeight: "bold", mt: 4, mb: 2 },
-        "& h3": { fontSize: "lg", fontWeight: "semibold", mt: 3, mb: 1 },
-        "& p": { mt: 2, lineHeight: "1.8" },
-        "& ul": { pl: 4, mt: 2, listStyleType: "disc" },
-        "& ol": { pl: 4, mt: 2, listStyleType: "decimal" },
-        "& code": {
-          px: 1,
-          py: 0.5,
-          borderRadius: "md",
-          bg: "gray.2",
-          fontFamily: "mono",
-          fontSize: "xs",
-        },
-        "& pre": {
-          mt: 3,
-          p: 3,
-          borderRadius: "lg",
-          bg: "gray.2",
-          fontFamily: "mono",
-          fontSize: "xs",
-          overflowX: "auto",
-        },
-        "& a": {
-          color: "blue.9",
-          textDecoration: "underline",
-        },
-        "& table": {
-          mt: 3,
-          borderCollapse: "collapse",
-          w: "full",
-        },
-        "& th, & td": {
-          borderWidth: 1,
-          borderColor: "gray.4",
-          p: 2,
-          textAlign: "left",
-        },
-      })}
-    >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+    <div className="prose prose-sm max-w-none prose-slate dark:prose-invert rounded-lg border border-border p-3">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={components}
+      >
         {value}
       </ReactMarkdown>
     </div>
   );
 };
-

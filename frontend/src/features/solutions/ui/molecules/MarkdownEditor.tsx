@@ -1,41 +1,20 @@
 "use client";
 
 import React from "react";
-import { css } from "styled-system/css";
 
 type MarkdownEditorProps = {
   value: string;
-  onChange: (value: string) => void;
+  onChangeAction: (value: string) => void;
 };
 
-export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
-  value,
-  onChange,
-}) => {
+export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChangeAction }) => {
   return (
-    <div className={css({ w: "full", h: "full", display: "flex", flexDir: "column" })}>
+    <div className="flex h-full w-full flex-col">
       <textarea
-        className={css({
-          flex: 1,
-          borderWidth: 1,
-          borderColor: "gray.4",
-          borderRadius: "lg",
-          p: 3,
-          fontFamily: "mono",
-          fontSize: "sm",
-          outline: "none",
-          _focus: { borderColor: "blue.6", boxShadow: "0 0 0 1px token(colors.blue.6)" },
-        })}
+        className="flex-1 resize-none rounded-lg border border-border p-3 font-mono text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={`# タイトル
-
-- リスト
-- **太字**
-- [リンク](https://example.com)
-`}
+        onChange={(e) => onChangeAction(e.target.value)}
       />
     </div>
   );
 };
-

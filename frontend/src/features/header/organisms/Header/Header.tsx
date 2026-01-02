@@ -30,7 +30,10 @@ export function Header({ appName }: { items?: NavItem[]; appName: string }) {
     router.push("/");
   };
 
-  const loginItems: NavItem[] = [{ label: "ログアウト", onClick: handleSignOut }];
+  const loginItems: NavItem[] = [
+    { label: "記事を書く", href: "/solutions/create" },
+    { label: "ログアウト", onClick: handleSignOut },
+  ];
   const items = isLoggedIn ? loginItems : nonLoginItems;
 
   return (
