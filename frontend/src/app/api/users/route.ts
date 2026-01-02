@@ -13,11 +13,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
   }
-  const { userName, color } = parsed.data;
+  const { userName } = parsed.data;
 
   const token = authUser.data;
   const repo = new UserRepositoryImpl();
-  const created = await repo.create({ userName, color }, token);
+  const created = await repo.create({ userName }, token);
   if (!created.ok) {
     return NextResponse.json({ ok: false, error: created.error }, { status: created.status });
   }

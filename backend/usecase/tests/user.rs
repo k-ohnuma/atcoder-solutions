@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
-    model::user::{Color, Role, User},
+    model::user::{Role, User},
     ports::repository::user::UserRepository,
 };
 use shared::error::repository::RepositoryError;
@@ -31,7 +31,6 @@ impl UserRepository for DummyUserRepository {
             return Ok(User {
                 id: uid.into(),
                 role: Role::default(),
-                color: Color::default(),
                 user_name: "valid user".into(),
             });
         }
@@ -49,14 +48,11 @@ async fn usecase_create_user_ok() -> Result<()> {
     let input = CreateUserInput {
         uid: "valid".into(),
         user_name: "user_name".into(),
-        color: Color::Red,
     };
 
     let t = uc.run(input).await;
     assert!(t.is_ok());
     let output = t.unwrap();
-    let c2 = output.color;
-    assert_eq!(c2, Color::Red);
     assert_eq!(output.user_name, "user_name");
 
     let calls = repo.calls.lock().unwrap();
@@ -68,7 +64,6 @@ async fn usecase_create_user_ok() -> Result<()> {
     assert!(matches!(m, Role::User));
     assert_eq!(user.user_name, "user_name");
     assert_eq!(user.id, "valid");
-    assert!(matches!(user.color, Color::Red));
 
     Ok(())
 }
@@ -83,7 +78,6 @@ async fn usecase_create_user_conflict() -> Result<()> {
     let input = CreateUserInput {
         uid: "conflict".into(),
         user_name: "user_name".into(),
-        color: Color::Red,
     };
 
     let t = uc.run(input).await.expect_err("conf");
