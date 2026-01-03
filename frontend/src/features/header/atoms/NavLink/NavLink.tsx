@@ -1,8 +1,9 @@
 "use client";
 
+import { cva } from "class-variance-authority";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cva, cx } from "styled-system/css";
+import { cn } from "@/lib/utils";
 
 type Props = {
   href: string;
@@ -11,19 +12,15 @@ type Props = {
   className?: string;
 };
 
-const linkStyle = cva({
-  base: {
-    px: "3",
-    py: "2",
-    fontSize: "sm",
-    transitionProperty: "colors",
-    transitionDuration: "200ms",
-  },
+const linkStyle = cva("px-3 py-2 text-sm transition-colors duration-200", {
   variants: {
     active: {
-      true: { color: "fg" },
-      false: { color: "fg.muted", _hover: { color: "fg" } },
+      true: "text-foreground",
+      false: "text-muted-foreground hover:text-foreground",
     },
+  },
+  defaultVariants: {
+    active: false,
   },
 });
 
@@ -32,7 +29,7 @@ export function NavLink({ href, children, exact = false, className }: Props) {
   const active = exact ? pathname === href : pathname?.startsWith(href);
 
   return (
-    <Link href={href} className={cx(linkStyle({ active }), className)}>
+    <Link href={href} className={cn(linkStyle({ active }), className)}>
       {children}
     </Link>
   );

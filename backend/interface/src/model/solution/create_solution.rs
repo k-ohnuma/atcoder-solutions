@@ -3,6 +3,7 @@ use usecase::model::solution::create::CreateSolutionInput;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSolutionRequest {
     problem_id: String,
     title: String,
@@ -23,6 +24,7 @@ pub fn from_req_for_input(user_id: String, req: CreateSolutionRequest) -> Create
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSolutionResponse {
     solution_id: Uuid,
 }

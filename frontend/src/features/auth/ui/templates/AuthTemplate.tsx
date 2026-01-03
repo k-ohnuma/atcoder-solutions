@@ -1,22 +1,9 @@
 "use client";
 
-import { css } from "styled-system/css";
-
 export function AuthTemplate({ title, children }: { title: string; children: React.ReactNode }) {
-  const mainStyle = css({
-    maxWidth: "xl",
-    px: "4",
-    py: "8",
-    mx: "auto",
-  });
-  const titleStyle = css({
-    mb: "6",
-    fontWeight: "semibold",
-    fontSize: "2xl",
-  });
   return (
-    <main className={mainStyle}>
-      <h1 className={titleStyle}>{title}</h1>
+    <main className="mx-auto max-w-xl px-4 py-8">
+      <h1 className="mb-6 text-2xl font-semibold">{title}</h1>
       {children}
     </main>
   );

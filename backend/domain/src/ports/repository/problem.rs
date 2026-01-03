@@ -10,4 +10,6 @@ pub trait ProblemRepository: Send + Sync {
         &self,
         series: ContestSeries,
     ) -> Result<Vec<Problem>, RepositoryError>;
+    async fn get_problems_by_contest(&self, contest: &str)
+    -> Result<Vec<Problem>, RepositoryError>;
 }

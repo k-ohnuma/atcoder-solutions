@@ -20,6 +20,6 @@ impl CreateUserUsecase {
             .create_user(user.to_owned())
             .await
             .map_err(UserError::from)?;
-        Ok(CreateUserOutput::new(user.user_name, user.color))
+        Ok(CreateUserOutput::new(user.user_name))
     }
 }

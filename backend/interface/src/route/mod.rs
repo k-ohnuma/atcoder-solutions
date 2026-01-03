@@ -1,3 +1,4 @@
+pub mod contest;
 pub mod health;
 pub mod problem;
 pub mod solution;
