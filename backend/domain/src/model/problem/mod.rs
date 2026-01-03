@@ -90,7 +90,7 @@ pub enum ContestSeriesParseError {
 impl ContestSeriesParseError {
     pub fn msg(&self) -> String {
         match self {
-            ContestSeriesParseError::Invalid { input } => input.to_string()
+            ContestSeriesParseError::Invalid { input } => input.to_string(),
         }
     }
 }
