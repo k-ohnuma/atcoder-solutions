@@ -43,6 +43,8 @@ impl TryFrom<&str> for ContestSeries {
             Ok(ContestSeries::AGC)
         } else if lower.starts_with("ahc") {
             Ok(ContestSeries::AHC)
+        } else if lower.starts_with("other") {
+            Ok(ContestSeries::OTHER)
         } else {
             Err(ContestSeriesParseError::Invalid {
                 input: value.into(),

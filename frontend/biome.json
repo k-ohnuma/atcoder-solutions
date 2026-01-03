@@ -68,7 +68,7 @@
       },
       "style": {
         "noNamespace": "error",
-        "noNonNullAssertion": "error",
+        "noNonNullAssertion": "off",
         "useArrayLiterals": "error",
         "useAsConstAssertion": "error",
         "useBlockStatements": "off",

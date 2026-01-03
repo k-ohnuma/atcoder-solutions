@@ -7,7 +7,7 @@ use axum::{
 use domain::model::problem::ContestSeries;
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
-use tracing::{error, info};
+use tracing::error;
 use usecase::problem::{
     create::ImportProblemsUsecase, get_by_contest::GetProblemsByContestUsecase,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
@@ -15,7 +15,8 @@ use usecase::problem::{
 
 use crate::model::problem::{
     ProblemResponse,
-    get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams, get_problems_by_contest::GetProblemsByContestRequestParams,
+    get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
+    get_problems_by_contest::GetProblemsByContestRequestParams,
 };
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
