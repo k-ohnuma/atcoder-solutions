@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
-import { getProblemsByContestQueryParams } from "@/server/interface/problem/get";
+import { getContestsByContestSeriesQueryParams } from "@/server/interface/contest/get";
+import { ContestRepositoryImpl } from "@/server/infrastructure/repository/contestRepository";
 
 export async function GET(req: NextRequest) {
   const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-  const parsed = getProblemsByContestQueryParams.safeParse(rawParams);
+  const parsed = getContestsByContestSeriesQueryParams.safeParse(rawParams);
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
   }
-  const contest = parsed.data.contest;
+  const series = parsed.data.series;
 
-  const repo = new ProblemRepositoryImpl();
-  const problems = await repo.getProblemsByContest(contest);
+  const repo = new ContestRepositoryImpl();
+  const problems = await repo.getContestsBySeries(series);
   if (!problems.ok) {
     return NextResponse.json({ ok: false, error: problems.error }, { status: problems.status });
   }
