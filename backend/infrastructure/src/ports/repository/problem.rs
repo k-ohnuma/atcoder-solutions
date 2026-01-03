@@ -69,6 +69,23 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .map_err(RepositoryError::from)?;
         Ok(problems)
     }
+    async fn get_problems_by_contest(&self, contest: &str) -> Result<Vec<Problem>, RepositoryError> {
+        let problems: Vec<Problem> = sqlx::query_as!(
+            Problem,
+            r#"
+            SELECT p.id, p.contest_code, p.problem_index, p.title
+            FROM problems p
+            JOIN contests c ON c.code = p.contest_code
+            JOIN contest_series s ON s.code = c.series_code
+            WHERE p.contest_code = $1
+            "#,
+            contest.to_ascii_lowercase()
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(RepositoryError::from)?;
+        Ok(problems)
+    }
 }
 
 async fn safe_insert_contest(

@@ -7,17 +7,15 @@ use axum::{
 use domain::model::problem::ContestSeries;
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
-use tracing::error;
+use tracing::{error, info};
 use usecase::problem::{
-    create::ImportProblemsUsecase,
+    create::ImportProblemsUsecase, get_by_contest::GetProblemsByContestUsecase,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
-    get_problems_by_contest_series::GetProblemsByContestSeriesUsecase,
 };
 
 use crate::model::problem::{
     ProblemResponse,
-    get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
-    get_problems_by_contest_series::GetProblemsByContestSeriesRequestParams,
+    get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams, get_problems_by_contest::GetProblemsByContestRequestParams,
 };
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
@@ -34,17 +32,13 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
     }
 }
 
-pub async fn get_problems_by_contest_series_handler(
+pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetProblemsByContestSeriesRequestParams>,
+    Query(query): Query<GetProblemsByContestRequestParams>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
     let problems_repository = reg.problem_repository();
-    let usecase = GetProblemsByContestSeriesUsecase::new(problems_repository);
-
-    let series =
-        ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
-
-    let problems = usecase.run(series).await?;
+    let usecase = GetProblemsByContestUsecase::new(problems_repository);
+    let problems = usecase.run(&query.contest).await?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
