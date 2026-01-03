@@ -1,8 +1,8 @@
 "use client";
 
+import { Label } from "@radix-ui/react-label";
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Label } from "@radix-ui/react-label";
 
 type TextInputProps = {
   value: string;

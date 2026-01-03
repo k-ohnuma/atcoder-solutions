@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { ApiClient } from "../apiClient";
 import { Contest } from "@/server/domain/contests";
+import { ApiClient } from "../apiClient";
 
 const api = new ApiClient();
 

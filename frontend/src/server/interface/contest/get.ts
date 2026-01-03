@@ -6,4 +6,3 @@ export const getContestsByContestSeriesQueryParams = z.object({
 });
 
 export type GetContestsByContestSeriesQueryParams = z.infer<typeof getContestsByContestSeriesQueryParams>;
-

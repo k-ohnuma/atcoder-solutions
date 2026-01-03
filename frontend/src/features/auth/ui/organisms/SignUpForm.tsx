@@ -4,10 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { onSubmitSignUp } from "../../lib/submit";
 import { SignUpSchema, signUpSchema } from "../../model/schema";
 import { ConfirmPasswordField, EmailField, PasswordField, UserNameField } from "../molecules";
-import { Form } from "@/components/ui/form";
 
 export function SignUpForm() {
   const form = useForm<SignUpSchema>({

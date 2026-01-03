@@ -9,4 +9,3 @@ export interface Contest {
 export interface ContestRepository {
   getContestsBySeries(contest: ContestSeries): Promise<Resp<Contest[]>>;
 }
-

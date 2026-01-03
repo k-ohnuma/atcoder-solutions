@@ -3,30 +3,17 @@ import { X } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-function TagsInput({
-  className,
-  ...props
-}: React.ComponentProps<typeof TagsInputPrimitive.Root>) {
+function TagsInput({ className, ...props }: React.ComponentProps<typeof TagsInputPrimitive.Root>) {
   return (
-    <TagsInputPrimitive.Root
-      data-slot="tags-input"
-      className={cn("flex w-[380px] flex-col gap-2", className)}
-      {...props}
-    />
+    <TagsInputPrimitive.Root data-slot="tags-input" className={cn("flex w-[380px] flex-col gap-2", className)} {...props} />
   );
 }
 
-function TagsInputLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof TagsInputPrimitive.Label>) {
+function TagsInputLabel({ className, ...props }: React.ComponentProps<typeof TagsInputPrimitive.Label>) {
   return (
     <TagsInputPrimitive.Label
       data-slot="tags-input-label"
-      className={cn(
-        "font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-        className,
-      )}
+      className={cn("font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)}
       {...props}
     />
   );
@@ -45,10 +32,7 @@ function TagsInputList({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function TagsInputInput({
-  className,
-  ...props
-}: React.ComponentProps<typeof TagsInputPrimitive.Input>) {
+function TagsInputInput({ className, ...props }: React.ComponentProps<typeof TagsInputPrimitive.Input>) {
   return (
     <TagsInputPrimitive.Input
       data-slot="tags-input-input"
@@ -61,11 +45,7 @@ function TagsInputInput({
   );
 }
 
-function TagsInputItem({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof TagsInputPrimitive.Item>) {
+function TagsInputItem({ className, children, ...props }: React.ComponentProps<typeof TagsInputPrimitive.Item>) {
   return (
     <TagsInputPrimitive.Item
       data-slot="tags-input-item"
@@ -75,9 +55,7 @@ function TagsInputItem({
       )}
       {...props}
     >
-      <TagsInputPrimitive.ItemText className="truncate">
-        {children}
-      </TagsInputPrimitive.ItemText>
+      <TagsInputPrimitive.ItemText className="truncate">{children}</TagsInputPrimitive.ItemText>
       <TagsInputPrimitive.ItemDelete className="size-4 shrink-0 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100">
         <X className="size-3.5" />
       </TagsInputPrimitive.ItemDelete>
@@ -85,17 +63,8 @@ function TagsInputItem({
   );
 }
 
-function TagsInputClear({
-  ...props
-}: React.ComponentProps<typeof TagsInputPrimitive.Clear>) {
+function TagsInputClear({ ...props }: React.ComponentProps<typeof TagsInputPrimitive.Clear>) {
   return <TagsInputPrimitive.Clear data-slot="tags-input-clear" {...props} />;
 }
 
-export {
-  TagsInput,
-  TagsInputLabel,
-  TagsInputList,
-  TagsInputInput,
-  TagsInputItem,
-  TagsInputClear,
-};
+export { TagsInput, TagsInputLabel, TagsInputList, TagsInputInput, TagsInputItem, TagsInputClear };

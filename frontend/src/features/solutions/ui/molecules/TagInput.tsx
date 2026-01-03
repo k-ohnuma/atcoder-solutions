@@ -3,15 +3,22 @@
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputLabel, TagsInputList } from "@/components/ui/tags-input";
 
 type TagsInputFieldProps = {
-  label: string
+  label: string;
   values: string[];
   onChangeAction: (value: string[]) => void;
-  className?: string
+  className?: string;
 };
 
 export function TagsInputField({ values, onChangeAction, label, className }: TagsInputFieldProps) {
   return (
-    <TagsInput value={values} onValueChange={onChangeAction} onValidate={(value) => value.length > 0} max={6} addOnPaste className={className}>
+    <TagsInput
+      value={values}
+      onValueChange={onChangeAction}
+      onValidate={(value) => value.length > 0}
+      max={6}
+      addOnPaste
+      className={className}
+    >
       <TagsInputLabel>{label}</TagsInputLabel>
       <TagsInputList>
         {values.map((tag) => (

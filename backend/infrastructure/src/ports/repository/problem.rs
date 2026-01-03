@@ -69,7 +69,10 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .map_err(RepositoryError::from)?;
         Ok(problems)
     }
-    async fn get_problems_by_contest(&self, contest: &str) -> Result<Vec<Problem>, RepositoryError> {
+    async fn get_problems_by_contest(
+        &self,
+        contest: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
         let problems: Vec<Problem> = sqlx::query_as!(
             Problem,
             r#"

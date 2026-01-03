@@ -28,6 +28,6 @@ impl GetProblemsByContestUsecase {
             apid.cmp(&bpid)
         });
 
-        Ok(pbs.into())
+        Ok(pbs)
     }
 }

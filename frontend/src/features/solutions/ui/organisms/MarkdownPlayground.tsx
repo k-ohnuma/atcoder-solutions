@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { MarkdownEditor } from "../molecules";
-import { MarkdownRenderer } from "../atoms";
-import { TagsInputField } from "../molecules/TagInput";
-import { TextInput } from "../atoms/TextInput";
-
-import { ContestCombobox } from "../molecules/ContestCombobox"; // 前に貼ったやつ
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import { useContestsBySeries } from "@/lib/client/contest/useContestsBySeries";
 import { useProblemsByContest } from "@/lib/client/problem/useProblemsByContest";
+import { cn } from "@/lib/utils";
 import { Problem } from "@/shared/model/problem";
+import { MarkdownRenderer } from "../atoms";
+import { TextInput } from "../atoms/TextInput";
+import { MarkdownEditor } from "../molecules";
+import { ContestCombobox } from "../molecules/ContestCombobox"; // 前に貼ったやつ
+import { TagsInputField } from "../molecules/TagInput";
 
 function ProblemButtonSelect({
   items,
@@ -74,9 +73,9 @@ export const MarkdownPlayground: React.FC = () => {
     // error: problemsError,
   } = useProblemsByContest(contestId);
 
-  useEffect(() => {
-    setProblemId(null);
-  }, [contestId]);
+  // useEffect(() => {
+  //   setProblemId(null);
+  // }, [contestId]);
 
   const selectedProblem = useMemo(() => problems.find((p) => p.id === problemId) ?? null, [problems, problemId]);
 

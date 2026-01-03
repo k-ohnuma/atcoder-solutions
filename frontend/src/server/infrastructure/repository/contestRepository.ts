@@ -1,9 +1,9 @@
 import "server-only";
+import { Contest, ContestRepository } from "@/server/domain/contests";
+import { ContestSeries } from "@/server/domain/problems";
 import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-import { Contest, ContestRepository } from "@/server/domain/contests";
-import { ContestSeries } from "@/server/domain/problems";
 
 export class ContestRepositoryImpl implements ContestRepository {
   private client: BackendApiClient;
@@ -22,4 +22,3 @@ export class ContestRepositoryImpl implements ContestRepository {
     return await this.client.get<Contest[]>(path, params);
   };
 }
-
