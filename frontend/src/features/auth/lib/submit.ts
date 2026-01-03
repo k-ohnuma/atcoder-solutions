@@ -18,7 +18,7 @@ export const onSubmitSignUp = async (values: SignUpSchema) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ userName: values.userName, color: values.color }),
+      body: JSON.stringify({ userName: values.userName }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error);

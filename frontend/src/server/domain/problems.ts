@@ -13,6 +13,6 @@ export interface Problem {
 export type ContestGroupCollection = Map<string, Problem[]>;
 
 export interface ProblemRepository {
-  getProblemsByContestSeries(series: ContestSeries): Promise<Resp<Problem[]>>;
+  getProblemsByContest(contest: string): Promise<Resp<Problem[]>>;
   getContestGroupByContestSeries(series: ContestSeries): Promise<Resp<ContestGroupCollection>>;
 }

@@ -1,14 +1,13 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
-use domain::model::user::{Color, Role, User};
+use domain::model::user::{Role, User};
 use shared::error::repository::RepositoryError;
 
 pub struct UserRow {
     pub id: String,
     pub role: String,
     pub user_name: String,
-    pub color: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -18,13 +17,9 @@ impl TryFrom<UserRow> for User {
     fn try_from(value: UserRow) -> Result<User, Self::Error> {
         let role = Role::from_str(value.role.as_str())
             .map_err(|e| RepositoryError::Unexpected(e.to_string()))?;
-        let color = Color::from_str(value.color.as_str())
-            .map_err(|e| RepositoryError::Unexpected(e.to_string()))?;
-
         Ok(User {
             id: value.id,
             role,
-            color,
             user_name: value.user_name,
         })
     }

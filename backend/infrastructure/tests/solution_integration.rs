@@ -1,5 +1,5 @@
 use anyhow::Result;
-use domain::model::user::{Color, Role, User};
+use domain::model::user::{Role, User};
 use domain::ports::repository::problem::ProblemRepository;
 use domain::ports::repository::user::UserRepository;
 use domain::{
@@ -66,7 +66,6 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
     let repo = UserRepositoryImpl::new(conn.to_owned());
     let user = User {
         id: "id".into(),
-        color: Color::default(),
         user_name: "name".into(),
         role: Role::default(),
     };
@@ -126,7 +125,6 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let repo = UserRepositoryImpl::new(conn.to_owned());
     let user = User {
         id: "id".into(),
-        color: Color::default(),
         user_name: "name".into(),
         role: Role::default(),
     };

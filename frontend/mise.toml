@@ -31,6 +31,11 @@ alias = "c"
 description = "check biome"
 run = "pnpm run check:check"
 
+[tasks."shadcn"]
+alias = "shad"
+description = "shadcn"
+run = "pnpm dlx shadcn@latest"
+
 [tasks."ci"]
 run = [
   { tasks = [

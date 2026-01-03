@@ -15,13 +15,12 @@ export class UserRepositoryImpl implements UserRepository {
     return "users";
   };
 
-  async create(input: Pick<User, "userName" | "color">, token: string): Promise<Resp<User>> {
+  async create(input: Pick<User, "userName">, token: string): Promise<Resp<User>> {
     const path = this.createReqPath();
     const body = {
       userName: input.userName,
-      color: input.color,
     };
-    const user = await this.client.postWithToken<User>(path, token, body);
+    const user = await this.client.postWithToken<User>(path, token, JSON.stringify(body));
     return user;
   }
 }

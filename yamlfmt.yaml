@@ -3,3 +3,4 @@ formatter:
   indent: 2
 exclude:
   - frontend/pnpm-lock.yaml
+  - frontend/node_modules
