@@ -3,6 +3,7 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 import { Header } from "@/features/header/organisms/Header/Header";
 import { clientConfig } from "@/shared/config/client";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: clientConfig.appConfig.appName,
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         <Header appName={clientConfig.appConfig.appName} />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
