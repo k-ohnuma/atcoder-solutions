@@ -17,6 +17,7 @@ export const signUpSchema = z
         message: "パスワードは6文字以上で、大文字・小文字・数字をすべて含めてください",
       }),
     confirm: z.string(),
+    color: z.string().min(1, "選択してください"),
   })
   .refine((v) => v.password === v.confirm, {
     path: ["confirm"],

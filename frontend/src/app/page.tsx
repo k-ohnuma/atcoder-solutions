@@ -1,26 +1,27 @@
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { ApiClient } from "@/lib/server/apiClient";
+import { Table } from "@/components/ui/table";
+import { ApiClient } from "@/lib/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 
 const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
-
 export default async function Home() {
-  const contestGroupCollection = await apiClient.getContestGroupByContestSeries("ABC");
+  const contestGroupCollection = await apiClient.getContestGroupByContestSeries("OTHER");
   const list = [...contestGroupCollection.entries()];
 
+  // return <ProblemsTemplate problemsMap={contestGroupCollection} />;
   return (
-    <Table>
-      <TableBody>
-        {list.map(([contestId, problems]) => (
-          <TableRow key={contestId}>
-            <TableCell className="whitespace-nowrap font-medium">{contestId}</TableCell>
-
-            {problems.map((problem) => (
-              <TableCell key={problem.id}>{`${problem.problemIndex}. ${problem.title}`}</TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <Table.Root variant={"outline"}>
+      <Table.Body>
+        {list.map(([contestId, problems]) => {
+          return (
+            <Table.Row key={contestId}>
+              <Table.Cell>{contestId}</Table.Cell>
+              {problems.map((problem) => {
+                return <Table.Cell key={problem.id}>{`${problem.problemIndex}. ${problem.title}`}</Table.Cell>;
+              })}
+            </Table.Row>
+          );
+        })}
+      </Table.Body>
+    </Table.Root>
   );
 }

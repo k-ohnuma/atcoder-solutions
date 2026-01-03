@@ -1,20 +1,25 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ChevronDownIcon } from "lucide-react";
+import { Accordion } from "@/components/ui/accordion";
 import { Problem } from "@/server/domain/problems";
 import { ProblemsList } from "./ProblemList";
 
 export function ContestAccordion({ problemsMap }: { problemsMap: Map<string, Problem[]> }) {
   const list = [...problemsMap.entries()];
-
   return (
-    <Accordion type="multiple" className="w-full">
+    <Accordion.Root multiple>
       {list.map(([contestCode, problems]) => (
-        <AccordionItem key={contestCode} value={contestCode}>
-          <AccordionTrigger>{contestCode}</AccordionTrigger>
-          <AccordionContent>
+        <Accordion.Item key={contestCode} value={contestCode}>
+          <Accordion.ItemTrigger>
+            {contestCode}
+            <Accordion.ItemIndicator>
+              <ChevronDownIcon />
+            </Accordion.ItemIndicator>
+          </Accordion.ItemTrigger>
+          <Accordion.ItemContent>
             <ProblemsList problems={problems} />
-          </AccordionContent>
-        </AccordionItem>
+          </Accordion.ItemContent>
+        </Accordion.Item>
       ))}
-    </Accordion>
+    </Accordion.Root>
   );
 }

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const series = parsed.data.series;
 
   const repo = new ProblemRepositoryImpl();
-  const problems = await repo.getContestGroupByContestSeries(series);
+  const problems = await repo.getProblemsByContestSeries(series);
   if (!problems.ok) {
     return NextResponse.json({ ok: false, error: problems.error }, { status: problems.status });
   }

@@ -2,7 +2,6 @@ use shared::error::{http::HttpError, repository::RepositoryError};
 use thiserror::Error;
 
 pub mod create;
-pub mod get_by_contest;
 pub mod get_contest_group_by_contest_series;
 
 #[derive(Debug, Error)]

@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { type Control, FieldPath, FieldValues } from "react-hook-form";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { type Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { fieldRootStyle } from "./style";
 
 type Props<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -23,19 +23,25 @@ export function RhfTextField<TFieldValues extends FieldValues>({
   description,
 }: Props<TFieldValues>) {
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem className="grid gap-2">
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input type={type} placeholder={placeholder} {...field} />
-          </FormControl>
-          {description && <FormDescription>{description}</FormDescription>}
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field, fieldState }) => {
+        return (
+          <Field.Root className={fieldRootStyle} invalid={!!fieldState.error}>
+            <Field.Label htmlFor={name}>{label}</Field.Label>
+            <Input
+              id={name}
+              type={type}
+              placeholder={placeholder}
+              {...field}
+              aria-invalid={fieldState.error ? "true" : undefined}
+            />
+            {description && <Field.HelperText>{description}</Field.HelperText>}
+            {fieldState.error?.message && <Field.ErrorText>{fieldState.error.message}</Field.ErrorText>}
+          </Field.Root>
+        );
+      }}
     />
   );
 }

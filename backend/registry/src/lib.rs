@@ -18,11 +18,11 @@ use infrastructure::{
             health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
             solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
         },
-        service::{contests::ContestServiceImpl, solution::SolutionServiceImpl},
+        service::solution::SolutionServiceImpl,
     },
 };
 use shared::config::AppConfig;
-use usecase::service::{contest::ContestService, solution::SolutionService};
+use usecase::service::solution::SolutionService;
 
 #[derive(Clone)]
 pub struct Registry {
@@ -34,7 +34,6 @@ pub struct Registry {
     id_provider: Arc<dyn IdProviderPort>,
     solution_tx_manager: Arc<dyn SolutionTxManager>,
     solution_service: Arc<dyn SolutionService>,
-    contest_service: Arc<dyn ContestService>,
 }
 
 impl Registry {
@@ -52,7 +51,6 @@ impl Registry {
         let solution_tx_manager = Arc::new(SolutionTransactionManager::new(pool.to_owned()));
 
         let solution_service = Arc::new(SolutionServiceImpl::new(pool.to_owned()));
-        let contest_service = Arc::new(ContestServiceImpl::new(pool.to_owned()));
 
         Self {
             atcoder_problems_port: atcoder_problems_client,
@@ -63,7 +61,6 @@ impl Registry {
             id_provider,
             solution_tx_manager,
             solution_service,
-            contest_service,
         }
     }
 
@@ -90,8 +87,5 @@ impl Registry {
     }
     pub fn solution_service(&self) -> Arc<dyn SolutionService> {
         self.solution_service.to_owned()
-    }
-    pub fn contest_service(&self) -> Arc<dyn ContestService> {
-        self.contest_service.to_owned()
     }
 }
