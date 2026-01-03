@@ -24,6 +24,7 @@ pub fn from_req_for_input(user_id: String, req: CreateSolutionRequest) -> Create
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSolutionResponse {
     solution_id: Uuid,
 }

@@ -1,20 +1,22 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useContestsBySeries } from "@/lib/client/contest/useContestsBySeries";
 import { useProblemsByContest } from "@/lib/client/problem/useProblemsByContest";
+import { useCreateSolution } from "@/lib/client/solution/useCreateSolution";
 import { cn } from "@/lib/utils";
 import { Problem } from "@/shared/model/problem";
+import { CreateSolutionInput, createSolutionSchema } from "@/shared/model/solutionCreate";
 import { MarkdownRenderer } from "../atoms";
 import { TextInput } from "../atoms/TextInput";
 import { MarkdownEditor } from "../molecules";
 import { ContestCombobox } from "../molecules/ContestCombobox"; // 前に貼ったやつ
 import { TagsInputField } from "../molecules/TagInput";
-import { CreateSolutionInput, createSolutionSchema } from "@/shared/model/solutionCreate";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 
 function ProblemButtonSelect({
   items,
@@ -87,8 +89,18 @@ export const MarkdownPlayground: React.FC = () => {
 
   const selectedProblem = useMemo(() => problems.find((p) => p.id === problemId) ?? null, [problems, problemId]);
 
+  const createMutation = useCreateSolution();
+  const router = useRouter();
+
   return (
-    <form onSubmit={handleSubmit((v) => console.log(v))}>
+    <form
+      onSubmit={handleSubmit(async (v) => {
+        const id = await createMutation.mutateAsync(v);
+        const solutionId = id.solutionId;
+        console.log(solutionId);
+        router.push("/");
+      })}
+    >
       <div className="flex h-[calc(100vh-80px)] flex-col gap-4 p-4">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="grid gap-3 md:grid-cols-2">
@@ -198,8 +210,8 @@ export const MarkdownPlayground: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center justify-end gap-2">
-          <Button type="submit" disabled={isSubmitting}>
-            投稿する
+          <Button type="submit" disabled={isSubmitting || createMutation.isPending}>
+            {isSubmitting || createMutation.isPending ? "送信中..." : "投稿する"}
           </Button>
         </div>
       </div>

@@ -1,4 +1,3 @@
-import { contestSeries } from "@/server/domain/problems";
 import { z } from "zod";
 
 export const createSolutionSchema = z.object({
@@ -14,3 +13,14 @@ export const createSolutionSchema = z.object({
 
 export type CreateSolutionInput = z.infer<typeof createSolutionSchema>;
 
+export interface Solution {
+  problemId: string;
+  title: string;
+  bodyMd: string;
+  submitUrl: string;
+  tags: string[];
+}
+
+export interface SolutionResponse {
+  solutionId: string;
+}

@@ -1,9 +1,10 @@
 import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
+import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
 
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type JsonValue = string;
 
 type QueryParams = Record<string, string>;
 
@@ -51,7 +52,7 @@ export class ApiClient {
       if (!reqHeaders["Content-Type"]) {
         reqHeaders["Content-Type"] = "application/json";
       }
-      init.body = JSON.stringify(body);
+      init.body = body;
     }
 
     try {
@@ -78,9 +79,9 @@ export class ApiClient {
   //   return this.request({ path, method: "POST", body });
   // }
   //
-  // private async _postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
-  //   return this.request({ path, method: "POST", body, token });
-  // }
+  private async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
+    return this.request({ path, method: "POST", body, token });
+  }
 
   // contests
   getContestsByContestSeries = async <T>(contestSeries: string): Promise<T> => {
@@ -111,5 +112,12 @@ export class ApiClient {
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return new Map();
+  };
+  createSolution = async (solution: Solution, token: string): Promise<SolutionResponse> => {
+    const path = "api/solutions";
+    const resp = await this.postWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
+    if (resp.ok) return resp.data;
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return { solutionId: "" };
   };
 }

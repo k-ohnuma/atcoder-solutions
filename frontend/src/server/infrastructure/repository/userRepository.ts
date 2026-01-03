@@ -20,7 +20,7 @@ export class UserRepositoryImpl implements UserRepository {
     const body = {
       userName: input.userName,
     };
-    const user = await this.client.postWithToken<User>(path, token, body);
+    const user = await this.client.postWithToken<User>(path, token, JSON.stringify(body));
     return user;
   }
 }
