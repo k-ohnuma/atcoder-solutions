@@ -1,5 +1,4 @@
 use strum::Display;
-use thiserror::Error;
 
 use super::atcoder_problems::ApiProblem;
 
@@ -31,31 +30,36 @@ pub enum ContestSeries {
     OTHER,
 }
 
-impl TryFrom<&str> for ContestSeries {
-    type Error = ContestSeriesParseError;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+impl From<String> for ContestSeries {
+    fn from(value: String) -> Self {
         let lower = value.to_ascii_lowercase();
         if lower.starts_with("abc") {
-            Ok(ContestSeries::ABC)
+            ContestSeries::ABC
         } else if lower.starts_with("arc") {
-            Ok(ContestSeries::ARC)
+            ContestSeries::ARC
         } else if lower.starts_with("agc") {
-            Ok(ContestSeries::AGC)
+            ContestSeries::AGC
         } else if lower.starts_with("ahc") {
-            Ok(ContestSeries::AHC)
-        } else if lower.starts_with("other") {
-            Ok(ContestSeries::OTHER)
+            ContestSeries::AHC
         } else {
-            Err(ContestSeriesParseError::Invalid {
-                input: value.into(),
-            })
+            ContestSeries::OTHER
         }
     }
 }
-impl TryFrom<String> for ContestSeries {
-    type Error = ContestSeriesParseError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        ContestSeries::try_from(value.as_str())
+impl From<&str> for ContestSeries {
+    fn from(value: &str) -> Self {
+        let lower = value.to_ascii_lowercase();
+        if lower.starts_with("abc") {
+            ContestSeries::ABC
+        } else if lower.starts_with("arc") {
+            ContestSeries::ARC
+        } else if lower.starts_with("agc") {
+            ContestSeries::AGC
+        } else if lower.starts_with("ahc") {
+            ContestSeries::AHC
+        } else {
+            ContestSeries::OTHER
+        }
     }
 }
 
@@ -79,20 +83,6 @@ impl From<ContestSeries> for &str {
             ContestSeries::AGC => "AGC",
             ContestSeries::AHC => "AHC",
             _ => "OTHER",
-        }
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum ContestSeriesParseError {
-    #[error("invalid contest series: {input}")]
-    Invalid { input: String },
-}
-
-impl ContestSeriesParseError {
-    pub fn msg(&self) -> String {
-        match self {
-            ContestSeriesParseError::Invalid { input } => input.to_string(),
         }
     }
 }

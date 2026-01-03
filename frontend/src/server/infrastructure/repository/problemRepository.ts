@@ -18,8 +18,8 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     return "problems/contest-group";
   };
 
-  getProblemsByContest = async (contest: string): Promise<Resp<Problem[]>> => {
-    const params = { contest };
+  getProblemsByContestSeries = async (series: ContestSeries): Promise<Resp<Problem[]>> => {
+    const params = { series };
     const path = this.getProblemsByContestSeriesPath();
     return await this.client.get<Problem[]>(path, params);
   };

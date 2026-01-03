@@ -15,14 +15,15 @@ impl UserRepository for UserRepositoryImpl {
     async fn create_user(&self, user: User) -> Result<(), RepositoryError> {
         let inserted = sqlx::query_scalar!(
             r#"
-            INSERT INTO users (id, role, user_name)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (id, role, user_name, color)
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (user_name) DO NOTHING
             RETURNING id
             "#,
             user.id,
             user.role.to_string(),
             user.user_name,
+            user.color.to_string()
         )
         .fetch_optional(self.db.inner_ref())
         .await

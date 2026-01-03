@@ -9,14 +9,15 @@ use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use tracing::error;
 use usecase::problem::{
-    create::ImportProblemsUsecase, get_by_contest::GetProblemsByContestUsecase,
+    create::ImportProblemsUsecase,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
+    get_problems_by_contest_series::GetProblemsByContestSeriesUsecase,
 };
 
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
-    get_problems_by_contest::GetProblemsByContestRequestParams,
+    get_problems_by_contest_series::GetProblemsByContestSeriesRequestParams,
 };
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
@@ -33,13 +34,17 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
     }
 }
 
-pub async fn get_problems_by_contest_handler(
+pub async fn get_problems_by_contest_series_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetProblemsByContestRequestParams>,
+    Query(query): Query<GetProblemsByContestSeriesRequestParams>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
     let problems_repository = reg.problem_repository();
-    let usecase = GetProblemsByContestUsecase::new(problems_repository);
-    let problems = usecase.run(&query.contest).await?;
+    let usecase = GetProblemsByContestSeriesUsecase::new(problems_repository);
+
+    // とんでもないやつが来たらOTHERに分類される
+    let series = ContestSeries::from(query.series);
+
+    let problems = usecase.run(series).await?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
@@ -51,8 +56,8 @@ pub async fn get_contest_group_by_contest_series_handler(
 ) -> Result<ApiResponse<BTreeMap<Reverse<String>, Vec<ProblemResponse>>>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
-    let series =
-        ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
+    // とんでもないやつが来たらOTHERに分類される
+    let series = ContestSeries::from(query.series);
 
     let problem_map = usecase.run(series).await?;
     let resp = problem_map

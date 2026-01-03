@@ -1,7 +1,7 @@
 import "server-only";
 import { Resp } from "../response";
 
-type JsonValue = string;
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 type QueryParams = Record<string, string>;
 
@@ -50,7 +50,7 @@ export class BackendApiClient {
       if (!reqHeaders["Content-Type"]) {
         reqHeaders["Content-Type"] = "application/json";
       }
-      init.body = body;
+      init.body = JSON.stringify(body);
     }
 
     try {

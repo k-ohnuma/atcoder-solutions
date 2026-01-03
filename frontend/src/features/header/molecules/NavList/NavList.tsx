@@ -1,10 +1,18 @@
+import { css } from "styled-system/css";
 import { NavLink } from "../../atoms/NavLink";
 
 export type NavItem = { label: string; href?: string; onClick?: () => void };
 
 export function NavList({ items }: { items: NavItem[] }) {
   return (
-    <nav className="hidden items-center gap-1 md:flex">
+    <nav
+      className={css({
+        // display: "none",
+        md: { display: "flex" },
+        alignItems: "center",
+        gap: "1",
+      })}
+    >
       {items.map((it) =>
         it.href ? (
           <NavLink key={it.href} href={it.href}>
@@ -15,7 +23,13 @@ export function NavList({ items }: { items: NavItem[] }) {
             onClick={it.onClick}
             key={it.label}
             type="button"
-            className="cursor-pointer px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className={css({
+              px: 3,
+              py: 2,
+              fontSize: "sm",
+              color: "fg.muted",
+              cursor: "pointer",
+            })}
           >
             {it.label}
           </button>

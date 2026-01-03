@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use anyhow::Result;
 use domain::{
-    model::user::{Role, User},
+    model::user::{Color, Role, User},
     ports::repository::user::UserRepository,
 };
 use infrastructure::{database::ConnectionPool, ports::repository::user::UserRepositoryImpl};
@@ -22,9 +24,10 @@ pub async fn seed_roles(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-fn make_user(id: &str, name: &str) -> User {
+fn make_user(id: &str, name: &str, color: &str) -> User {
     User {
         id: id.into(),
+        color: Color::from_str(color).unwrap(),
         user_name: name.into(),
         role: Role::default(),
     }
@@ -36,7 +39,7 @@ async fn user_records(pool: PgPool) -> Result<()> {
 
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
-    let user = make_user("id", "name");
+    let user = make_user("id", "name", "cyan");
     let res = repo.create_user(user).await;
     assert!(res.is_ok());
 
@@ -47,7 +50,7 @@ async fn user_records(pool: PgPool) -> Result<()> {
     let count = count.unwrap();
     assert!(count == 1);
 
-    let user = make_user("id2", "name2");
+    let user = make_user("id2", "name2", "blue");
     let res = repo.create_user(user).await;
     assert!(res.is_ok());
 
@@ -67,10 +70,10 @@ async fn create_user_conflict_on_username_returns_conflict_error(pool: PgPool) -
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let u1 = make_user("id-a", "alice");
+    let u1 = make_user("id-a", "alice", "red");
     repo.create_user(u1).await.unwrap();
 
-    let u2 = make_user("id-b", "alice");
+    let u2 = make_user("id-b", "alice", "green");
     let err = repo.create_user(u2).await.expect_err("should conflict");
 
     match err {
@@ -99,10 +102,10 @@ async fn create_user_same_id_is_db_error_not_conflict(pool: PgPool) -> Result<()
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let u1 = make_user("same-id", "bob");
+    let u1 = make_user("same-id", "bob", "orange");
     repo.create_user(u1).await.unwrap();
 
-    let u2 = make_user("same-id", "bob2");
+    let u2 = make_user("same-id", "bob2", "yellow");
     let err = repo.create_user(u2).await.expect_err("pk(id) should error");
 
     match err {
@@ -126,18 +129,20 @@ async fn find_by_uid(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let u1 = make_user("id1", "bob1");
-    let u2 = make_user("id2", "bob2");
-    let u3 = make_user("id3", "bob3");
+    let u1 = make_user("id1", "bob1", "red");
+    let u2 = make_user("id2", "bob2", "brown");
+    let u3 = make_user("id3", "bob3", "gray");
     for user in [u1, u2, u3] {
         repo.create_user(user).await?;
     }
 
     let user = repo.find_by_uid("id1").await?;
     assert_eq!(user.user_name, "bob1");
+    assert_eq!(user.color, Color::Red);
 
     let user = repo.find_by_uid("id3").await?;
     assert_eq!(user.user_name, "bob3");
+    assert_eq!(user.color, Color::Gray);
 
     Ok(())
 }
@@ -149,9 +154,9 @@ async fn find_by_uid_no_record(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let u1 = make_user("id1", "bob1");
-    let u2 = make_user("id2", "bob2");
-    let u3 = make_user("id3", "bob3");
+    let u1 = make_user("id1", "bob1", "gray");
+    let u2 = make_user("id2", "bob2", "gray");
+    let u3 = make_user("id3", "bob3", "gray");
     for user in [u1, u2, u3] {
         repo.create_user(user).await?;
     }

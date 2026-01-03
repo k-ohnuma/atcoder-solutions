@@ -41,12 +41,6 @@ impl ProblemRepository for DummyProblemsRepository {
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
-    async fn get_problems_by_contest(
-        &self,
-        _contest: &str,
-    ) -> Result<Vec<Problem>, RepositoryError> {
-        Ok(vec![])
-    }
 }
 
 #[tokio::test]
