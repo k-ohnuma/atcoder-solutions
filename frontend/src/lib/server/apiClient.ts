@@ -1,5 +1,6 @@
 import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
+import { SolutionDetail } from "@/shared/model/solution";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
 
@@ -104,5 +105,15 @@ export class ApiClient {
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return new Map();
+  };
+
+  getSolutionById = async (solutionId: string): Promise<SolutionDetail | null> => {
+    const path = "solutions";
+    const resp = await this.get<SolutionDetail>(path, { solutionId });
+    if (resp.ok) {
+      return resp.data;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return null;
   };
 }
