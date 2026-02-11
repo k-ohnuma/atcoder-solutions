@@ -1,6 +1,6 @@
 pub mod create;
 
-use shared::error::{http::HttpError, repository::RepositoryError};
+use domain::error::repository::RepositoryError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -13,17 +13,6 @@ pub enum UserError {
     NotFound(String),
     #[error("{0}")]
     Conflict(String),
-}
-
-impl From<UserError> for HttpError {
-    fn from(value: UserError) -> Self {
-        match value {
-            UserError::BadRequest(reason) => HttpError::BadRequest(reason),
-            UserError::NotFound(reason) => HttpError::NotFound(reason),
-            UserError::Conflict(reason) => HttpError::Conflict(reason),
-            UserError::DBError(reason) => HttpError::Internal(reason),
-        }
-    }
 }
 
 impl From<RepositoryError> for UserError {

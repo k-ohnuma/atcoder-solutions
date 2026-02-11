@@ -18,9 +18,11 @@ impl GetContestsBySeriesUseCase {
         &self,
         series: ContestSeries,
     ) -> Result<Vec<ContestListItemView>, ContestError> {
-        self.service
+        let items = self
+            .service
             .get_contents_by_series(series)
             .await
-            .map_err(ContestError::from)
+            .map_err(ContestError::from)?;
+        Ok(items.into_iter().map(ContestListItemView::from).collect())
     }
 }

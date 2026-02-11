@@ -1,7 +1,7 @@
 use async_trait::async_trait;
-use shared::error::repository::RepositoryError;
 use uuid::Uuid;
 
+use crate::error::repository::RepositoryError;
 use crate::model::solution::Solution;
 
 #[async_trait]

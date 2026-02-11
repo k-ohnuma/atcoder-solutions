@@ -4,6 +4,7 @@ use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::create_user::CreateUserUsecase;
 
 use crate::{
+    error::ToHttpError,
     http::AuthUser,
     model::user::create_user::{
         CreateUserRequest, CreateUserResponse, try_from_create_user_request_for_create_user_input,
@@ -16,10 +17,13 @@ pub async fn create_user_handler(
     Json(req): Json<CreateUserRequest>,
 ) -> Result<Json<ApiResponse<CreateUserResponse>>, HttpError> {
     let uid = user.uid;
-    let create_user_input =
-        try_from_create_user_request_for_create_user_input(req, uid).map_err(HttpError::from)?;
+    let create_user_input = try_from_create_user_request_for_create_user_input(req, uid)
+        .map_err(|e| e.to_http_error())?;
     let repo = CreateUserUsecase::new(registry.user_repository());
-    let res = repo.run(create_user_input).await.map_err(HttpError::from)?;
+    let res = repo
+        .run(create_user_input)
+        .await
+        .map_err(|e| e.to_http_error())?;
 
     Ok(Json(ApiResponse::ok(res.into())))
 }

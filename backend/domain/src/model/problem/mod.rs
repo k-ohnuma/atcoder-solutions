@@ -1,25 +1,12 @@
 use strum::Display;
 use thiserror::Error;
 
-use super::atcoder_problems::ApiProblem;
-
 #[derive(Clone, Debug)]
 pub struct Problem {
     pub id: String,
     pub contest_code: String,
     pub problem_index: String,
     pub title: String,
-}
-
-impl From<ApiProblem> for Problem {
-    fn from(value: ApiProblem) -> Self {
-        Self {
-            id: value.id,
-            contest_code: value.contest_id,
-            problem_index: value.problem_index,
-            title: value.name,
-        }
-    }
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Display)]

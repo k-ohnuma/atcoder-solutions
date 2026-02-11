@@ -4,13 +4,14 @@ use std::collections::HashSet;
 use async_trait::async_trait;
 use derive_new::new;
 use domain::{
+    error::repository::RepositoryError,
     model::problem::{ContestSeries, Problem},
     ports::repository::problem::ProblemRepository,
 };
-use shared::error::repository::RepositoryError;
 use sqlx::{Postgres, Transaction};
 
 use crate::database::ConnectionPool;
+use crate::error::map_sqlx_error;
 
 #[derive(new)]
 pub struct ProblemRepositoryImpl {
@@ -25,13 +26,14 @@ impl ProblemRepository for ProblemRepositoryImpl {
             .inner_ref()
             .begin()
             .await
-            .map_err(RepositoryError::TransactionError)?;
+            .map_err(|e| RepositoryError::TransactionError(e.to_string()))?;
         {
             let contests = problems
                 .iter()
-                .filter_map(|e| {
-                    let series = ContestSeries::try_from(e.contest_code.as_str()).ok()?;
-                    Some((e.contest_code.as_str(), series))
+                .map(|e| {
+                    let series = ContestSeries::try_from(e.contest_code.as_str())
+                        .unwrap_or(ContestSeries::OTHER);
+                    (e.contest_code.as_str(), series)
                 })
                 .collect::<HashSet<(&str, ContestSeries)>>();
 
@@ -45,7 +47,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         }
         tx.commit()
             .await
-            .map_err(RepositoryError::TransactionError)?;
+            .map_err(|e| RepositoryError::TransactionError(e.to_string()))?;
         Ok(())
     }
     async fn get_problems_by_contest_series(
@@ -66,7 +68,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         )
         .fetch_all(self.db.inner_ref())
         .await
-        .map_err(RepositoryError::from)?;
+        .map_err(map_sqlx_error)?;
         Ok(problems)
     }
     async fn get_problems_by_contest(
@@ -86,7 +88,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         )
         .fetch_all(self.db.inner_ref())
         .await
-        .map_err(RepositoryError::from)?;
+        .map_err(map_sqlx_error)?;
         Ok(problems)
     }
 }
@@ -107,7 +109,7 @@ async fn safe_insert_contest(
     )
     .execute(&mut **tx)
     .await
-    .map_err(RepositoryError::from)?;
+    .map_err(map_sqlx_error)?;
     Ok(())
 }
 
@@ -133,6 +135,6 @@ async fn upsert_problem(
     )
     .execute(&mut **tx)
     .await
-    .map_err(RepositoryError::from)?;
+    .map_err(map_sqlx_error)?;
     Ok(())
 }

@@ -1,14 +1,15 @@
 use async_trait::async_trait;
 use derive_new::new;
+use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
     SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
 };
-use shared::error::repository::RepositoryError;
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::database::ConnectionPool;
+use crate::error::map_sqlx_error;
 
 #[derive(new)]
 pub struct SolutionTransactionManager {
@@ -18,7 +19,7 @@ pub struct SolutionTransactionManager {
 #[async_trait]
 impl SolutionTxManager for SolutionTransactionManager {
     async fn begin(&self) -> Result<Box<dyn UnitOfWork>, RepositoryError> {
-        let tx = self.db.inner_ref().begin().await?;
+        let tx = self.db.inner_ref().begin().await.map_err(map_sqlx_error)?;
         Ok(Box::new(SolutionUnitOfWork::new(tx)))
     }
 }
@@ -46,11 +47,11 @@ impl UnitOfWork for SolutionUnitOfWork {
     }
 
     async fn commit(mut self: Box<Self>) -> Result<(), RepositoryError> {
-        self.tx.commit().await?;
+        self.tx.commit().await.map_err(map_sqlx_error)?;
         Ok(())
     }
     async fn rollback(mut self: Box<Self>) -> Result<(), RepositoryError> {
-        self.tx.rollback().await?;
+        self.tx.rollback().await.map_err(map_sqlx_error)?;
         Ok(())
     }
 }
@@ -69,7 +70,8 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
             s.title
         )
         .execute(self.conn())
-        .await?;
+        .await
+        .map_err(map_sqlx_error)?;
         Ok(s.id)
     }
     async fn replace_tags(
@@ -83,7 +85,8 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
             tag_ids
         )
         .execute(self.conn())
-        .await?;
+        .await
+        .map_err(map_sqlx_error)?;
 
         sqlx::query!(
             r#"INSERT INTO solution_tags (solution_id, tag_id)
@@ -93,7 +96,8 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
             tag_ids
         )
         .execute(self.conn())
-        .await?;
+        .await
+        .map_err(map_sqlx_error)?;
 
         Ok(())
     }
@@ -125,7 +129,8 @@ impl TagRepositoryTx for SolutionUnitOfWork {
             names
         )
         .fetch_all(self.conn())
-        .await?;
+        .await
+        .map_err(map_sqlx_error)?;
 
         Ok(rows.into_iter().filter_map(|r| r.id).collect())
     }

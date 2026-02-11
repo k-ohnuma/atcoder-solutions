@@ -3,10 +3,10 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
+    error::repository::RepositoryError,
     model::user::{Role, User},
     ports::repository::user::UserRepository,
 };
-use shared::error::repository::RepositoryError;
 use usecase::{
     model::user::{UserError, create::CreateUserInput},
     user::create_user::CreateUserUsecase,

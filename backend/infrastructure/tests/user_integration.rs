@@ -1,10 +1,10 @@
 use anyhow::Result;
 use domain::{
+    error::repository::RepositoryError,
     model::user::{Role, User},
     ports::repository::user::UserRepository,
 };
 use infrastructure::{database::ConnectionPool, ports::repository::user::UserRepositoryImpl};
-use shared::error::repository::RepositoryError;
 use sqlx::PgPool;
 
 pub async fn seed_roles(pool: &PgPool) -> Result<()> {

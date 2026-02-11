@@ -1,4 +1,4 @@
-use shared::error::{external::ExternalError, repository::RepositoryError};
+use domain::error::{external::ExternalError, repository::RepositoryError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum ImportProblemsUsecaseError {
