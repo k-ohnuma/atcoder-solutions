@@ -25,6 +25,8 @@ function toFirebaseAuthErrorMessage(error: unknown): string {
       return "ネットワークエラーが発生しました。接続を確認してください。";
     case "auth/too-many-requests":
       return "試行回数が多すぎます。しばらく待ってから再度お試しください。";
+    case "auth/invalid-credential":
+      return "メールアドレスまたはパスワードが間違っています。";
     default:
       return "認証処理でエラーが発生しました。入力内容を確認して再度お試しください。";
   }
@@ -87,7 +89,11 @@ export const onSubmitSignIn = async (values: SignInSchema) => {
   const auth = getFirebaseAuth();
   const email = values.email;
   const password = values.password;
-  const _cred = await signInWithEmailAndPassword(auth, email, password);
+  try {
+    const _cred = await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    throw new Error(toFirebaseAuthErrorMessage(e));
+  }
 };
 
 export const onSubmitSignout = async () => {
