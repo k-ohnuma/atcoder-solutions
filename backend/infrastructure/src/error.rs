@@ -3,6 +3,16 @@ use reqwest::StatusCode;
 use sqlx::error::DatabaseError;
 
 pub fn map_sqlx_error(err: sqlx::Error) -> RepositoryError {
+    let kind = match &err {
+        sqlx::Error::RowNotFound => "row_not_found",
+        sqlx::Error::PoolTimedOut => "pool_timed_out",
+        sqlx::Error::PoolClosed => "pool_closed",
+        sqlx::Error::Io(_) => "io",
+        sqlx::Error::Database(_) => "database",
+        _ => "other",
+    };
+    tracing::error!(error.kind = kind, error.message = %err, error.debug = ?err, "sqlx error");
+
     match err {
         sqlx::Error::RowNotFound => RepositoryError::NotFound(err.to_string()),
         sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => {
@@ -14,6 +24,12 @@ pub fn map_sqlx_error(err: sqlx::Error) -> RepositoryError {
 }
 
 fn map_database_error(db_err: &dyn DatabaseError) -> RepositoryError {
+    tracing::error!(
+        error.code = ?db_err.code().as_deref(),
+        error.message = db_err.message(),
+        "sqlx database error"
+    );
+
     match db_err.code().as_deref() {
         Some("23505") => RepositoryError::UniqueViolation(db_err.message().to_string()),
         Some("23503") => RepositoryError::ForeignKeyViolation(db_err.message().to_string()),

@@ -12,7 +12,10 @@ impl ToHttpError for ProblemError {
         match self {
             ProblemError::BadRequest(reason) => HttpError::BadRequest(reason),
             ProblemError::NotFound(reason) => HttpError::NotFound(reason),
-            ProblemError::DBError(reason) => HttpError::Internal(reason),
+            ProblemError::DBError(reason) => {
+                tracing::error!(domain = "problem", error.message = %reason, "internal error");
+                HttpError::Internal(reason)
+            }
         }
     }
 }
@@ -23,7 +26,10 @@ impl ToHttpError for SolutionError {
             SolutionError::BadRequest(reason) => HttpError::BadRequest(reason),
             SolutionError::NotFound(reason) => HttpError::NotFound(reason),
             SolutionError::Conflict(reason) => HttpError::Conflict(reason),
-            SolutionError::DBError(reason) => HttpError::Internal(reason),
+            SolutionError::DBError(reason) => {
+                tracing::error!(domain = "solution", error.message = %reason, "internal error");
+                HttpError::Internal(reason)
+            }
         }
     }
 }
@@ -34,7 +40,10 @@ impl ToHttpError for UserError {
             UserError::BadRequest(reason) => HttpError::BadRequest(reason),
             UserError::NotFound(reason) => HttpError::NotFound(reason),
             UserError::Conflict(reason) => HttpError::Conflict(reason),
-            UserError::DBError(reason) => HttpError::Internal(reason),
+            UserError::DBError(reason) => {
+                tracing::error!(domain = "user", error.message = %reason, "internal error");
+                HttpError::Internal(reason)
+            }
         }
     }
 }
@@ -44,7 +53,10 @@ impl ToHttpError for ContestError {
         match self {
             ContestError::BadRequest(reason) => HttpError::BadRequest(reason),
             ContestError::NotFound(reason) => HttpError::NotFound(reason),
-            ContestError::DBError(reason) => HttpError::Internal(reason),
+            ContestError::DBError(reason) => {
+                tracing::error!(domain = "contest", error.message = %reason, "internal error");
+                HttpError::Internal(reason)
+            }
         }
     }
 }
