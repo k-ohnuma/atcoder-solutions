@@ -46,6 +46,17 @@ pub struct ErrorResponse {
 impl IntoResponse for HttpError {
     fn into_response(self) -> axum::response::Response {
         let status = self.status_code();
+        match status {
+            s if s.is_server_error() => {
+                tracing::error!(http.status = s.as_u16(), error.message = %self, "http error response");
+            }
+            s if s.is_client_error() => {
+                tracing::warn!(http.status = s.as_u16(), error.message = %self, "http error response");
+            }
+            s => {
+                tracing::info!(http.status = s.as_u16(), error.message = %self, "http error response");
+            }
+        }
         let body: ApiResponse<()> = ApiResponse::err(status, self.to_string());
         body.into_response()
     }
