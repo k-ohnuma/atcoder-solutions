@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use shared::error::repository::RepositoryError;
 
+use crate::error::repository::RepositoryError;
 use crate::model::problem::{ContestSeries, Problem};
 
 #[async_trait]

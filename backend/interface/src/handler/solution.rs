@@ -10,6 +10,7 @@ use usecase::solution::{
 };
 
 use crate::{
+    error::ToHttpError,
     http::AuthUser,
     model::solution::{
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
@@ -31,7 +32,7 @@ pub async fn create_solution_handler(
     let repo =
         CreateSolutionUsecase::new(registry.id_provider_port(), registry.solution_tx_manager());
     let input = from_req_for_input(user_id, req);
-    let res = repo.run(input).await.map_err(HttpError::from)?;
+    let res = repo.run(input).await.map_err(|e| e.to_http_error())?;
 
     Ok(Json(ApiResponse::ok(res.into())))
 }
@@ -40,7 +41,10 @@ pub async fn get_solutions_by_problems_id_handler(
     Query(req): Query<GetSolutionsByProblemIdRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByProblemIdResponse>>>, HttpError> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
-    let solutions = uc.run(req.problem_id).await?;
+    let solutions = uc
+        .run(req.problem_id)
+        .await
+        .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByProblemIdResponse::from)
@@ -53,6 +57,9 @@ pub async fn get_solution_by_solution_id_handler(
     Query(req): Query<GetSolutionBySolutionIdRequest>,
 ) -> Result<Json<ApiResponse<GetSolutionBySolutionIdResponse>>, HttpError> {
     let uc = GetSolutionBySolutionIdUsecase::new(registry.solution_service());
-    let solution = uc.run(req.solution_id).await?;
+    let solution = uc
+        .run(req.solution_id)
+        .await
+        .map_err(|e| e.to_http_error())?;
     Ok(Json(ApiResponse::ok(solution.into())))
 }

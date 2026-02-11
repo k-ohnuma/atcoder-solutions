@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use usecase::dto::solution::SolutionListItemView;
+use usecase::model::solution::SolutionListItem;
 use uuid::Uuid;
 
 pub struct SolutionListItemViewRaw {
@@ -12,7 +12,7 @@ pub struct SolutionListItemViewRaw {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionListItemViewRaw> for SolutionListItemView {
+impl From<SolutionListItemViewRaw> for SolutionListItem {
     fn from(value: SolutionListItemViewRaw) -> Self {
         let SolutionListItemViewRaw {
             id,

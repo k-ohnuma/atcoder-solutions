@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use derive_new::new;
-use domain::{model::user::User, ports::repository::user::UserRepository};
-use shared::error::repository::RepositoryError;
+use domain::{
+    error::repository::RepositoryError, model::user::User, ports::repository::user::UserRepository,
+};
 
+use crate::error::map_sqlx_error;
 use crate::{database::ConnectionPool, model::user::UserRow};
 
 #[derive(new)]
@@ -26,7 +28,7 @@ impl UserRepository for UserRepositoryImpl {
         )
         .fetch_optional(self.db.inner_ref())
         .await
-        .map_err(RepositoryError::from)?;
+        .map_err(map_sqlx_error)?;
 
         if inserted.is_none() {
             return Err(RepositoryError::UniqueViolation(format!(
@@ -46,7 +48,7 @@ impl UserRepository for UserRepositoryImpl {
         )
         .fetch_one(self.db.inner_ref())
         .await
-        .map_err(RepositoryError::from)?;
+        .map_err(map_sqlx_error)?;
 
         Ok(user_row.try_into()?)
     }

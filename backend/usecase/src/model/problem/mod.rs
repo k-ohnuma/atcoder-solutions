@@ -1,4 +1,4 @@
-use shared::error::{http::HttpError, repository::RepositoryError};
+use domain::error::repository::RepositoryError;
 use thiserror::Error;
 
 pub mod create;
@@ -27,16 +27,6 @@ impl From<RepositoryError> for ProblemError {
             RepositoryError::Connection(msg) => ProblemError::DBError(msg.to_string()),
             RepositoryError::Query(msg) => ProblemError::DBError(msg.to_string()),
             RepositoryError::Unexpected(msg) => ProblemError::DBError(msg.to_string()),
-        }
-    }
-}
-
-impl From<ProblemError> for HttpError {
-    fn from(value: ProblemError) -> Self {
-        match value {
-            ProblemError::BadRequest(reason) => HttpError::BadRequest(reason),
-            ProblemError::NotFound(reason) => HttpError::NotFound(reason),
-            ProblemError::DBError(reason) => HttpError::Internal(reason),
         }
     }
 }

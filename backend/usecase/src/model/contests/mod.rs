@@ -1,5 +1,11 @@
-use shared::error::{http::HttpError, repository::RepositoryError};
+use domain::error::repository::RepositoryError;
 use thiserror::Error;
+
+#[derive(Debug, Clone)]
+pub struct ContestListItem {
+    pub code: String,
+    pub series_code: String,
+}
 
 #[derive(Debug, Error)]
 pub enum ContestError {
@@ -23,16 +29,6 @@ impl From<RepositoryError> for ContestError {
             RepositoryError::Connection(msg) => ContestError::DBError(msg.to_string()),
             RepositoryError::Query(msg) => ContestError::DBError(msg.to_string()),
             RepositoryError::Unexpected(msg) => ContestError::DBError(msg.to_string()),
-        }
-    }
-}
-
-impl From<ContestError> for HttpError {
-    fn from(value: ContestError) -> Self {
-        match value {
-            ContestError::BadRequest(reason) => HttpError::BadRequest(reason),
-            ContestError::NotFound(reason) => HttpError::NotFound(reason),
-            ContestError::DBError(reason) => HttpError::Internal(reason),
         }
     }
 }

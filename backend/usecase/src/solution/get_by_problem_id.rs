@@ -18,6 +18,6 @@ impl GetSolutionsByProblemIdUsecase {
         problem_id: String,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
         let items = self.service.get_solutions_by_problem_id(problem_id).await?;
-        Ok(items)
+        Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }
 }

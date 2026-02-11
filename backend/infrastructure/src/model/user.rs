@@ -1,8 +1,10 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
-use domain::model::user::{Role, User};
-use shared::error::repository::RepositoryError;
+use domain::{
+    error::repository::RepositoryError,
+    model::user::{Role, User},
+};
 
 pub struct UserRow {
     pub id: String,

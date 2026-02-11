@@ -2,10 +2,32 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use domain::{
-    model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
+    error::external::ExternalError, model::problem::Problem,
+    ports::external::atcoder_problems::AtcoderProblemsPort,
 };
 use reqwest::Client;
-use shared::error::external::ExternalError;
+use serde::Deserialize;
+
+use crate::error::map_reqwest_error;
+
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+struct ApiProblem {
+    id: String,
+    contest_id: String,
+    problem_index: String,
+    name: String,
+}
+
+impl From<ApiProblem> for Problem {
+    fn from(value: ApiProblem) -> Self {
+        Self {
+            id: value.id,
+            contest_code: value.contest_id,
+            problem_index: value.problem_index,
+            title: value.name,
+        }
+    }
+}
 
 pub struct AtcoderProblemsClient {
     client: Client,
@@ -32,25 +54,25 @@ impl AtcoderProblemsClient {
 
 #[async_trait]
 impl AtcoderProblemsPort for AtcoderProblemsClient {
-    async fn fetch_problems(&self) -> Result<Vec<ApiProblem>, ExternalError> {
+    async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError> {
         let json_endpoint = format!("{}/resources/problems.json", self.base_endpoint);
         let resp = self
             .client
             .get(json_endpoint)
             .send()
             .await
-            .map_err(ExternalError::from)?
+            .map_err(map_reqwest_error)?
             .error_for_status()
-            .map_err(ExternalError::from)?;
+            .map_err(map_reqwest_error)?;
 
         let json: Vec<ApiProblem> = resp.json().await.map_err(|e| {
             if e.is_decode() {
                 ExternalError::InvalidJson(e.to_string())
             } else {
-                ExternalError::from(e)
+                map_reqwest_error(e)
             }
         })?;
-        Ok(json)
+        Ok(json.into_iter().map(Problem::from).collect())
     }
 }
 
@@ -58,10 +80,9 @@ impl AtcoderProblemsPort for AtcoderProblemsClient {
 mod tests {
 
     use domain::{
-        model::atcoder_problems::ApiProblem, ports::external::atcoder_problems::AtcoderProblemsPort,
+        error::external::ExternalError, ports::external::atcoder_problems::AtcoderProblemsPort,
     };
     use rstest::{fixture, rstest};
-    use shared::error::external::ExternalError;
     use wiremock::{
         Mock, MockServer, ResponseTemplate,
         matchers::{method, path},
@@ -95,16 +116,11 @@ mod tests {
         let got = client.fetch_problems().await.expect("should be success");
         assert_eq!(got.len(), 3);
 
-        let p1 = got[0].to_owned();
-
-        let expect1 = ApiProblem {
-            id: "abc234_a".into(),
-            contest_id: "abc234".into(),
-            problem_index: "A".into(),
-            name: "Weird Function".into(),
-        };
-
-        assert_eq!(p1, expect1);
+        let p1 = &got[0];
+        assert_eq!(p1.id, "abc234_a");
+        assert_eq!(p1.contest_code, "abc234");
+        assert_eq!(p1.problem_index, "A");
+        assert_eq!(p1.title, "Weird Function");
     }
 
     #[rstest]

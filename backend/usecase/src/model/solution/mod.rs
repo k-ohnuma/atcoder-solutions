@@ -1,7 +1,34 @@
 pub mod create;
 
-use shared::error::{http::HttpError, repository::RepositoryError};
+use chrono::{DateTime, Utc};
+use domain::error::repository::RepositoryError;
 use thiserror::Error;
+use uuid::Uuid;
+
+#[derive(Debug, Clone)]
+pub struct SolutionListItem {
+    pub id: Uuid,
+    pub title: String,
+    pub problem_id: String,
+    pub user_id: String,
+    pub user_name: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SolutionDetails {
+    pub id: Uuid,
+    pub title: String,
+    pub problem_id: String,
+    pub problem_title: String,
+    pub user_id: String,
+    pub user_name: String,
+    pub body_md: String,
+    pub submit_url: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
 
 #[derive(Debug, Error)]
 pub enum SolutionError {
@@ -13,17 +40,6 @@ pub enum SolutionError {
     NotFound(String),
     #[error("{0}")]
     Conflict(String),
-}
-
-impl From<SolutionError> for HttpError {
-    fn from(value: SolutionError) -> Self {
-        match value {
-            SolutionError::BadRequest(reason) => HttpError::BadRequest(reason),
-            SolutionError::NotFound(reason) => HttpError::NotFound(reason),
-            SolutionError::Conflict(reason) => HttpError::Conflict(reason),
-            SolutionError::DBError(reason) => HttpError::Internal(reason),
-        }
-    }
 }
 
 impl From<RepositoryError> for SolutionError {

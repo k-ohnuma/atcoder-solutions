@@ -133,3 +133,33 @@ async fn get_problems_by_contest_series(pool: PgPool) -> Result<()> {
     assert_eq!(arcs[0].id, "arc001_b");
     Ok(())
 }
+
+#[sqlx::test(migrations = "./migrations")]
+async fn create_records_with_unknown_series_uses_other(pool: PgPool) -> Result<()> {
+    seed_contest_series(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = ProblemRepositoryImpl::new(conn);
+    let p1 = Problem {
+        id: "tessoku_a1".into(),
+        contest_code: "tessoku-book".into(),
+        problem_index: "a1".into(),
+        title: "A1 - Example".into(),
+    };
+
+    repo.create_records(vec![p1]).await?;
+
+    let (series_code,): (String,) =
+        sqlx::query_as("SELECT series_code FROM contests WHERE code = 'tessoku-book'")
+            .fetch_one(&pool)
+            .await?;
+    assert_eq!(series_code, "OTHER");
+
+    let (count,): (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM problems WHERE contest_code = 'tessoku-book'")
+            .fetch_one(&pool)
+            .await?;
+    assert_eq!(count, 1);
+
+    Ok(())
+}

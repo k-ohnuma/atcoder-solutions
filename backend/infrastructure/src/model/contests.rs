@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use usecase::dto::contests::ContestListItemView;
+use usecase::model::contests::ContestListItem;
 use uuid::Uuid;
 
 pub struct ContestListItemViewRaw {
@@ -10,7 +10,7 @@ pub struct ContestListItemViewRaw {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<ContestListItemViewRaw> for ContestListItemView {
+impl From<ContestListItemViewRaw> for ContestListItem {
     fn from(value: ContestListItemViewRaw) -> Self {
         Self {
             code: value.code,

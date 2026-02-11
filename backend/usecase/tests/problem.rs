@@ -3,24 +3,21 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
-    model::{
-        atcoder_problems::ApiProblem,
-        problem::{ContestSeries, Problem},
-    },
+    error::{external::ExternalError, repository::RepositoryError},
+    model::problem::{ContestSeries, Problem},
     ports::{
         external::atcoder_problems::AtcoderProblemsPort, repository::problem::ProblemRepository,
     },
 };
-use shared::error::{external::ExternalError, repository::RepositoryError};
 use usecase::problem::create::ImportProblemsUsecase;
 
 struct DummyAtcoderProblemsPort {
-    item: Vec<ApiProblem>,
+    item: Vec<Problem>,
 }
 
 #[async_trait]
 impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
-    async fn fetch_problems(&self) -> Result<Vec<ApiProblem>, ExternalError> {
+    async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError> {
         Ok(self.item.to_owned())
     }
 }
@@ -53,17 +50,17 @@ impl ProblemRepository for DummyProblemsRepository {
 async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
     let port = Arc::new(DummyAtcoderProblemsPort {
         item: vec![
-            ApiProblem {
+            Problem {
                 id: "abc234_a".into(),
-                contest_id: "abc234".into(),
+                contest_code: "abc234".into(),
                 problem_index: "A".into(),
-                name: "A - Example".into(),
+                title: "A - Example".into(),
             },
-            ApiProblem {
+            Problem {
                 id: "abc234_b".into(),
-                contest_id: "abc234".into(),
+                contest_code: "abc234".into(),
                 problem_index: "B".into(),
-                name: "B - Example".into(),
+                title: "B - Example".into(),
             },
         ],
     });

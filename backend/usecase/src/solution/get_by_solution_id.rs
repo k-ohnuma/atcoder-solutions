@@ -18,6 +18,6 @@ impl GetSolutionBySolutionIdUsecase {
             .service
             .get_solution_by_solution_id(solution_id)
             .await?;
-        Ok(item)
+        Ok(item.into())
     }
 }

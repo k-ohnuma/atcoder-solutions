@@ -13,6 +13,7 @@ use usecase::problem::{
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
 };
 
+use crate::error::ToHttpError;
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
@@ -39,7 +40,10 @@ pub async fn get_problems_by_contest_handler(
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemsByContestUsecase::new(problems_repository);
-    let problems = usecase.run(&query.contest).await?;
+    let problems = usecase
+        .run(&query.contest)
+        .await
+        .map_err(|e| e.to_http_error())?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
@@ -54,7 +58,7 @@ pub async fn get_contest_group_by_contest_series_handler(
     let series =
         ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
 
-    let problem_map = usecase.run(series).await?;
+    let problem_map = usecase.run(series).await.map_err(|e| e.to_http_error())?;
     let resp = problem_map
         .0
         .into_iter()
