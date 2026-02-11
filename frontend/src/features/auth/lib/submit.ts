@@ -1,14 +1,62 @@
-import { createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  signInWithEmailAndPassword,
+  signOut,
+  type UserCredential,
+} from "firebase/auth";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignInSchema, SignUpSchema } from "../model/schema";
+
+function toFirebaseAuthErrorMessage(error: unknown): string {
+  if (!(error instanceof FirebaseError)) {
+    return "認証処理でエラーが発生しました。時間をおいて再度お試しください。";
+  }
+
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      return "このメールアドレスは既に登録されています。";
+    case "auth/invalid-email":
+      return "メールアドレスの形式が正しくありません。";
+    case "auth/weak-password":
+      return "パスワードが弱すぎます。";
+    case "auth/network-request-failed":
+      return "ネットワークエラーが発生しました。接続を確認してください。";
+    case "auth/too-many-requests":
+      return "試行回数が多すぎます。しばらく待ってから再度お試しください。";
+    default:
+      return "認証処理でエラーが発生しました。入力内容を確認して再度お試しください。";
+  }
+}
+
+function toCreateUserApiErrorMessage(status: number, error: unknown): string {
+  if (status === 401) {
+    return "認証に失敗しました。再度ログインしてからお試しください。";
+  }
+  if (status === 409) {
+    return "このユーザー名は既に使われています。別のユーザー名を入力してください。";
+  }
+  if (status >= 500) {
+    return "ユーザー登録に失敗しました。時間をおいて再度お試しください。";
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  return "ユーザー登録に失敗しました。入力内容を確認してください。";
+}
 
 export const onSubmitSignUp = async (values: SignUpSchema) => {
   const auth = getFirebaseAuth();
   const email = values.email;
   const password = values.password;
-  // とりあえずfirebaseの時点でこけたらそこで終了させる
-  const cred = await createUserWithEmailAndPassword(auth, email, password).catch((_e) => undefined);
-  if (!cred) throw new Error("internal server error: cred is undefined");
+  let cred: UserCredential;
+  try {
+    cred = await createUserWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    throw new Error(toFirebaseAuthErrorMessage(e));
+  }
+
   // firebaseが成功して、DBへの格納がこけたらfirebaseもロールバックしなきゃ
   try {
     const idToken = await cred.user.getIdToken();
@@ -21,10 +69,16 @@ export const onSubmitSignUp = async (values: SignUpSchema) => {
       body: JSON.stringify({ userName: values.userName }),
     });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.error);
+    if (!res.ok) {
+      throw new Error(toCreateUserApiErrorMessage(res.status, json?.error));
+    }
   } catch (e) {
-    await deleteUser(cred.user);
-    console.error(`rollback complete: delete ${cred.user.email}`);
+    try {
+      await deleteUser(cred.user);
+      // console.error(`rollback complete: delete ${cred.user.email}`);
+    } catch (rollbackError) {
+      console.error("rollback failed", rollbackError);
+    }
     throw e;
   }
 };
