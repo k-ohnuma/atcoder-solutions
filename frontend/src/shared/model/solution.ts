@@ -17,6 +17,19 @@ export interface SolutionListItem {
   problemId: string;
   userId: string;
   userName: string;
+  votesCount: number;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface SolutionVotesCount {
+  solutionId: string;
+  votesCount: number;
+}
+
+export interface SolutionLikeStatus {
+  solutionId: string;
+  liked: boolean;
+}
+
+export type SolutionListSortBy = "latest" | "votes";

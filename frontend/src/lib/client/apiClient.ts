@@ -1,5 +1,6 @@
 import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
+import { SolutionLikeStatus, SolutionVotesCount } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
@@ -24,7 +25,7 @@ export class ApiClient {
     body,
     params,
   }: {
-    method: "GET" | "POST";
+    method: "GET" | "POST" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
@@ -71,9 +72,9 @@ export class ApiClient {
     return this.request({ method: "GET", path, params });
   }
 
-  // private async _getWithToken<T>(path: string, token: string): Promise<Resp<T>> {
-  //   return this.request({ method: "GET", path, token });
-  // }
+  private async getWithToken<T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, token, params });
+  }
 
   // private async _post<T>(path: string, body: JsonValue): Promise<Resp<T>> {
   //   return this.request({ path, method: "POST", body });
@@ -81,6 +82,10 @@ export class ApiClient {
   //
   private async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
+  }
+
+  private async deleteWithToken<T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> {
+    return this.request({ path, method: "DELETE", token, params });
   }
 
   // contests
@@ -119,5 +124,45 @@ export class ApiClient {
     if (resp.ok) return resp.data;
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return { solutionId: "" };
+  };
+
+  getSolutionVotesCount = async (solutionId: string): Promise<number> => {
+    const path = "api/solutions/votes";
+    const resp = await this.get<SolutionVotesCount>(path, { solutionId });
+    if (resp.ok) {
+      return resp.data.votesCount;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return 0;
+  };
+
+  getMySolutionLikeStatus = async (solutionId: string, token: string): Promise<boolean> => {
+    const path = "api/solutions/votes/me";
+    const resp = await this.getWithToken<SolutionLikeStatus>(path, token, { solutionId });
+    if (resp.ok) {
+      return resp.data.liked;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return false;
+  };
+
+  voteSolution = async (solutionId: string, token: string): Promise<boolean> => {
+    const path = "api/solutions/votes";
+    const resp = await this.postWithToken<SolutionLikeStatus>(path, token, JSON.stringify({ solutionId }));
+    if (resp.ok) {
+      return resp.data.liked;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return false;
+  };
+
+  unvoteSolution = async (solutionId: string, token: string): Promise<boolean> => {
+    const path = "api/solutions/votes";
+    const resp = await this.deleteWithToken<SolutionLikeStatus>(path, token, { solutionId });
+    if (resp.ok) {
+      return resp.data.liked;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return true;
   };
 }
