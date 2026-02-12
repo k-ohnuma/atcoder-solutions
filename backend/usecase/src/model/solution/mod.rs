@@ -5,6 +5,12 @@ use domain::error::repository::RepositoryError;
 use thiserror::Error;
 use uuid::Uuid;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SolutionListSort {
+    Latest,
+    Votes,
+}
+
 #[derive(Debug, Clone)]
 pub struct SolutionListItem {
     pub id: Uuid,
@@ -12,6 +18,7 @@ pub struct SolutionListItem {
     pub problem_id: String,
     pub user_id: String,
     pub user_name: String,
+    pub votes_count: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

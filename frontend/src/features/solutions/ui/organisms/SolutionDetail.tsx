@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarkdownRenderer } from "../atoms";
+import { LikeButton } from "../molecules/LikeButton";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
@@ -13,6 +14,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
 });
 
 type SolutionDetailProps = {
+  solutionId: string;
   title: string;
   problemId: string;
   problemTitle: string;
@@ -20,9 +22,11 @@ type SolutionDetailProps = {
   bodyMd: string;
   submitUrl: string;
   createdAt: string;
+  initialVotesCount: number;
 };
 
 export function SolutionDetail({
+  solutionId,
   title,
   problemId,
   problemTitle,
@@ -30,6 +34,7 @@ export function SolutionDetail({
   bodyMd,
   submitUrl,
   createdAt,
+  initialVotesCount,
 }: SolutionDetailProps) {
   return (
     <article className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-8">
@@ -47,6 +52,7 @@ export function SolutionDetail({
             提出URL
           </Link>
         )}
+        <LikeButton solutionId={solutionId} initialVotesCount={initialVotesCount} />
       </header>
 
       <section className="rounded-xl border bg-card">

@@ -3,7 +3,7 @@ use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
-    SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
+    SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork, VoteRepositoryTx,
 };
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -43,6 +43,9 @@ impl UnitOfWork for SolutionUnitOfWork {
         self
     }
     fn tags(&mut self) -> &mut dyn TagRepositoryTx {
+        self
+    }
+    fn votes(&mut self) -> &mut dyn VoteRepositoryTx {
         self
     }
 
@@ -133,5 +136,41 @@ impl TagRepositoryTx for SolutionUnitOfWork {
         .map_err(map_sqlx_error)?;
 
         Ok(rows.into_iter().filter_map(|r| r.id).collect())
+    }
+}
+
+#[async_trait]
+impl VoteRepositoryTx for SolutionUnitOfWork {
+    async fn like(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            INSERT INTO solution_votes (user_id, solution_id)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, solution_id) DO NOTHING
+            "#,
+            user_id,
+            solution_id
+        )
+        .execute(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
+    }
+
+    async fn unlike(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM solution_votes
+            WHERE user_id = $1 AND solution_id = $2
+            "#,
+            user_id,
+            solution_id
+        )
+        .execute(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
     }
 }

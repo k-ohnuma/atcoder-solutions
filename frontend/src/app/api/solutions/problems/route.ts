@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   }
 
   const repo = new SolutionRepositoryImpl();
-  const solutions = await repo.getByProblemId(parsed.data.problemId);
+  const solutions = await repo.getByProblemId(parsed.data.problemId, parsed.data.sortBy);
   if (!solutions.ok) {
     return NextResponse.json({ ok: false, error: solutions.error }, { status: solutions.status });
   }

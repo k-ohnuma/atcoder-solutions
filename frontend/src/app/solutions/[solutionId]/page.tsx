@@ -14,6 +14,7 @@ type PageProps = {
 export default async function SolutionPage({ params }: PageProps) {
   const { solutionId } = await params;
   const solution = await apiClient.getSolutionById(solutionId);
+  const votesCount = await apiClient.getSolutionVotesCount(solutionId);
 
   if (!solution) {
     notFound();
@@ -21,6 +22,7 @@ export default async function SolutionPage({ params }: PageProps) {
 
   return (
     <SolutionDetail
+      solutionId={solution.id}
       title={solution.title}
       problemId={solution.problemId}
       problemTitle={solution.problemTitle}
@@ -28,6 +30,7 @@ export default async function SolutionPage({ params }: PageProps) {
       bodyMd={solution.bodyMd}
       submitUrl={solution.submitUrl}
       createdAt={solution.createdAt}
+      initialVotesCount={votesCount}
     />
   );
 }
