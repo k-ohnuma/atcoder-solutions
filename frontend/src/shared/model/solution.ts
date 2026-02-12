@@ -10,3 +10,13 @@ export interface SolutionDetail {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface SolutionListItem {
+  id: string;
+  title: string;
+  problemId: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
+  updatedAt: string;
+}

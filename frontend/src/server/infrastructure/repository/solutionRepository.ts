@@ -4,7 +4,7 @@ import { SolutionRepository } from "@/server/domain/solutions";
 import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-import { SolutionDetail } from "@/shared/model/solution";
+import { SolutionDetail, SolutionListItem } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
 export class SolutionRepositoryImpl implements SolutionRepository {
@@ -17,6 +17,9 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   private createSolutionPath = () => {
     return "solutions";
   };
+  private getSolutionsByProblemIdPath = () => {
+    return "solutions/problems";
+  };
 
   create = async (solution: Solution, token: string): Promise<Resp<SolutionResponse>> => {
     const path = this.createSolutionPath();
@@ -27,5 +30,11 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     const path = this.createSolutionPath();
     const params = { solutionId };
     return await this.client.get<SolutionDetail>(path, params);
+  };
+
+  getByProblemId = async (problemId: string): Promise<Resp<SolutionListItem[]>> => {
+    const path = this.getSolutionsByProblemIdPath();
+    const params = { problemId };
+    return await this.client.get<SolutionListItem[]>(path, params);
   };
 }
