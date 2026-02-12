@@ -46,7 +46,7 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
 
     const token = await getFirebaseIdToken();
     if (!token) {
-      router.push("/login");
+      router.push("/signin");
       return;
     }
 
