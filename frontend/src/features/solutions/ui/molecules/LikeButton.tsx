@@ -20,18 +20,22 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
   const [liked, setLiked] = useState(false);
   const [votesCount, setVotesCount] = useState(initialVotesCount);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLikeStatusReady, setIsLikeStatusReady] = useState(false);
   const auth = getFirebaseAuth();
 
   useEffect(() => {
+    setIsLikeStatusReady(false);
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setLiked(false);
+        setIsLikeStatusReady(true);
         return;
       }
 
       const token = await user.getIdToken();
       const isLiked = await apiClient.getMySolutionLikeStatus(solutionId, token);
       setLiked(isLiked);
+      setIsLikeStatusReady(true);
     });
 
     return () => {
@@ -72,7 +76,13 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
   };
 
   return (
-    <Button type="button" variant={liked ? "default" : "outline"} size="sm" disabled={isSubmitting} onClick={onClick}>
+    <Button
+      type="button"
+      variant={liked ? "default" : "outline"}
+      size="sm"
+      disabled={isSubmitting || !isLikeStatusReady}
+      onClick={onClick}
+    >
       {liked ? "いいね済み" : "いいね"} {votesCount}
     </Button>
   );
