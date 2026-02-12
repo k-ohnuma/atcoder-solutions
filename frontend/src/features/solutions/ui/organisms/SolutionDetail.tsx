@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { MarkdownRenderer } from "../atoms";
 
+const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+
 type SolutionDetailProps = {
   title: string;
   problemId: string;
@@ -26,7 +37,7 @@ export function SolutionDetail({
         <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           <span>by {userName}</span>
-          <span>{new Date(createdAt).toLocaleString("ja-JP")}</span>
+          <span>{dateTimeFormatter.format(new Date(createdAt))}</span>
           <span>
             {problemId}: {problemTitle}
           </span>

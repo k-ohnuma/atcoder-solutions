@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
@@ -16,7 +17,11 @@ export default async function Home() {
             <TableCell className="whitespace-nowrap font-medium">{contestId}</TableCell>
 
             {problems.map((problem) => (
-              <TableCell key={problem.id}>{`${problem.problemIndex}. ${problem.title}`}</TableCell>
+              <TableCell key={problem.id}>
+                <Link href={`/problems/${problem.id}`} className="hover:underline">
+                  {`${problem.problemIndex}. ${problem.title}`}
+                </Link>
+              </TableCell>
             ))}
           </TableRow>
         ))}
