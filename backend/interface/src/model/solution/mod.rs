@@ -1,3 +1,7 @@
 pub mod create_solution;
+pub mod get_my_vote_status;
 pub mod get_solution_by_solution_id;
+pub mod get_solution_votes_count;
 pub mod get_solutions_by_problem_id;
+pub mod unvote_solution;
+pub mod vote_solution;

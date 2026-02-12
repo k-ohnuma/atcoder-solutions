@@ -16,9 +16,11 @@ use crate::{
     http::AuthUser,
     model::solution::{
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
+        get_my_vote_status::{GetMyVoteStatusRequest, GetMyVoteStatusResponse},
         get_solution_by_solution_id::{
             GetSolutionBySolutionIdRequest, GetSolutionBySolutionIdResponse,
         },
+        get_solution_votes_count::{GetSolutionVotesCountRequest, GetSolutionVotesCountResponse},
         get_solutions_by_problem_id::{
             GetSolutionsByProblemIdRequest, GetSolutionsByProblemIdResponse,
         },
@@ -96,3 +98,33 @@ pub async fn unvote_solution_handler(
     ))))
 }
 
+pub async fn get_solution_votes_count_handler(
+    State(registry): State<Registry>,
+    Query(req): Query<GetSolutionVotesCountRequest>,
+) -> Result<Json<ApiResponse<GetSolutionVotesCountResponse>>, HttpError> {
+    let uc = GetSolutionVotesCountUsecase::new(registry.solution_service());
+    let count = uc
+        .run(req.solution_id)
+        .await
+        .map_err(|e| e.to_http_error())?;
+    Ok(Json(ApiResponse::ok(GetSolutionVotesCountResponse::new(
+        req.solution_id,
+        count,
+    ))))
+}
+
+pub async fn get_my_vote_status_handler(
+    State(registry): State<Registry>,
+    AuthUser(user): AuthUser,
+    Query(req): Query<GetMyVoteStatusRequest>,
+) -> Result<Json<ApiResponse<GetMyVoteStatusResponse>>, HttpError> {
+    let uc = GetMyVoteStatusUsecase::new(registry.solution_service());
+    let liked = uc
+        .run(user.uid, req.solution_id)
+        .await
+        .map_err(|e| e.to_http_error())?;
+    Ok(Json(ApiResponse::ok(GetMyVoteStatusResponse::new(
+        req.solution_id,
+        liked,
+    ))))
+}
