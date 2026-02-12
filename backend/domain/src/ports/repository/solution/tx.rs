@@ -20,9 +20,16 @@ pub trait TagRepositoryTx: Send + Sync {
 }
 
 #[async_trait]
+pub trait VoteRepositoryTx: Send + Sync {
+    async fn like(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError>;
+    async fn unlike(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
 pub trait UnitOfWork: Send + Sync {
     fn solutions(&mut self) -> &mut dyn SolutionRespositoryTx;
     fn tags(&mut self) -> &mut dyn TagRepositoryTx;
+    fn votes(&mut self) -> &mut dyn VoteRepositoryTx;
 
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError>;
     async fn rollback(self: Box<Self>) -> Result<(), RepositoryError>;
