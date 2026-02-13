@@ -32,4 +32,14 @@ export interface SolutionLikeStatus {
   liked: boolean;
 }
 
+export interface SolutionComment {
+  id: string;
+  userId: string;
+  userName: string;
+  solutionId: string;
+  bodyMd: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type SolutionListSortBy = "latest" | "votes";

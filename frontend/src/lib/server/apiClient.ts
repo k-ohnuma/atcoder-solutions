@@ -1,6 +1,12 @@
 import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
-import { SolutionDetail, SolutionListItem, SolutionListSortBy, SolutionVotesCount } from "@/shared/model/solution";
+import {
+  SolutionComment,
+  SolutionDetail,
+  SolutionListItem,
+  SolutionListSortBy,
+  SolutionVotesCount,
+} from "@/shared/model/solution";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
 
@@ -133,5 +139,15 @@ export class ApiClient {
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return 0;
+  };
+
+  getCommentsBySolutionId = async (solutionId: string): Promise<SolutionComment[]> => {
+    const path = "solutions/comments";
+    const resp = await this.get<SolutionComment[]>(path, { solutionId });
+    if (resp.ok) {
+      return resp.data;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return [];
   };
 }

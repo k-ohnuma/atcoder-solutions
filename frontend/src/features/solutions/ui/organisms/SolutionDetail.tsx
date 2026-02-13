@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { SolutionComment } from "@/shared/model/solution";
 import { MarkdownRenderer } from "../atoms";
 import { LikeButton } from "../molecules/LikeButton";
+import { SolutionComments } from "./SolutionComments";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
@@ -23,6 +25,7 @@ type SolutionDetailProps = {
   submitUrl: string;
   createdAt: string;
   initialVotesCount: number;
+  initialComments: SolutionComment[];
 };
 
 export function SolutionDetail({
@@ -35,6 +38,7 @@ export function SolutionDetail({
   submitUrl,
   createdAt,
   initialVotesCount,
+  initialComments,
 }: SolutionDetailProps) {
   return (
     <article className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-8">
@@ -58,6 +62,8 @@ export function SolutionDetail({
       <section className="rounded-xl border bg-card">
         <MarkdownRenderer value={bodyMd} />
       </section>
+
+      <SolutionComments solutionId={solutionId} initialComments={initialComments} />
     </article>
   );
 }

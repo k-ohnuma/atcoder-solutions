@@ -24,3 +24,9 @@ export const getMySolutionVoteStatusQueryParams = z.object({
 });
 
 export type GetMySolutionVoteStatusQueryParams = z.infer<typeof getMySolutionVoteStatusQueryParams>;
+
+export const getCommentsBySolutionIdQueryParams = z.object({
+  solutionId: z.string(),
+});
+
+export type GetCommentsBySolutionIdQueryParams = z.infer<typeof getCommentsBySolutionIdQueryParams>;

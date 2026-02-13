@@ -1,6 +1,6 @@
 import { ContestGroupCollection } from "@/server/domain/problems";
 import { Problem } from "@/shared/model/problem";
-import { SolutionLikeStatus, SolutionVotesCount } from "@/shared/model/solution";
+import { SolutionComment, SolutionLikeStatus, SolutionVotesCount } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
@@ -164,5 +164,25 @@ export class ApiClient {
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return true;
+  };
+
+  getCommentsBySolutionId = async (solutionId: string): Promise<SolutionComment[]> => {
+    const path = "api/solutions/comments";
+    const resp = await this.get<SolutionComment[]>(path, { solutionId });
+    if (resp.ok) {
+      return resp.data;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return [];
+  };
+
+  createComment = async (solutionId: string, bodyMd: string, token: string): Promise<SolutionComment | null> => {
+    const path = "api/solutions/comments";
+    const resp = await this.postWithToken<SolutionComment>(path, token, JSON.stringify({ solutionId, bodyMd }));
+    if (resp.ok) {
+      return resp.data;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return null;
   };
 }
