@@ -2,13 +2,16 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::error::repository::RepositoryError;
 use usecase::{
-    model::solution::{SolutionDetails, SolutionListItem, SolutionListSort},
+    model::solution::{SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort},
     service::solution::SolutionService,
 };
 use uuid::Uuid;
 
 use crate::error::map_sqlx_error;
-use crate::{database::ConnectionPool, model::solution::SolutionListItemViewRaw};
+use crate::{
+    database::ConnectionPool,
+    model::solution::{SolutionCommentViewRaw, SolutionListItemViewRaw},
+};
 
 #[derive(new)]
 pub struct SolutionServiceImpl {
@@ -126,5 +129,61 @@ impl SolutionService for SolutionServiceImpl {
         .map_err(map_sqlx_error)?;
 
         Ok(rec.exists)
+    }
+
+    async fn solution_exists(&self, solution_id: Uuid) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM solutions
+                    WHERE id = $1
+                ) AS "exists!"
+            "#,
+            solution_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.exists)
+    }
+
+    async fn get_comments_by_solution_id(
+        &self,
+        solution_id: Uuid,
+    ) -> Result<Vec<SolutionComment>, RepositoryError> {
+        let comments = sqlx::query_as!(
+            SolutionCommentViewRaw,
+            r#"
+                SELECT c.id, c.user_id, u.user_name, c.solution_id, c.body_md, c.created_at, c.updated_at
+                FROM comments c
+                JOIN users u ON c.user_id = u.id
+                WHERE c.solution_id = $1
+                ORDER BY c.created_at ASC
+            "#,
+            solution_id
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(comments.into_iter().map(SolutionComment::from).collect())
+    }
+
+    async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT user_name
+                FROM users
+                WHERE id = $1
+            "#,
+            user_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.user_name)
     }
 }

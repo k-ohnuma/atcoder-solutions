@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use usecase::model::solution::SolutionListItem;
+use usecase::model::solution::{SolutionComment, SolutionListItem};
 use uuid::Uuid;
 
 pub struct SolutionListItemViewRaw {
@@ -33,6 +33,40 @@ impl From<SolutionListItemViewRaw> for SolutionListItem {
             user_id,
             user_name,
             votes_count,
+            created_at,
+            updated_at,
+        }
+    }
+}
+
+pub struct SolutionCommentViewRaw {
+    pub id: Uuid,
+    pub user_id: String,
+    pub user_name: String,
+    pub solution_id: Uuid,
+    pub body_md: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<SolutionCommentViewRaw> for SolutionComment {
+    fn from(value: SolutionCommentViewRaw) -> Self {
+        let SolutionCommentViewRaw {
+            id,
+            user_id,
+            user_name,
+            solution_id,
+            body_md,
+            created_at,
+            updated_at,
+        } = value;
+
+        Self {
+            id,
+            user_id,
+            user_name,
+            solution_id,
+            body_md,
             created_at,
             updated_at,
         }

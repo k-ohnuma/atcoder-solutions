@@ -37,6 +37,28 @@ pub struct SolutionDetails {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone)]
+pub struct CreatedComment {
+    pub id: Uuid,
+    pub user_id: String,
+    pub user_name: String,
+    pub solution_id: Uuid,
+    pub body_md: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SolutionComment {
+    pub id: Uuid,
+    pub user_id: String,
+    pub user_name: String,
+    pub solution_id: Uuid,
+    pub body_md: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Error)]
 pub enum SolutionError {
     #[error("{0}")]

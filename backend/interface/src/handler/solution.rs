@@ -5,17 +5,23 @@ use axum::{
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::solution::{
-    create::CreateSolutionUsecase, get_by_problem_id::GetSolutionsByProblemIdUsecase,
-    get_by_solution_id::GetSolutionBySolutionIdUsecase, get_my_vote_status::GetMyVoteStatusUsecase,
-    get_votes_count::GetSolutionVotesCountUsecase, unvote::UnvoteSolutionUsecase,
-    vote::VoteSolutionUsecase,
+    create::CreateSolutionUsecase, create_comment::CreateCommentUsecase,
+    get_by_problem_id::GetSolutionsByProblemIdUsecase,
+    get_by_solution_id::GetSolutionBySolutionIdUsecase,
+    get_comments_by_solution_id::GetCommentsBySolutionIdUsecase,
+    get_my_vote_status::GetMyVoteStatusUsecase, get_votes_count::GetSolutionVotesCountUsecase,
+    unvote::UnvoteSolutionUsecase, vote::VoteSolutionUsecase,
 };
 
 use crate::{
     error::ToHttpError,
     http::AuthUser,
     model::solution::{
+        create_comment::{CreateCommentRequest, CreateCommentResponse},
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
+        get_comments_by_solution_id::{
+            GetCommentsBySolutionIdRequest, GetCommentsBySolutionIdResponse,
+        },
         get_my_vote_status::{GetMyVoteStatusRequest, GetMyVoteStatusResponse},
         get_solution_by_solution_id::{
             GetSolutionBySolutionIdRequest, GetSolutionBySolutionIdResponse,
@@ -127,4 +133,33 @@ pub async fn get_my_vote_status_handler(
         req.solution_id,
         liked,
     ))))
+}
+
+pub async fn create_comment_handler(
+    State(registry): State<Registry>,
+    AuthUser(user): AuthUser,
+    Json(req): Json<CreateCommentRequest>,
+) -> Result<Json<ApiResponse<CreateCommentResponse>>, HttpError> {
+    let uc = CreateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
+    let created = uc
+        .run(user.uid, req.solution_id, req.body_md)
+        .await
+        .map_err(|e| e.to_http_error())?;
+    Ok(Json(ApiResponse::ok(CreateCommentResponse::from(created))))
+}
+
+pub async fn get_comments_by_solution_id_handler(
+    State(registry): State<Registry>,
+    Query(req): Query<GetCommentsBySolutionIdRequest>,
+) -> Result<Json<ApiResponse<Vec<GetCommentsBySolutionIdResponse>>>, HttpError> {
+    let uc = GetCommentsBySolutionIdUsecase::new(registry.solution_service());
+    let comments = uc
+        .run(req.solution_id)
+        .await
+        .map_err(|e| e.to_http_error())?;
+    let ret: Vec<_> = comments
+        .into_iter()
+        .map(GetCommentsBySolutionIdResponse::from)
+        .collect();
+    Ok(Json(ApiResponse::ok(ret)))
 }

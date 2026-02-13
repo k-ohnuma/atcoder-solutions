@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use domain::error::repository::RepositoryError;
 use uuid::Uuid;
 
-use crate::model::solution::{SolutionDetails, SolutionListItem, SolutionListSort};
+use crate::model::solution::{
+    SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort,
+};
 
 #[async_trait]
 pub trait SolutionService: Send + Sync {
@@ -21,4 +23,10 @@ pub trait SolutionService: Send + Sync {
         user_id: String,
         solution_id: Uuid,
     ) -> Result<bool, RepositoryError>;
+    async fn solution_exists(&self, solution_id: Uuid) -> Result<bool, RepositoryError>;
+    async fn get_comments_by_solution_id(
+        &self,
+        solution_id: Uuid,
+    ) -> Result<Vec<SolutionComment>, RepositoryError>;
+    async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError>;
 }
