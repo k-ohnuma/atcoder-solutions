@@ -52,10 +52,20 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
 
   return (
     <PageContainer as="div">
-      <h1 className="mb-1 text-2xl font-bold">{h1Title}</h1>
-      <Link href={atcoderProblemUrl} target="_blank" rel="noreferrer" className="mb-4 inline-block text-sm hover:underline">
-        AtCoder問題ページ
-      </Link>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="mb-1 text-2xl font-bold">{h1Title}</h1>
+          <Link href={atcoderProblemUrl} target="_blank" rel="noreferrer" className="inline-block text-sm hover:underline">
+            AtCoder問題ページ
+          </Link>
+        </div>
+        <Link
+          href={`/solutions/create?problemId=${encodeURIComponent(problemId)}`}
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+        >
+          この問題の記事を書く
+        </Link>
+      </div>
       <div className="mb-6 flex items-center gap-2 text-sm">
         <Link
           href={`/problems/${problemId}?sortBy=latest`}
@@ -84,28 +94,28 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {solutions.map((solution) => (
-            <article key={solution.id} className="rounded-xl border bg-card p-4">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <h2 className="line-clamp-2 text-lg font-semibold leading-snug">
-                  <Link href={`/solutions/${solution.id}`} className="hover:underline">
-                    {solution.title}
-                  </Link>
-                </h2>
-                <div className="flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-sm">
-                  <Heart className="size-4" />
-                  <span>{solution.votesCount}</span>
+            <Link
+              key={solution.id}
+              href={`/solutions/${solution.id}`}
+              className="block rounded-xl border bg-card p-4 transition-colors hover:bg-accent"
+            >
+              <article>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
+                  <div className="flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                    <Heart className="size-4" />
+                    <span>{solution.votesCount}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span>投稿者: {solution.userName}</span>
-                <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
-              </div>
+                <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <span>投稿者: {solution.userName}</span>
+                  <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
+                </div>
 
-              <Link href={`/solutions/${solution.id}`} className="text-sm font-medium hover:underline">
-                解説を読む
-              </Link>
-            </article>
+                <p className="text-sm font-medium">解説を読む</p>
+              </article>
+            </Link>
           ))}
         </div>
       )}

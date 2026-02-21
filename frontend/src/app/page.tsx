@@ -58,12 +58,14 @@ export default async function Home({ searchParams }: HomePageProps) {
               {[...problems]
                 .sort((a, b) => a.problemIndex.localeCompare(b.problemIndex))
                 .map((problem) => (
-                  <div key={problem.id} className="rounded-md border px-3 py-2">
+                  <Link
+                    key={problem.id}
+                    href={`/problems/${problem.id}`}
+                    className="block rounded-md border px-3 py-2 transition-colors hover:bg-accent"
+                  >
                     <p className="mb-1 text-xs text-muted-foreground">{problem.problemIndex}</p>
-                    <Link href={`/problems/${problem.id}`} className="text-sm font-medium hover:underline">
-                      {problem.title}
-                    </Link>
-                  </div>
+                    <p className="text-sm font-medium">{problem.title}</p>
+                  </Link>
                 ))}
             </div>
           </article>

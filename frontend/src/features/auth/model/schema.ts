@@ -8,7 +8,7 @@ export type SignInSchema = z.infer<typeof signInSchema>;
 
 export const signUpSchema = z
   .object({
-    userName: z.string().min(1, "ユーザー名を入力してください"),
+    userName: z.string().trim().min(1, "ユーザー名を入力してください").max(120, "ユーザー名は120文字以内にしてください"),
     email: z.email({ error: "メールアドレスの形式が正しくありません" }),
     password: z
       .string()
