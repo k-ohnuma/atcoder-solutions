@@ -3,7 +3,8 @@ use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
-    SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork, VoteRepositoryTx,
+    CommentRepositoryTx, CreatedComment, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
+    UnitOfWork, VoteRepositoryTx,
 };
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -46,6 +47,9 @@ impl UnitOfWork for SolutionUnitOfWork {
         self
     }
     fn votes(&mut self) -> &mut dyn VoteRepositoryTx {
+        self
+    }
+    fn comments(&mut self) -> &mut dyn CommentRepositoryTx {
         self
     }
 
@@ -172,5 +176,38 @@ impl VoteRepositoryTx for SolutionUnitOfWork {
         .map_err(map_sqlx_error)?;
 
         Ok(())
+    }
+}
+
+#[async_trait]
+impl CommentRepositoryTx for SolutionUnitOfWork {
+    async fn create_comment(
+        &mut self,
+        user_id: &str,
+        solution_id: Uuid,
+        body_md: &str,
+    ) -> Result<CreatedComment, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+            INSERT INTO comments (user_id, solution_id, body_md)
+            VALUES ($1, $2, $3)
+            RETURNING id, user_id, solution_id, body_md, created_at, updated_at
+            "#,
+            user_id,
+            solution_id,
+            body_md
+        )
+        .fetch_one(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(CreatedComment {
+            id: rec.id,
+            user_id: rec.user_id,
+            solution_id: rec.solution_id,
+            body_md: rec.body_md,
+            created_at: rec.created_at,
+            updated_at: rec.updated_at,
+        })
     }
 }

@@ -1,4 +1,6 @@
+pub mod create_comment;
 pub mod create_solution;
+pub mod get_comments_by_solution_id;
 pub mod get_my_vote_status;
 pub mod get_solution_by_solution_id;
 pub mod get_solution_votes_count;

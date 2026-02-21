@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { useContestsBySeries } from "@/lib/client/contest/useContestsBySeries";
 import { useProblemsByContest } from "@/lib/client/problem/useProblemsByContest";
@@ -60,7 +61,7 @@ export const MarkdownPlayground: React.FC = () => {
         router.push(`/solutions/${solutionId}`);
       })}
     >
-      <div className="flex h-[calc(100vh-80px)] flex-col gap-4 p-4">
+      <PageContainer as="div" className="flex h-[calc(100vh-80px)] flex-col gap-4 md:py-8">
         <ContestProblemSelectorSection
           series={series}
           onSeriesChangeAction={(value) => {
@@ -131,7 +132,7 @@ export const MarkdownPlayground: React.FC = () => {
             {isSubmitting || createMutation.isPending ? "送信中..." : "投稿する"}
           </Button>
         </div>
-      </div>
+      </PageContainer>
     </form>
   );
 };

@@ -5,6 +5,7 @@ export interface SolutionDetail {
   problemTitle: string;
   userId: string;
   userName: string;
+  tags: string[];
   bodyMd: string;
   submitUrl: string;
   createdAt: string;
@@ -30,6 +31,16 @@ export interface SolutionVotesCount {
 export interface SolutionLikeStatus {
   solutionId: string;
   liked: boolean;
+}
+
+export interface SolutionComment {
+  id: string;
+  userId: string;
+  userName: string;
+  solutionId: string;
+  bodyMd: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type SolutionListSortBy = "latest" | "votes";

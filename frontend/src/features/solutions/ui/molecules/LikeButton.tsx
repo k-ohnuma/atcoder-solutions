@@ -1,6 +1,7 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
+import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -82,8 +83,12 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
       size="sm"
       disabled={isSubmitting || !isLikeStatusReady}
       onClick={onClick}
+      className="gap-1.5"
+      aria-label={liked ? `いいね済み (${votesCount})` : `いいね (${votesCount})`}
+      title={liked ? "いいね済み" : "いいね"}
     >
-      {liked ? "いいね済み" : "いいね"} {votesCount}
+      <Heart className={`size-4 ${liked ? "fill-current" : ""}`} />
+      <span>{votesCount}</span>
     </Button>
   );
 }

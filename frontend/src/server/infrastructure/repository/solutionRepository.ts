@@ -5,6 +5,7 @@ import { Resp } from "@/server/response";
 import { BackendApiClient } from "@/server/utils/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 import {
+  SolutionComment,
   SolutionDetail,
   SolutionLikeStatus,
   SolutionListItem,
@@ -32,6 +33,9 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   private myVotesPath = () => {
     return "solutions/votes/me";
   };
+  private commentsPath = () => {
+    return "solutions/comments";
+  };
 
   create = async (solution: Solution, token: string): Promise<Resp<SolutionResponse>> => {
     const path = this.createSolutionPath();
@@ -51,6 +55,17 @@ export class SolutionRepositoryImpl implements SolutionRepository {
       params.sortBy = sortBy;
     }
     return await this.client.get<SolutionListItem[]>(path, params);
+  };
+
+  getCommentsBySolutionId = async (solutionId: string): Promise<Resp<SolutionComment[]>> => {
+    const path = this.commentsPath();
+    const params = { solutionId };
+    return await this.client.get<SolutionComment[]>(path, params);
+  };
+
+  createComment = async (solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
+    const path = this.commentsPath();
+    return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ solutionId, bodyMd }));
   };
 
   vote = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {

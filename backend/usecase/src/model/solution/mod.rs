@@ -31,8 +31,31 @@ pub struct SolutionDetails {
     pub problem_title: String,
     pub user_id: String,
     pub user_name: String,
+    pub tags: Vec<String>,
     pub body_md: String,
     pub submit_url: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreatedComment {
+    pub id: Uuid,
+    pub user_id: String,
+    pub user_name: String,
+    pub solution_id: Uuid,
+    pub body_md: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SolutionComment {
+    pub id: Uuid,
+    pub user_id: String,
+    pub user_name: String,
+    pub solution_id: Uuid,
+    pub body_md: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
