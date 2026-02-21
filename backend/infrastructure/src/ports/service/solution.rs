@@ -213,4 +213,22 @@ impl SolutionService for SolutionServiceImpl {
 
         Ok(rec.user_name)
     }
+
+    async fn problem_exists(&self, problem_id: &str) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM problems
+                    WHERE id = $1
+                ) AS "exists!"
+            "#,
+            problem_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.exists)
+    }
 }

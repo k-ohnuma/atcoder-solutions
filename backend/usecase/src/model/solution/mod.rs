@@ -1,4 +1,5 @@
 pub mod create;
+pub mod create_comment;
 
 use chrono::{DateTime, Utc};
 use domain::error::repository::RepositoryError;

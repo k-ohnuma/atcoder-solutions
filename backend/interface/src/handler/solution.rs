@@ -4,6 +4,7 @@ use axum::{
 };
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
+use usecase::model::solution::create_comment::CreateCommentInput;
 use usecase::solution::{
     create::CreateSolutionUsecase, create_comment::CreateCommentUsecase,
     get_by_problem_id::GetSolutionsByProblemIdUsecase,
@@ -41,8 +42,11 @@ pub async fn create_solution_handler(
     Json(req): Json<CreateSolutionRequest>,
 ) -> Result<Json<ApiResponse<CreateSolutionResponse>>, HttpError> {
     let user_id = user.uid;
-    let repo =
-        CreateSolutionUsecase::new(registry.id_provider_port(), registry.solution_tx_manager());
+    let repo = CreateSolutionUsecase::new(
+        registry.id_provider_port(),
+        registry.solution_tx_manager(),
+        registry.solution_service(),
+    );
     let input = from_req_for_input(user_id, req);
     let res = repo.run(input).await.map_err(|e| e.to_http_error())?;
 
@@ -53,8 +57,23 @@ pub async fn get_solutions_by_problems_id_handler(
     Query(req): Query<GetSolutionsByProblemIdRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByProblemIdResponse>>>, HttpError> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
+    let problem_id = req.problem_id.trim();
+    if problem_id.is_empty() {
+        return Err(HttpError::BadRequest(
+            "problem_id cannot be empty".to_string(),
+        ));
+    }
+    let sort = match req.sort_by.as_deref() {
+        None | Some("latest") => usecase::model::solution::SolutionListSort::Latest,
+        Some("votes") => usecase::model::solution::SolutionListSort::Votes,
+        Some(_) => {
+            return Err(HttpError::BadRequest(
+                "sort_by must be one of: latest, votes".to_string(),
+            ));
+        }
+    };
     let solutions = uc
-        .run(req.problem_id.to_string(), req.list_sort())
+        .run(problem_id.to_string(), sort)
         .await
         .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
@@ -81,7 +100,7 @@ pub async fn vote_solution_handler(
     AuthUser(user): AuthUser,
     Json(req): Json<VoteSolutionRequest>,
 ) -> Result<Json<ApiResponse<VoteSolutionResponse>>, HttpError> {
-    let uc = VoteSolutionUsecase::new(registry.solution_tx_manager());
+    let uc = VoteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     uc.run(user.uid, req.solution_id)
         .await
         .map_err(|e| e.to_http_error())?;
@@ -95,7 +114,8 @@ pub async fn unvote_solution_handler(
     AuthUser(user): AuthUser,
     Query(req): Query<UnvoteSolutionRequest>,
 ) -> Result<Json<ApiResponse<UnvoteSolutionResponse>>, HttpError> {
-    let uc = UnvoteSolutionUsecase::new(registry.solution_tx_manager());
+    let uc =
+        UnvoteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     uc.run(user.uid, req.solution_id)
         .await
         .map_err(|e| e.to_http_error())?;
@@ -141,10 +161,12 @@ pub async fn create_comment_handler(
     Json(req): Json<CreateCommentRequest>,
 ) -> Result<Json<ApiResponse<CreateCommentResponse>>, HttpError> {
     let uc = CreateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
-    let created = uc
-        .run(user.uid, req.solution_id, req.body_md)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let input = CreateCommentInput {
+        user_id: user.uid,
+        solution_id: req.solution_id,
+        body_md: req.body_md,
+    };
+    let created = uc.run(input).await.map_err(|e| e.to_http_error())?;
     Ok(Json(ApiResponse::ok(CreateCommentResponse::from(created))))
 }
 

@@ -13,6 +13,7 @@ itertools.workspace = true
 shared.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
+validator.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true

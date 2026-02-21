@@ -17,7 +17,7 @@ impl GetCommentsBySolutionIdUsecase {
     pub async fn run(&self, solution_id: Uuid) -> Result<Vec<SolutionCommentView>, SolutionError> {
         let exists = self.service.solution_exists(solution_id).await?;
         if !exists {
-            return Err(SolutionError::BadRequest("solution not found".to_string()));
+            return Err(SolutionError::NotFound("solution not found".to_string()));
         }
         let comments = self
             .service

@@ -86,3 +86,21 @@ async fn usecase_create_user_conflict() -> Result<()> {
     //
     Ok(())
 }
+
+#[tokio::test]
+async fn usecase_create_user_bad_request_when_user_name_blank() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+    });
+    let uc = CreateUserUsecase::new(repo);
+
+    let input = CreateUserInput {
+        uid: "valid".into(),
+        user_name: "   ".into(),
+    };
+
+    let err = uc.run(input).await.expect_err("should be bad request");
+    assert!(matches!(err, UserError::BadRequest(_)));
+
+    Ok(())
+}

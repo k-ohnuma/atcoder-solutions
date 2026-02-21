@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::ports::repository::solution::tx::SolutionTxManager;
-use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     dto::solution::CreatedCommentView,
-    model::solution::{CreatedComment, SolutionError},
+    model::solution::{CreatedComment, SolutionError, create_comment::CreateCommentInput},
     service::solution::SolutionService,
 };
 
@@ -19,31 +19,22 @@ pub struct CreateCommentUsecase {
 impl CreateCommentUsecase {
     pub async fn run(
         &self,
-        user_id: String,
-        solution_id: Uuid,
-        body_md: String,
+        input: CreateCommentInput,
     ) -> Result<CreatedCommentView, SolutionError> {
-        if body_md.trim().is_empty() {
-            return Err(SolutionError::BadRequest(
-                "comment body cannot be empty".to_string(),
-            ));
-        }
-        if body_md.chars().count() > 2000 {
-            return Err(SolutionError::BadRequest(
-                "comment body is too long".to_string(),
-            ));
-        }
+        input
+            .validate()
+            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let exists = self.service.solution_exists(solution_id).await?;
+        let exists = self.service.solution_exists(input.solution_id).await?;
         if !exists {
             return Err(SolutionError::BadRequest("solution not found".to_string()));
         }
 
-        let user_name = self.service.get_user_name_by_id(&user_id).await?;
+        let user_name = self.service.get_user_name_by_id(&input.user_id).await?;
         let mut uow = self.txm.begin().await?;
         let created = uow
             .comments()
-            .create_comment(&user_id, solution_id, &body_md)
+            .create_comment(&input.user_id, input.solution_id, &input.body_md)
             .await?;
         uow.commit().await?;
 
