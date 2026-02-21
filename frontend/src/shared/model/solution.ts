@@ -5,6 +5,7 @@ export interface SolutionDetail {
   problemTitle: string;
   userId: string;
   userName: string;
+  tags: string[];
   bodyMd: string;
   submitUrl: string;
   createdAt: string;

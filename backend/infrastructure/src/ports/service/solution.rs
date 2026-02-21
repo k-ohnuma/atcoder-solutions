@@ -78,11 +78,38 @@ impl SolutionService for SolutionServiceImpl {
         let solution = sqlx::query_as!(
             SolutionDetails,
             r#"
-                SELECT s.id, s.title, s.problem_id, p.title as problem_title, s.user_id, u.user_name, s.body_md, s.submit_url, s.created_at, s.updated_at
+                SELECT
+                    s.id,
+                    s.title,
+                    s.problem_id,
+                    p.title as problem_title,
+                    s.user_id,
+                    u.user_name,
+                    COALESCE(
+                        array_remove(array_agg(t.name ORDER BY t.name), NULL),
+                        ARRAY[]::text[]
+                    ) AS "tags!: Vec<String>",
+                    s.body_md,
+                    s.submit_url,
+                    s.created_at,
+                    s.updated_at
                 FROM solutions s
                 JOIN users u on s.user_id = u.id
                 JOIN problems p on s.problem_id = p.id
+                LEFT JOIN solution_tags st ON st.solution_id = s.id
+                LEFT JOIN tags t ON t.id = st.tag_id
                 WHERE s.id = $1
+                GROUP BY
+                    s.id,
+                    s.title,
+                    s.problem_id,
+                    p.title,
+                    s.user_id,
+                    u.user_name,
+                    s.body_md,
+                    s.submit_url,
+                    s.created_at,
+                    s.updated_at
             "#,
             solution_id
         )

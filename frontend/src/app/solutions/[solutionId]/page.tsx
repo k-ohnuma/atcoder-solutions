@@ -28,6 +28,7 @@ export default async function SolutionPage({ params }: PageProps) {
       problemId={solution.problemId}
       problemTitle={solution.problemTitle}
       userName={solution.userName}
+      tags={solution.tags}
       bodyMd={solution.bodyMd}
       submitUrl={solution.submitUrl}
       createdAt={solution.createdAt}

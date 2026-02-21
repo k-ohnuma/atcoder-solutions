@@ -31,6 +31,7 @@ pub struct SolutionDetails {
     pub problem_title: String,
     pub user_id: String,
     pub user_name: String,
+    pub tags: Vec<String>,
     pub body_md: String,
     pub submit_url: String,
     pub created_at: DateTime<Utc>,

@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { SolutionComment } from "@/shared/model/solution";
 import { MarkdownRenderer } from "../atoms";
 import { LikeButton } from "../molecules/LikeButton";
@@ -21,6 +25,7 @@ type SolutionDetailProps = {
   problemId: string;
   problemTitle: string;
   userName: string;
+  tags: string[];
   bodyMd: string;
   submitUrl: string;
   createdAt: string;
@@ -34,36 +39,85 @@ export function SolutionDetail({
   problemId,
   problemTitle,
   userName,
+  tags,
   bodyMd,
   submitUrl,
   createdAt,
   initialVotesCount,
   initialComments,
 }: SolutionDetailProps) {
+  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId);
+
   return (
-    <article className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-8">
-      <header className="space-y-3 border-b pb-4">
-        <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span>by {userName}</span>
-          <span>{dateTimeFormatter.format(new Date(createdAt))}</span>
-          <span>
-            {problemId}: {problemTitle}
-          </span>
+    <PageContainer as="article" className="space-y-6">
+      <header className="space-y-3  pb-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold md:text-2xl">
+              {problemId} / {problemTitle} の解説
+            </h1>
+            <p className="text-sm text-muted-foreground">{title}</p>
+          </div>
+          <LikeButton solutionId={solutionId} initialVotesCount={initialVotesCount} />
         </div>
-        {submitUrl && (
-          <Link href={submitUrl} target="_blank" rel="noreferrer" className="inline-block text-sm hover:underline">
-            提出URL
-          </Link>
-        )}
-        <LikeButton solutionId={solutionId} initialVotesCount={initialVotesCount} />
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className="w-36 font-medium">投稿者</TableCell>
+              <TableCell>{userName}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">投稿日</TableCell>
+              <TableCell>{dateTimeFormatter.format(new Date(createdAt))}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">問題</TableCell>
+              <TableCell>
+                <Link href={atcoderProblemUrl} target="_blank" rel="noreferrer" className="text-sm break-all hover:underline">
+                  {atcoderProblemUrl}
+                </Link>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">提出URL</TableCell>
+              <TableCell>
+                {submitUrl ? (
+                  <Link href={submitUrl} target="_blank" rel="noreferrer" className="text-sm break-all hover:underline">
+                    {submitUrl}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-muted-foreground">なし</span>
+                )}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">タグ</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-2">
+                  {tags.length === 0 ? (
+                    <Badge variant="outline">タグなし</Badge>
+                  ) : (
+                    tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </header>
 
       <section className="rounded-xl border bg-card">
+        <div className="border-b px-4 py-3">
+          <h2 className="text-lg font-semibold">解説</h2>
+        </div>
         <MarkdownRenderer value={bodyMd} />
       </section>
 
       <SolutionComments solutionId={solutionId} initialComments={initialComments} />
-    </article>
+    </PageContainer>
   );
 }

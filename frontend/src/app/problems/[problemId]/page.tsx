@@ -1,5 +1,7 @@
+import { Heart } from "lucide-react";
 import Link from "next/link";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 import { SolutionListSortBy } from "@/shared/model/solution";
@@ -29,36 +31,49 @@ type PageProps = {
 export default async function ProblemSolutionsPage({ params, searchParams }: PageProps) {
   const { problemId } = await params;
   const { sortBy } = await searchParams;
+  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId);
   const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
   const solutionsResp = await apiClient.getSolutionsByProblemId(problemId, selectedSort);
 
+  const h1Title = `${problemId} の解説一覧`;
+
   if (!solutionsResp.ok) {
     return (
-      <div className="mx-auto w-full max-w-4xl p-4 md:p-8">
-        <h1 className="mb-3 text-2xl font-bold">解説一覧</h1>
+      <PageContainer as="div">
+        <h1 className="mb-3 text-2xl font-bold">{h1Title}</h1>
         <p className="text-sm text-destructive">
           解説一覧の取得に失敗しました。status: {solutionsResp.status}, error: {solutionsResp.error}
         </p>
-      </div>
+      </PageContainer>
     );
   }
 
   const solutions = solutionsResp.data;
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-4 md:p-8">
-      <h1 className="mb-1 text-2xl font-bold">解説一覧</h1>
-      <p className="mb-4 text-sm text-muted-foreground">problemId: {problemId}</p>
-      <div className="mb-4 flex items-center gap-4 text-sm">
+    <PageContainer as="div">
+      <h1 className="mb-1 text-2xl font-bold">{h1Title}</h1>
+      <Link href={atcoderProblemUrl} target="_blank" rel="noreferrer" className="mb-4 inline-block text-sm hover:underline">
+        AtCoder問題ページ
+      </Link>
+      <div className="mb-6 flex items-center gap-2 text-sm">
         <Link
           href={`/problems/${problemId}?sortBy=latest`}
-          className={selectedSort === "latest" ? "font-semibold underline" : "text-muted-foreground hover:underline"}
+          className={
+            selectedSort === "latest"
+              ? "rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground"
+              : "rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-accent"
+          }
         >
           新着順
         </Link>
         <Link
           href={`/problems/${problemId}?sortBy=votes`}
-          className={selectedSort === "votes" ? "font-semibold underline" : "text-muted-foreground hover:underline"}
+          className={
+            selectedSort === "votes"
+              ? "rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground"
+              : "rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-accent"
+          }
         >
           いいね順
         </Link>
@@ -67,31 +82,33 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
       {solutions.length === 0 ? (
         <p className="text-sm text-muted-foreground">この問題の解説はまだありません。</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>タイトル</TableHead>
-              <TableHead>投稿者</TableHead>
-              <TableHead>いいね数</TableHead>
-              <TableHead>投稿日</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {solutions.map((solution) => (
-              <TableRow key={solution.id}>
-                <TableCell>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {solutions.map((solution) => (
+            <article key={solution.id} className="rounded-xl border bg-card p-4">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <h2 className="line-clamp-2 text-lg font-semibold leading-snug">
                   <Link href={`/solutions/${solution.id}`} className="hover:underline">
                     {solution.title}
                   </Link>
-                </TableCell>
-                <TableCell>{solution.userName}</TableCell>
-                <TableCell>{solution.votesCount}</TableCell>
-                <TableCell>{dateTimeFormatter.format(new Date(solution.createdAt))}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </h2>
+                <div className="flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                  <Heart className="size-4" />
+                  <span>{solution.votesCount}</span>
+                </div>
+              </div>
+
+              <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>投稿者: {solution.userName}</span>
+                <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
+              </div>
+
+              <Link href={`/solutions/${solution.id}`} className="text-sm font-medium hover:underline">
+                解説を読む
+              </Link>
+            </article>
+          ))}
+        </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
