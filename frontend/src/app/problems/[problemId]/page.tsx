@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,14 +42,10 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
   const h1Title = `${problemId} の解説一覧`;
 
   if (!solutionsResp.ok) {
-    return (
-      <PageContainer as="div">
-        <h1 className="mb-3 text-2xl font-bold">{h1Title}</h1>
-        <p className="text-sm text-destructive">
-          解説一覧の取得に失敗しました。status: {solutionsResp.status}, error: {solutionsResp.error}
-        </p>
-      </PageContainer>
-    );
+    if (solutionsResp.status === 404) {
+      notFound();
+    }
+    throw new Error(`failed to fetch solutions by problemId: status=${solutionsResp.status}, error=${solutionsResp.error}`);
   }
 
   const solutions = solutionsResp.data;
@@ -83,20 +80,20 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
             <Link key={solution.id} href={`/solutions/${solution.id}`} className="block">
               <Card className="transition-colors hover:bg-accent">
                 <CardContent className="p-4">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
-                  <Badge variant="outline" className="shrink-0 gap-1 rounded-md px-2 py-1 text-sm">
-                    <Heart className="size-4" />
-                    {solution.votesCount}
-                  </Badge>
-                </div>
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
+                    <Badge variant="outline" className="shrink-0 gap-1 rounded-md px-2 py-1 text-sm">
+                      <Heart className="size-4" />
+                      {solution.votesCount}
+                    </Badge>
+                  </div>
 
-                <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <span>投稿者: {solution.userName}</span>
-                  <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
-                </div>
+                  <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span>投稿者: {solution.userName}</span>
+                    <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
+                  </div>
 
-                <p className="text-sm font-medium">解説を読む</p>
+                  <p className="text-sm font-medium">解説を読む</p>
                 </CardContent>
               </Card>
             </Link>
