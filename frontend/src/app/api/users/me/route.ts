@@ -29,3 +29,17 @@ export async function DELETE(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, data: deleted.data }, { status: 200 });
 }
+
+export async function POST(req: NextRequest) {
+  const authUser = await authenticateRequest(req);
+  if (!authUser.ok) {
+    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  }
+
+  const repo = new UserRepositoryImpl();
+  const revoked = await repo.revokeMe(authUser.data);
+  if (!revoked.ok) {
+    return NextResponse.json({ ok: false, error: revoked.error }, { status: revoked.status });
+  }
+  return NextResponse.json({ ok: true, data: revoked.data }, { status: 200 });
+}

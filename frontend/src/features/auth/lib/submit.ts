@@ -98,6 +98,27 @@ export const onSubmitSignIn = async (values: SignInSchema) => {
 
 export const onSubmitSignout = async () => {
   const auth = getFirebaseAuth();
+  const user = auth.currentUser;
+
+  if (user) {
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/users/me", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        const message = typeof json?.error === "string" ? json.error : "unknown error";
+        console.error(`token revoke failed before signout: status=${res.status}, error=${message}`);
+      }
+    } catch (e) {
+      console.warn("token revoke failed before signout", e);
+    }
+  }
+
   await signOut(auth);
 };
 

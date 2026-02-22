@@ -18,4 +18,5 @@ export interface UserRepository {
   create(input: Pick<User, "userName">, token: string): Promise<Resp<User>>;
   getMe(token: string): Promise<Resp<UserMe>>;
   deleteMe(token: string): Promise<Resp<{ id: string }>>;
+  revokeMe(token: string): Promise<Resp<{ id: string }>>;
 }

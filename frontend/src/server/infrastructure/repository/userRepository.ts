@@ -17,6 +17,9 @@ export class UserRepositoryImpl implements UserRepository {
   private mePath = () => {
     return "users/me";
   };
+  private revokeMePath = () => {
+    return "users/me/revoke";
+  };
 
   async create(input: Pick<User, "userName">, token: string): Promise<Resp<User>> {
     const path = this.createReqPath();
@@ -35,5 +38,10 @@ export class UserRepositoryImpl implements UserRepository {
   async deleteMe(token: string): Promise<Resp<{ id: string }>> {
     const path = this.mePath();
     return await this.client.deleteWithToken<{ id: string }>(path, token);
+  }
+
+  async revokeMe(token: string): Promise<Resp<{ id: string }>> {
+    const path = this.revokeMePath();
+    return await this.client.postWithToken<{ id: string }>(path, token, "{}");
   }
 }

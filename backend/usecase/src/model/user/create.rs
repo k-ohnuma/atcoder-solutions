@@ -6,7 +6,11 @@ use validator::{Validate, ValidationError};
 pub struct CreateUserInput {
     #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
     pub uid: String,
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
+    #[validate(
+        length(min = 1, max = 120),
+        custom(function = "validate_not_blank"),
+        custom(function = "validate_user_name_format")
+    )]
     pub user_name: String,
 }
 
@@ -15,6 +19,13 @@ fn validate_not_blank(value: &str) -> Result<(), ValidationError> {
         return Err(ValidationError::new("blank"));
     }
     Ok(())
+}
+
+fn validate_user_name_format(value: &str) -> Result<(), ValidationError> {
+    if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return Ok(());
+    }
+    Err(ValidationError::new("invalid_user_name_format"))
 }
 
 impl From<CreateUserInput> for User {

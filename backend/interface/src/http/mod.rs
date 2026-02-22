@@ -46,7 +46,17 @@ impl FromRequestParts<Registry> for AuthUser {
             .ok_or(AuthRejection::Unauthorized)?;
 
         match state.auth_port().verify_id_token(token).await {
-            Ok(p) => Ok(AuthUser(p)),
+            Ok(p) => {
+                let revoked = state
+                    .user_repository()
+                    .is_token_revoked(&p.uid, p.issued_at)
+                    .await
+                    .map_err(|_| AuthRejection::Unavailable)?;
+                if revoked {
+                    return Err(AuthRejection::Unauthorized);
+                }
+                Ok(AuthUser(p))
+            }
             Err(AuthError::Unauthorized) => Err(AuthRejection::Unauthorized),
             Err(AuthError::TemporarilyUnavailable) => Err(AuthRejection::Unavailable),
         }

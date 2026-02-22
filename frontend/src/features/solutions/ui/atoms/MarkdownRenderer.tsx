@@ -35,7 +35,7 @@ const components: Components = {
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ value }) => {
   return (
-    <div className="prose prose-sm max-w-none prose-slate dark:prose-invert rounded-lg p-3">
+    <div className="prose prose-zinc max-w-none px-3 py-1 leading-7 md:px-5 md:py-2 dark:prose-invert prose-headings:scroll-mt-24 prose-headings:font-semibold prose-h2:mt-10 prose-h2:mb-4 prose-h3:mt-8 prose-h3:mb-3 prose-p:my-4 prose-li:my-1.5 prose-pre:rounded-xl prose-pre:border prose-pre:px-4 prose-pre:py-3 prose-code:before:content-none prose-code:after:content-none prose-table:text-sm">
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={components}>
         {value}
       </ReactMarkdown>

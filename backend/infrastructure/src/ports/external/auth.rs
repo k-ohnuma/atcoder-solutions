@@ -68,6 +68,7 @@ impl JwksCache {
 struct FirebaseClaims {
     sub: String,
     email: Option<String>,
+    iat: Option<i64>,
 }
 
 #[derive(Clone)]
@@ -130,6 +131,7 @@ impl AuthenticatorPort for FirebaseAuthenticator {
         Ok(Principal {
             uid: data.claims.sub,
             email: data.claims.email.ok_or(AuthError::Unauthorized)?,
+            issued_at: data.claims.iat.ok_or(AuthError::Unauthorized)?,
         })
     }
 }

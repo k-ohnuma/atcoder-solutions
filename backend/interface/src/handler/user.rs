@@ -3,6 +3,7 @@ use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::{
     create_user::CreateUserUsecase, delete_me::DeleteMeUsecase, get_me::GetMeUsecase,
+    revoke_tokens::RevokeTokensUsecase,
 };
 
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
     },
     model::user::delete_me::DeleteMeResponse,
     model::user::get_me::GetMeResponse,
+    model::user::revoke_tokens::RevokeTokensResponse,
 };
 
 pub async fn create_user_handler(
@@ -48,4 +50,13 @@ pub async fn delete_me_handler(
     let uc = DeleteMeUsecase::new(registry.user_repository());
     let deleted = uc.run(user.uid).await.map_err(|e| e.to_http_error())?;
     Ok(Json(ApiResponse::ok(deleted.into())))
+}
+
+pub async fn revoke_tokens_handler(
+    State(registry): State<Registry>,
+    AuthUser(user): AuthUser,
+) -> Result<Json<ApiResponse<RevokeTokensResponse>>, HttpError> {
+    let uc = RevokeTokensUsecase::new(registry.user_repository());
+    let revoked = uc.run(user.uid).await.map_err(|e| e.to_http_error())?;
+    Ok(Json(ApiResponse::ok(revoked.into())))
 }

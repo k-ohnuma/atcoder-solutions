@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiClient } from "@/lib/client/apiClient";
 import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
@@ -51,10 +53,12 @@ export function SolutionOwnerActions({
 }: SolutionOwnerActionsProps) {
   const router = useRouter();
   const auth = getFirebaseAuth();
+  const { toast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const form = useForm<UpdateSolutionFormInput>({
     resolver: zodResolver(updateSolutionFormSchema),
     defaultValues: {
@@ -119,8 +123,10 @@ export function SolutionOwnerActions({
       );
       if (!ok) {
         setError("解説の更新に失敗しました。");
+        toast({ title: "解説の更新に失敗しました", variant: "error" });
         return;
       }
+      toast({ title: "解説を更新しました" });
       setEditing(false);
       router.refresh();
     } finally {
@@ -130,9 +136,6 @@ export function SolutionOwnerActions({
 
   const remove = async () => {
     if (isSubmitting) {
-      return;
-    }
-    if (!confirm("この解説を削除しますか？")) {
       return;
     }
     const token = await getFirebaseIdToken();
@@ -146,8 +149,11 @@ export function SolutionOwnerActions({
       const ok = await apiClient.deleteSolution(solutionId, token);
       if (!ok) {
         setError("解説の削除に失敗しました。");
+        toast({ title: "解説の削除に失敗しました", variant: "error" });
         return;
       }
+      toast({ title: "解説を削除しました" });
+      setIsDeleteDialogOpen(false);
       router.push(`/problems/${problemId}`);
     } finally {
       setIsSubmitting(false);
@@ -155,12 +161,12 @@ export function SolutionOwnerActions({
   };
 
   return (
-    <section className="rounded-xl border bg-card p-3">
+    <section className="rounded-xl bg-card p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" variant="outline" onClick={() => setEditing((v) => !v)} disabled={isSubmitting}>
           {editing ? "編集を閉じる" : "解説を編集"}
         </Button>
-        <Button type="button" size="sm" variant="destructive" onClick={remove} disabled={isSubmitting}>
+        <Button type="button" size="sm" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmitting}>
           解説を削除
         </Button>
       </div>
@@ -240,6 +246,22 @@ export function SolutionOwnerActions({
         </form>
       )}
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>この解説を削除しますか？</DialogTitle>
+            <DialogDescription>削除すると元に戻せません。</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>
+              キャンセル
+            </Button>
+            <Button type="button" variant="destructive" onClick={remove} disabled={isSubmitting}>
+              {isSubmitting ? "削除中..." : "削除する"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

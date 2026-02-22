@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { useContestsBySeries } from "@/lib/client/contest/useContestsBySeries";
 import { useProblemsByContest } from "@/lib/client/problem/useProblemsByContest";
 import { useCreateSolution } from "@/lib/client/solution/useCreateSolution";
@@ -14,6 +15,7 @@ import { TextInput } from "../atoms/TextInput";
 import { ContestProblemSelectorSection, MarkdownEditor, MarkdownPreviewPanel, TagsInputField } from "../molecules";
 
 export const MarkdownPlayground: React.FC = () => {
+  const { toast } = useToast();
   const [series, setSeries] = useState<string>("ABC");
   const [contestId, setContestId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -94,12 +96,15 @@ export const MarkdownPlayground: React.FC = () => {
           const solutionId = id.solutionId;
           if (!solutionId) {
             setSubmitError("投稿に失敗しました。時間をおいて再度お試しください。");
+            toast({ title: "投稿に失敗しました", variant: "error" });
             return;
           }
+          toast({ title: "解説を投稿しました" });
           router.push(`/solutions/${solutionId}`);
         } catch (e) {
           const message = e instanceof Error ? e.message : "投稿に失敗しました。時間をおいて再度お試しください。";
           setSubmitError(message);
+          toast({ title: "投稿に失敗しました", description: message, variant: "error" });
         }
       })}
     >

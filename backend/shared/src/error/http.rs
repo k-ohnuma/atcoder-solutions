@@ -57,7 +57,12 @@ impl IntoResponse for HttpError {
                 tracing::info!(http.status = s.as_u16(), error.message = %self, "http error response");
             }
         }
-        let body: ApiResponse<()> = ApiResponse::err(status, self.to_string());
+        let public_message = if status.is_server_error() {
+            "Internal Server Error".to_string()
+        } else {
+            self.to_string()
+        };
+        let body: ApiResponse<()> = ApiResponse::err(status, public_message);
         body.into_response()
     }
 }

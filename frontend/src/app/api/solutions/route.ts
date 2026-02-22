@@ -9,19 +9,20 @@ import {
 import { authenticateRequest } from "@/server/utils/authRequest";
 
 export async function POST(req: NextRequest) {
+  const authUser = await authenticateRequest(req);
+  if (!authUser.ok) {
+    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  }
+
   const body = await req.json();
   const parsed = createSolutionBodySchema.safeParse(body);
-  const header = req.headers;
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
   }
+
   const solution = parsed.data;
-  const token = header.get("Authorization")?.replace(/^Bearer\s/, "");
-  if (!token) {
-    return NextResponse.json({ ok: false, error: "auth missing" }, { status: 401 });
-  }
   const repo = new SolutionRepositoryImpl();
-  const id = await repo.create(solution, token);
+  const id = await repo.create(solution, authUser.data);
   if (!id.ok) {
     return NextResponse.json({ ok: false, error: id.error }, { status: id.status });
   }

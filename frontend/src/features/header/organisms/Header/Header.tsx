@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { Logo } from "@/shared/ui/atoms/Logo";
@@ -14,6 +15,10 @@ export function Header({ appName }: { appName: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [myUserName, setMyUserName] = useState<string | null>(null);
   const [isMyPageMenuOpen, setIsMyPageMenuOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteErrorDialogOpen, setIsDeleteErrorDialogOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const auth = getFirebaseAuth();
 
   useEffect(() => {
@@ -51,17 +56,19 @@ export function Header({ appName }: { appName: string }) {
     router.push("/");
   };
   const handleDeleteAccount = async () => {
-    const ok = confirm("アカウントを削除しますか？この操作は取り消せません。");
-    if (!ok) {
-      return;
-    }
+    setIsDeleting(true);
     try {
       await onSubmitDeleteAccount();
+      setIsDeleteDialogOpen(false);
       router.push("/");
     } catch (e) {
       const message =
         e instanceof Error ? e.message : "アカウント削除に失敗しました。時間をおいて再度お試しください。";
-      alert(message);
+      setDeleteErrorMessage(message);
+      setIsDeleteDialogOpen(false);
+      setIsDeleteErrorDialogOpen(true);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -108,7 +115,7 @@ export function Header({ appName }: { appName: string }) {
                       className="cursor-pointer"
                       onSelect={async () => {
                         setIsMyPageMenuOpen(false);
-                        await handleDeleteAccount();
+                        setIsDeleteDialogOpen(true);
                       }}
                     >
                       退会
@@ -137,6 +144,35 @@ export function Header({ appName }: { appName: string }) {
           )}
         </div>
       </div>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>アカウントを削除しますか？</DialogTitle>
+            <DialogDescription>この操作は取り消せません。</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+              キャンセル
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
+              {isDeleting ? "削除中..." : "削除する"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDeleteErrorDialogOpen} onOpenChange={setIsDeleteErrorDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>アカウント削除に失敗しました</DialogTitle>
+            <DialogDescription>{deleteErrorMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" onClick={() => setIsDeleteErrorDialogOpen(false)}>
+              閉じる
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
