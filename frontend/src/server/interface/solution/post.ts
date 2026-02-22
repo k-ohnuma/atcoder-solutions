@@ -13,7 +13,7 @@ export const createSolutionBodySchema = z.object({
 });
 
 export const updateSolutionBodySchema = z.object({
-  solutionId: z.string().uuid(),
+  solutionId: z.string(),
   title: z.string().trim().min(1).max(120),
   bodyMd: z.string().trim().min(1).max(20000),
   submitUrl: z
@@ -25,5 +25,5 @@ export const updateSolutionBodySchema = z.object({
 });
 
 export const deleteSolutionQueryParams = z.object({
-  solutionId: z.string().uuid(),
+  solutionId: z.string(),
 });

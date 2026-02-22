@@ -44,3 +44,44 @@ impl From<CreatedCommentView> for UpdateCommentResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use serde_json::json;
+    use uuid::Uuid;
+    use usecase::dto::solution::CreatedCommentView;
+
+    use super::{UpdateCommentRequest, UpdateCommentResponse, from_req_for_input};
+
+    #[test]
+    fn deserialize_update_comment_request_from_camel_case() {
+        let comment_id = Uuid::now_v7();
+        let raw = json!({
+            "commentId": comment_id,
+            "bodyMd": "updated"
+        });
+        let req: UpdateCommentRequest = serde_json::from_value(raw).expect("valid json");
+        let input = from_req_for_input("uid".to_string(), req);
+        assert_eq!(input.user_id, "uid");
+        assert_eq!(input.comment_id, comment_id);
+        assert_eq!(input.body_md, "updated");
+    }
+
+    #[test]
+    fn update_comment_response_conversion_keeps_fields() {
+        let now = Utc::now();
+        let dto = CreatedCommentView {
+            id: Uuid::now_v7(),
+            user_id: "uid".to_string(),
+            user_name: "alice".to_string(),
+            solution_id: Uuid::now_v7(),
+            body_md: "body".to_string(),
+            created_at: now,
+            updated_at: now,
+        };
+        let resp = UpdateCommentResponse::from(dto);
+        assert_eq!(resp.user_name, "alice");
+        assert_eq!(resp.body_md, "body");
+    }
+}

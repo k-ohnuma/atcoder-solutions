@@ -54,8 +54,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               "pointer-events-auto rounded-lg border bg-background p-3 shadow-lg",
               item.variant === "error" && "border-destructive/50",
             )}
-            role="status"
             aria-live="polite"
+            aria-atomic="true"
           >
             <div className="flex items-start gap-2">
               {item.variant === "error" ? (

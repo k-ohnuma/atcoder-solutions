@@ -35,3 +35,44 @@ impl From<CreatedCommentView> for CreateCommentResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use usecase::dto::solution::CreatedCommentView;
+
+    use super::{CreateCommentRequest, CreateCommentResponse};
+
+    #[test]
+    fn deserialize_create_comment_request_from_camel_case() {
+        let solution_id = Uuid::now_v7();
+        let raw = json!({
+            "solutionId": solution_id,
+            "bodyMd": "hello"
+        });
+        let req: CreateCommentRequest = serde_json::from_value(raw).expect("valid json");
+        assert_eq!(req.solution_id, solution_id);
+        assert_eq!(req.body_md, "hello");
+    }
+
+    #[test]
+    fn create_comment_response_conversion_keeps_fields() {
+        let now = Utc::now();
+        let dto = CreatedCommentView {
+            id: Uuid::now_v7(),
+            user_id: "uid".to_string(),
+            user_name: "alice".to_string(),
+            solution_id: Uuid::now_v7(),
+            body_md: "body".to_string(),
+            created_at: now,
+            updated_at: now,
+        };
+
+        let resp = CreateCommentResponse::from(dto);
+        assert_eq!(resp.user_name, "alice");
+        assert_eq!(resp.body_md, "body");
+    }
+}
