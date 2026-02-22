@@ -1,4 +1,4 @@
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::SocketAddr;
 
 use anyhow::{Context, Result, anyhow};
 use axum::{
@@ -14,7 +14,7 @@ use interface::{
     },
 };
 use registry::Registry;
-use shared::{config::AppConfig, env::which_env};
+use shared::config::AppConfig;
 use tokio::net::TcpListener;
 use tower_http::{
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer},
@@ -24,10 +24,8 @@ use tracing::Level;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-pub fn init_logger() -> Result<()> {
-    let _env = which_env()?;
-    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+pub fn init_logger(app_config: &AppConfig) -> Result<()> {
+    let env_filter = tracing_subscriber::EnvFilter::new(app_config.log.rust_log.clone());
 
     let subscriber = tracing_subscriber::fmt::layer()
         .json()
@@ -43,8 +41,10 @@ pub fn init_logger() -> Result<()> {
     Ok(())
 }
 
-pub async fn run() -> Result<()> {
-    let app_config = AppConfig::new()?;
+pub async fn run(app_config: AppConfig) -> Result<()> {
+    let addr = format!("{}:{}", app_config.server.host, app_config.server.port)
+        .parse::<SocketAddr>()
+        .context("failed to parse bind address from HOST/PORT")?;
     let registry = Registry::new(app_config);
     let app = Router::new()
         .merge(build_health_check_routers())
@@ -96,20 +96,8 @@ pub async fn run() -> Result<()> {
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
-    let addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 8080);
     let listener = TcpListener::bind(addr).await?;
     tracing::info!("Listening on {}", addr);
-    tokio::spawn({
-        let reg = registry.to_owned();
-        async move {
-            loop {
-                tracing::info!("execute to fetch problems");
-                let _ = run_dayly_job(&reg).await;
-                tracing::info!("see you tommorow!");
-                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
-            }
-        }
-    });
     axum::serve(listener, app)
         .await
         .context("Unexpected error happened in server")
@@ -120,7 +108,7 @@ pub async fn run() -> Result<()> {
         })
 }
 
-pub async fn run_dayly_job(reg: &Registry) -> Result<()> {
+pub async fn run_daily_job(reg: &Registry) -> Result<()> {
     match import_problem(reg).await {
         StatusCode::OK => Ok(()),
         _ => Err(anyhow!("daily fetch failed")),

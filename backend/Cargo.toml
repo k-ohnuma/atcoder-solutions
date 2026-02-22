@@ -8,6 +8,10 @@ version.workspace = true
 name = "app"
 path = "src/bin/main.rs"
 
+[[bin]]
+name = "run_daily_job"
+path = "src/bin/run_daily_job.rs"
+
 [workspace]
 members = [
   "domain",

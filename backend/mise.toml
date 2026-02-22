@@ -51,7 +51,14 @@ done
 
 [tasks.run]
 depends = ["before-build"]
-run = "cargo run ${usage_arg?}"
+run = "cargo run --bin app ${usage_arg?}"
+usage = '''
+arg "<arg>" default=""
+'''
+
+[tasks.runbatch]
+depends = ["before-build"]
+run = "cargo run --bin run_daily_job ${usage_arg?}"
 usage = '''
 arg "<arg>" default=""
 '''

@@ -4,6 +4,8 @@ pub struct AppConfig {
     pub atcoder_problems: AtcoderProblemsConfig,
     pub database: DatabaseConfig,
     pub auth: AuthConfig,
+    pub server: ServerConfig,
+    pub log: LogConfig,
 }
 
 impl AppConfig {
@@ -37,11 +39,23 @@ impl AppConfig {
         let auth = AuthConfig {
             project_id: std::env::var("FIREBASE_PROJECT_ID")?,
         };
+        let server = ServerConfig {
+            host: std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
+            port: std::env::var("PORT")
+                .ok()
+                .and_then(|p| p.parse().ok())
+                .unwrap_or(8080),
+        };
+        let log = LogConfig {
+            rust_log: std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string()),
+        };
 
         Ok(Self {
             atcoder_problems,
             database,
             auth,
+            server,
+            log,
         })
     }
 }
@@ -61,4 +75,13 @@ pub struct DatabaseConfig {
 
 pub struct AuthConfig {
     pub project_id: String,
+}
+
+pub struct ServerConfig {
+    pub host: String,
+    pub port: u16,
+}
+
+pub struct LogConfig {
+    pub rust_log: String,
 }
