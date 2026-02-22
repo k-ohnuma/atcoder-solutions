@@ -8,6 +8,10 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: clientConfig.appConfig.appName,
   description: clientConfig.appConfig.appName,
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

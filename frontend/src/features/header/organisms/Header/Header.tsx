@@ -1,6 +1,7 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { getFirebaseAuth } from "@/shared/firebase/client";
-import { Logo } from "@/shared/ui/atoms/Logo";
 
 export function Header({ appName }: { appName: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -74,7 +74,10 @@ export function Header({ appName }: { appName: string }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex h-14 w-full items-center px-4 md:px-8">
-        <Logo className="mr-4" appName={appName} />
+        <Link href="/" className="mr-4 inline-flex items-center gap-2 font-semibold">
+          <Image src="/icon.svg" alt={appName} width={20} height={20} />
+          <span>{appName}</span>
+        </Link>
 
         <div className="ml-auto flex items-center gap-2">
           {isLoggedIn ? (
