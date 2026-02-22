@@ -12,6 +12,12 @@ pub struct GetProblemsByContestUsecase {
 
 impl GetProblemsByContestUsecase {
     pub async fn run(&self, contest: &str) -> Result<Vec<Problem>, ProblemError> {
+        if contest.trim().is_empty() {
+            return Err(ProblemError::BadRequest(
+                "contest cannot be empty".to_string(),
+            ));
+        }
+
         let mut pbs = self
             .problem_repository
             .get_problems_by_contest(contest)

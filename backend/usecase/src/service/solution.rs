@@ -29,4 +29,5 @@ pub trait SolutionService: Send + Sync {
         solution_id: Uuid,
     ) -> Result<Vec<SolutionComment>, RepositoryError>;
     async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError>;
+    async fn problem_exists(&self, problem_id: &str) -> Result<bool, RepositoryError>;
 }

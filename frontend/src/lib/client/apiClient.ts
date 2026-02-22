@@ -119,11 +119,15 @@ export class ApiClient {
     return new Map();
   };
   createSolution = async (solution: Solution, token: string): Promise<SolutionResponse> => {
+    if (!token) {
+      throw new Error("投稿にはログインが必要です。");
+    }
+
     const path = "api/solutions";
     const resp = await this.postWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
     if (resp.ok) return resp.data;
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return { solutionId: "" };
+    const message = typeof resp.error === "string" && resp.error.length > 0 ? resp.error : "投稿に失敗しました。";
+    throw new Error(`${message} (status: ${resp.status})`);
   };
 
   getSolutionVotesCount = async (solutionId: string): Promise<number> => {

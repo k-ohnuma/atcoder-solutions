@@ -19,6 +19,17 @@ impl GetSolutionsByProblemIdUsecase {
         problem_id: String,
         sort: SolutionListSort,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
+        if problem_id.trim().is_empty() {
+            return Err(SolutionError::BadRequest(
+                "problem_id cannot be empty".to_string(),
+            ));
+        }
+
+        let exists = self.service.problem_exists(&problem_id).await?;
+        if !exists {
+            return Err(SolutionError::NotFound("problem not found".to_string()));
+        }
+
         let items = self
             .service
             .get_solutions_by_problem_id(problem_id, sort)

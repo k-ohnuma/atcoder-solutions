@@ -3,31 +3,29 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MarkdownPlayground } from "@/features/solutions/ui/organisms";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
-export default function MarkdownPage() {
+export function SignInGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [isAllowed, setIsAllowed] = useState(false);
+  const [canShow, setCanShow] = useState(false);
   const auth = getFirebaseAuth();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.replace("/signin");
+      if (user) {
+        router.replace("/");
         return;
       }
-      setIsAllowed(true);
+      setCanShow(true);
     });
-
     return () => {
       unsub();
     };
   }, [auth, router]);
 
-  if (!isAllowed) {
+  if (!canShow) {
     return null;
   }
 
-  return <MarkdownPlayground />;
+  return <>{children}</>;
 }

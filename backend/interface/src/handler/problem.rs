@@ -38,12 +38,14 @@ pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
     Query(query): Query<GetProblemsByContestRequestParams>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
+    let contest = query.contest.trim();
+    if contest.is_empty() {
+        return Err(HttpError::BadRequest("contest cannot be empty".to_string()));
+    }
+
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemsByContestUsecase::new(problems_repository);
-    let problems = usecase
-        .run(&query.contest)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let problems = usecase.run(contest).await.map_err(|e| e.to_http_error())?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))

@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::{model::user::User, ports::repository::user::UserRepository};
+use validator::Validate;
 
 use crate::model::user::{
     UserError,
@@ -15,6 +16,9 @@ pub struct CreateUserUsecase {
 
 impl CreateUserUsecase {
     pub async fn run(&self, input: CreateUserInput) -> Result<CreateUserOutput, UserError> {
+        input
+            .validate()
+            .map_err(|e| UserError::BadRequest(e.to_string()))?;
         let user = User::from(input);
         self.user_repository
             .create_user(user.to_owned())
