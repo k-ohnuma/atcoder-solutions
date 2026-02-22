@@ -4,10 +4,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { Logo } from "@/shared/ui/atoms/Logo";
 
@@ -62,8 +62,7 @@ export function Header({ appName }: { appName: string }) {
       setIsDeleteDialogOpen(false);
       router.push("/");
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "アカウント削除に失敗しました。時間をおいて再度お試しください。";
+      const message = e instanceof Error ? e.message : "アカウント削除に失敗しました。時間をおいて再度お試しください。";
       setDeleteErrorMessage(message);
       setIsDeleteDialogOpen(false);
       setIsDeleteErrorDialogOpen(true);
@@ -123,12 +122,7 @@ export function Header({ appName }: { appName: string }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : null}
-              <Button
-                onClick={handleSignOut}
-                type="button"
-                variant="ghost"
-                size="sm"
-              >
+              <Button onClick={handleSignOut} type="button" variant="ghost" size="sm">
                 ログアウト
               </Button>
             </nav>

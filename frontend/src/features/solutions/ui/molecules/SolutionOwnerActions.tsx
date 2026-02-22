@@ -8,8 +8,8 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/toast";
 import { ApiClient } from "@/lib/client/apiClient";
 import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
 import { getFirebaseAuth } from "@/shared/firebase/client";
@@ -27,7 +27,9 @@ const updateSolutionFormSchema = z.object({
     .trim()
     .max(500, "提出URLは500文字以内にしてください")
     .refine((v) => v.length === 0 || /^https?:\/\//.test(v), "URLは http(s) から始めてください"),
-  tags: z.array(z.string().trim().min(1, "タグは空にできません").max(24, "タグは24文字以内にしてください")).max(6, "タグは最大6個です"),
+  tags: z
+    .array(z.string().trim().min(1, "タグは空にできません").max(24, "タグは24文字以内にしてください"))
+    .max(6, "タグは最大6個です"),
 });
 
 type UpdateSolutionFormInput = z.infer<typeof updateSolutionFormSchema>;
@@ -166,7 +168,13 @@ export function SolutionOwnerActions({
         <Button type="button" size="sm" variant="outline" onClick={() => setEditing((v) => !v)} disabled={isSubmitting}>
           {editing ? "編集を閉じる" : "解説を編集"}
         </Button>
-        <Button type="button" size="sm" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmitting}>
+        <Button
+          type="button"
+          size="sm"
+          variant="destructive"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={isSubmitting}
+        >
           解説を削除
         </Button>
       </div>
