@@ -117,6 +117,6 @@ impl UserRepository for UserRepositoryImpl {
         .map_err(map_sqlx_error)?
         .map(|row| row.get::<bool, _>("revoked"));
 
-        Ok(revoked.unwrap_or(false))
+        Ok(revoked.unwrap_or(true))
     }
 }

@@ -202,3 +202,16 @@ async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
 
     Ok(())
 }
+
+#[sqlx::test(migrations = "./migrations")]
+async fn missing_user_is_treated_as_revoked(pool: PgPool) -> Result<()> {
+    seed_roles(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = UserRepositoryImpl::new(conn);
+
+    let revoked = repo.is_token_revoked("missing-user", 0).await?;
+    assert!(revoked);
+
+    Ok(())
+}
