@@ -22,7 +22,7 @@ export class BackendApiClient {
     body,
     params,
   }: {
-    method: "GET" | "POST" | "DELETE";
+    method: "GET" | "POST" | "PATCH" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
@@ -80,6 +80,10 @@ export class BackendApiClient {
 
   async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
+  }
+
+  async patchWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
+    return this.request({ path, method: "PATCH", body, token });
   }
 
   async deleteWithToken<T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> {

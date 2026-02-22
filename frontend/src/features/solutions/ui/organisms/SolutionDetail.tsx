@@ -6,6 +6,7 @@ import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { SolutionComment } from "@/shared/model/solution";
 import { MarkdownRenderer } from "../atoms";
 import { LikeButton } from "../molecules/LikeButton";
+import { SolutionOwnerActions } from "../molecules/SolutionOwnerActions";
 import { SolutionComments } from "./SolutionComments";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -24,6 +25,7 @@ type SolutionDetailProps = {
   title: string;
   problemId: string;
   problemTitle: string;
+  userId: string;
   userName: string;
   tags: string[];
   bodyMd: string;
@@ -38,6 +40,7 @@ export function SolutionDetail({
   title,
   problemId,
   problemTitle,
+  userId,
   userName,
   tags,
   bodyMd,
@@ -60,11 +63,24 @@ export function SolutionDetail({
           </div>
           <LikeButton solutionId={solutionId} initialVotesCount={initialVotesCount} />
         </div>
+        <SolutionOwnerActions
+          solutionId={solutionId}
+          problemId={problemId}
+          ownerUserId={userId}
+          title={title}
+          bodyMd={bodyMd}
+          submitUrl={submitUrl}
+          tags={tags}
+        />
         <Table>
           <TableBody>
             <TableRow>
               <TableCell className="w-36 font-medium">投稿者</TableCell>
-              <TableCell>{userName}</TableCell>
+              <TableCell>
+                <Link href={`/users/${encodeURIComponent(userName)}/solutions`} className="hover:underline">
+                  {userName}
+                </Link>
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">投稿日</TableCell>

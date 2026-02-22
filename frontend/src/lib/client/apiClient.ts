@@ -25,7 +25,7 @@ export class ApiClient {
     body,
     params,
   }: {
-    method: "GET" | "POST" | "DELETE";
+    method: "GET" | "POST" | "PATCH" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
@@ -82,6 +82,10 @@ export class ApiClient {
   //
   private async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
+  }
+
+  private async patchWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
+    return this.request({ path, method: "PATCH", body, token });
   }
 
   private async deleteWithToken<T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> {
@@ -188,5 +192,56 @@ export class ApiClient {
     }
     console.log(`error: ${resp.error}, status: ${resp.status}`);
     return null;
+  };
+
+  updateSolution = async (
+    solutionId: string,
+    title: string,
+    bodyMd: string,
+    submitUrl: string,
+    tags: string[],
+    token: string,
+  ): Promise<boolean> => {
+    const path = "api/solutions";
+    const resp = await this.patchWithToken<SolutionResponse>(
+      path,
+      token,
+      JSON.stringify({ solutionId, title, bodyMd, submitUrl, tags }),
+    );
+    if (resp.ok) {
+      return true;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return false;
+  };
+
+  deleteSolution = async (solutionId: string, token: string): Promise<boolean> => {
+    const path = "api/solutions";
+    const resp = await this.deleteWithToken<{ solutionId: string }>(path, token, { solutionId });
+    if (resp.ok) {
+      return true;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return false;
+  };
+
+  updateComment = async (commentId: string, bodyMd: string, token: string): Promise<SolutionComment | null> => {
+    const path = "api/solutions/comments";
+    const resp = await this.patchWithToken<SolutionComment>(path, token, JSON.stringify({ commentId, bodyMd }));
+    if (resp.ok) {
+      return resp.data;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return null;
+  };
+
+  deleteComment = async (commentId: string, token: string): Promise<boolean> => {
+    const path = "api/solutions/comments";
+    const resp = await this.deleteWithToken<{ commentId: string }>(path, token, { commentId });
+    if (resp.ok) {
+      return true;
+    }
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return false;
   };
 }

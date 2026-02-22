@@ -4,3 +4,12 @@ export const createCommentBodySchema = z.object({
   solutionId: z.string().uuid(),
   bodyMd: z.string().trim().min(1).max(2000),
 });
+
+export const updateCommentBodySchema = z.object({
+  commentId: z.string().uuid(),
+  bodyMd: z.string().trim().min(1).max(2000),
+});
+
+export const deleteCommentQueryParams = z.object({
+  commentId: z.string().uuid(),
+});

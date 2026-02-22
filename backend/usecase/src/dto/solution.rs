@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::solution::{CreatedComment, SolutionComment, SolutionDetails, SolutionListItem};
+use crate::model::solution::{
+    CreatedComment, SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
+};
 
 pub struct SolutionListItemView {
     pub id: Uuid,
@@ -24,6 +26,18 @@ pub struct SolutionView {
     pub tags: Vec<String>,
     pub body_md: String,
     pub submit_url: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+pub struct UserSolutionListItemView {
+    pub id: Uuid,
+    pub title: String,
+    pub problem_id: String,
+    pub problem_title: String,
+    pub user_id: String,
+    pub user_name: String,
+    pub votes_count: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -75,6 +89,22 @@ impl From<SolutionDetails> for SolutionView {
             tags: value.tags,
             body_md: value.body_md,
             submit_url: value.submit_url,
+            created_at: value.created_at,
+            updated_at: value.updated_at,
+        }
+    }
+}
+
+impl From<UserSolutionListItem> for UserSolutionListItemView {
+    fn from(value: UserSolutionListItem) -> Self {
+        Self {
+            id: value.id,
+            title: value.title,
+            problem_id: value.problem_id,
+            problem_title: value.problem_title,
+            user_id: value.user_id,
+            user_name: value.user_name,
+            votes_count: value.votes_count,
             created_at: value.created_at,
             updated_at: value.updated_at,
         }

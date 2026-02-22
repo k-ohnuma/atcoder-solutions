@@ -8,6 +8,14 @@ use crate::model::solution::Solution;
 #[async_trait]
 pub trait SolutionRespositoryTx: Send + Sync {
     async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError>;
+    async fn update(
+        &mut self,
+        solution_id: Uuid,
+        title: &str,
+        body_md: &str,
+        submit_url: &str,
+    ) -> Result<(), RepositoryError>;
+    async fn delete(&mut self, solution_id: Uuid) -> Result<(), RepositoryError>;
     async fn replace_tags(
         &mut self,
         solution_id: Uuid,
@@ -44,6 +52,12 @@ pub trait CommentRepositoryTx: Send + Sync {
         solution_id: Uuid,
         body_md: &str,
     ) -> Result<CreatedComment, RepositoryError>;
+    async fn update_comment(
+        &mut self,
+        comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<CreatedComment, RepositoryError>;
+    async fn delete_comment(&mut self, comment_id: Uuid) -> Result<(), RepositoryError>;
 }
 
 #[async_trait]

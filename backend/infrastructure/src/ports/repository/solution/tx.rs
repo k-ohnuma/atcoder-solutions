@@ -81,6 +81,42 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
         .map_err(map_sqlx_error)?;
         Ok(s.id)
     }
+    async fn update(
+        &mut self,
+        solution_id: Uuid,
+        title: &str,
+        body_md: &str,
+        submit_url: &str,
+    ) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            UPDATE solutions
+            SET title = $2, body_md = $3, submit_url = $4
+            WHERE id = $1
+            "#,
+            solution_id,
+            title,
+            body_md,
+            submit_url
+        )
+        .execute(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+        Ok(())
+    }
+    async fn delete(&mut self, solution_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM solutions
+            WHERE id = $1
+            "#,
+            solution_id
+        )
+        .execute(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+        Ok(())
+    }
     async fn replace_tags(
         &mut self,
         solution_id: Uuid,
@@ -209,5 +245,46 @@ impl CommentRepositoryTx for SolutionUnitOfWork {
             created_at: rec.created_at,
             updated_at: rec.updated_at,
         })
+    }
+    async fn update_comment(
+        &mut self,
+        comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<CreatedComment, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+            UPDATE comments
+            SET body_md = $2
+            WHERE id = $1
+            RETURNING id, user_id, solution_id, body_md, created_at, updated_at
+            "#,
+            comment_id,
+            body_md
+        )
+        .fetch_one(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(CreatedComment {
+            id: rec.id,
+            user_id: rec.user_id,
+            solution_id: rec.solution_id,
+            body_md: rec.body_md,
+            created_at: rec.created_at,
+            updated_at: rec.updated_at,
+        })
+    }
+    async fn delete_comment(&mut self, comment_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM comments
+            WHERE id = $1
+            "#,
+            comment_id
+        )
+        .execute(self.conn())
+        .await
+        .map_err(map_sqlx_error)?;
+        Ok(())
     }
 }
