@@ -1,0 +1,11 @@
+{
+  "language": "typescript",
+  "app": "npx ts-node bin/atcoders-solutions-backend-stack.ts",
+  "projectId": "c826e933-755c-46fa-a107-1d454f9523d9",
+  "sendCrashReports": "false",
+  "terraformProviders": [
+    "hashicorp/google@~>6.0"
+  ],
+  "terraformModules": [],
+  "context": {}
+}
