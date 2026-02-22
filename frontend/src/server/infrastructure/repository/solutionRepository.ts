@@ -42,6 +42,20 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return await this.client.postWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
   };
 
+  update = async (
+    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags"> & { solutionId: string },
+    token: string,
+  ): Promise<Resp<SolutionResponse>> => {
+    const path = this.createSolutionPath();
+    return await this.client.patchWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
+  };
+
+  delete = async (solutionId: string, token: string): Promise<Resp<{ solutionId: string }>> => {
+    const path = this.createSolutionPath();
+    const params = { solutionId };
+    return await this.client.deleteWithToken<{ solutionId: string }>(path, token, params);
+  };
+
   getBySolutionId = async (solutionId: string): Promise<Resp<SolutionDetail>> => {
     const path = this.createSolutionPath();
     const params = { solutionId };
@@ -66,6 +80,17 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   createComment = async (solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
     const path = this.commentsPath();
     return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ solutionId, bodyMd }));
+  };
+
+  updateComment = async (commentId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
+    const path = this.commentsPath();
+    return await this.client.patchWithToken<SolutionComment>(path, token, JSON.stringify({ commentId, bodyMd }));
+  };
+
+  deleteComment = async (commentId: string, token: string): Promise<Resp<{ commentId: string }>> => {
+    const path = this.commentsPath();
+    const params = { commentId };
+    return await this.client.deleteWithToken<{ commentId: string }>(path, token, params);
   };
 
   vote = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {

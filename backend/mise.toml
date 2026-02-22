@@ -21,7 +21,6 @@ DATABASE_URL = "postgresql://{{env.DATABASE_HOST}}:{{env.DATABASE_PORT}}/{{env.D
 run = [
   { task = "compose-up-db" },
   { task = "migrate" },
-  { task = "initial-setup" },
 ]
 
 [tasks.before-ci]
@@ -29,9 +28,6 @@ run = [
   { task = "compose-up-db" },
   { task = "migrate" },
 ]
-
-[tasks.initial-setup]
-run = "docker run -it --rm --network host -v {{cwd}}:/work postgres:15 psql '{{env.DATABASE_URL}}' -f /work/data/initial_setup.sql"
 
 [tasks.compose-up-db]
 run = "docker compose up -d postgres"
@@ -55,7 +51,14 @@ done
 
 [tasks.run]
 depends = ["before-build"]
-run = "cargo run ${usage_arg?}"
+run = "cargo run --bin app ${usage_arg?}"
+usage = '''
+arg "<arg>" default=""
+'''
+
+[tasks.runbatch]
+depends = ["before-build"]
+run = "cargo run --bin run_daily_job ${usage_arg?}"
 usage = '''
 arg "<arg>" default=""
 '''

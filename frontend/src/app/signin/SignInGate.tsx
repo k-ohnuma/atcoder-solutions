@@ -11,7 +11,12 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
   const auth = getFirebaseAuth();
 
   useEffect(() => {
+    let didResolveInitialAuth = false;
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (didResolveInitialAuth) {
+        return;
+      }
+      didResolveInitialAuth = true;
       if (user) {
         router.replace("/");
         return;

@@ -1,4 +1,5 @@
-// TODO: トランザクションをusecaseに寄せる(日時実行しか使ってないので優先度低)
+pub mod tx;
+
 use std::collections::HashSet;
 
 use async_trait::async_trait;
@@ -8,7 +9,7 @@ use domain::{
     model::problem::{ContestSeries, Problem},
     ports::repository::problem::ProblemRepository,
 };
-use sqlx::{Postgres, Transaction};
+use sqlx::PgPool;
 
 use crate::database::ConnectionPool;
 use crate::error::map_sqlx_error;
@@ -21,33 +22,22 @@ pub struct ProblemRepositoryImpl {
 #[async_trait]
 impl ProblemRepository for ProblemRepositoryImpl {
     async fn create_records(&self, problems: Vec<Problem>) -> Result<(), RepositoryError> {
-        let mut tx = self
-            .db
-            .inner_ref()
-            .begin()
-            .await
-            .map_err(|e| RepositoryError::TransactionError(e.to_string()))?;
-        {
-            let contests = problems
-                .iter()
-                .map(|e| {
-                    let series = ContestSeries::try_from(e.contest_code.as_str())
-                        .unwrap_or(ContestSeries::OTHER);
-                    (e.contest_code.as_str(), series)
-                })
-                .collect::<HashSet<(&str, ContestSeries)>>();
+        let contests = problems
+            .iter()
+            .map(|e| {
+                let series = ContestSeries::try_from(e.contest_code.as_str())
+                    .unwrap_or(ContestSeries::OTHER);
+                (e.contest_code.as_str(), series)
+            })
+            .collect::<HashSet<(&str, ContestSeries)>>();
 
-            for contest in contests.iter() {
-                safe_insert_contest(contest.0, contest.1.into(), &mut tx).await?;
-            }
+        for contest in contests.iter() {
+            safe_insert_contest(contest.0, contest.1.into(), self.db.inner_ref()).await?;
         }
 
         for problem in problems.iter() {
-            upsert_problem(problem, &mut tx).await?;
+            upsert_problem(problem, self.db.inner_ref()).await?;
         }
-        tx.commit()
-            .await
-            .map_err(|e| RepositoryError::TransactionError(e.to_string()))?;
         Ok(())
     }
     async fn get_problems_by_contest_series(
@@ -96,7 +86,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
 async fn safe_insert_contest(
     contest_code: &str,
     series_code: &str,
-    tx: &mut Transaction<'_, Postgres>,
+    db: &PgPool,
 ) -> Result<(), RepositoryError> {
     sqlx::query!(
         r#"
@@ -107,17 +97,13 @@ async fn safe_insert_contest(
         contest_code,
         series_code
     )
-    .execute(&mut **tx)
+    .execute(db)
     .await
     .map_err(map_sqlx_error)?;
     Ok(())
 }
 
-async fn upsert_problem(
-    problem: &Problem,
-    tx: &mut Transaction<'_, Postgres>,
-) -> Result<(), RepositoryError> {
-    // TODO: upsertする必要があるか要確認。
+async fn upsert_problem(problem: &Problem, db: &PgPool) -> Result<(), RepositoryError> {
     sqlx::query!(
         r#"
         INSERT INTO problems (id, contest_code, problem_index, title)
@@ -133,7 +119,7 @@ async fn upsert_problem(
         problem.problem_index,
         problem.title
     )
-    .execute(&mut **tx)
+    .execute(db)
     .await
     .map_err(map_sqlx_error)?;
     Ok(())

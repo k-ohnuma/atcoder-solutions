@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
   const json = await req.json();
   const parsed = createUserRequest.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
+    const message = parsed.error.issues[0]?.message ?? "invalid format";
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
   }
   const { userName } = parsed.data;
 

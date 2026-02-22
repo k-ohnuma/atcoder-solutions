@@ -6,6 +6,7 @@ import {
   SolutionListItem,
   SolutionListSortBy,
   SolutionVotesCount,
+  UserSolutionListItem,
 } from "@/shared/model/solution";
 
 export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
@@ -129,6 +130,14 @@ export class ApiClient {
   ): Promise<Resp<SolutionListItem[]>> => {
     const path = "solutions/problems";
     return await this.get<SolutionListItem[]>(path, { problemId, sortBy });
+  };
+
+  getSolutionsByUserName = async (
+    userName: string,
+    sortBy: SolutionListSortBy = "latest",
+  ): Promise<Resp<UserSolutionListItem[]>> => {
+    const path = "solutions/users";
+    return await this.get<UserSolutionListItem[]>(path, { userName, sortBy });
   };
 
   getSolutionVotesCount = async (solutionId: string): Promise<number> => {

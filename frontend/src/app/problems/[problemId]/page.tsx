@@ -1,6 +1,10 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
@@ -38,14 +42,10 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
   const h1Title = `${problemId} の解説一覧`;
 
   if (!solutionsResp.ok) {
-    return (
-      <PageContainer as="div">
-        <h1 className="mb-3 text-2xl font-bold">{h1Title}</h1>
-        <p className="text-sm text-destructive">
-          解説一覧の取得に失敗しました。status: {solutionsResp.status}, error: {solutionsResp.error}
-        </p>
-      </PageContainer>
-    );
+    if (solutionsResp.status === 404) {
+      notFound();
+    }
+    throw new Error(`failed to fetch solutions by problemId: status=${solutionsResp.status}, error=${solutionsResp.error}`);
   }
 
   const solutions = solutionsResp.data;
@@ -59,34 +59,17 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
             AtCoder問題ページ
           </Link>
         </div>
-        <Link
-          href={`/solutions/create?problemId=${encodeURIComponent(problemId)}`}
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
-        >
-          この問題の記事を書く
-        </Link>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/solutions/create?problemId=${encodeURIComponent(problemId)}`}>この問題の記事を書く</Link>
+        </Button>
       </div>
       <div className="mb-6 flex items-center gap-2 text-sm">
-        <Link
-          href={`/problems/${problemId}?sortBy=latest`}
-          className={
-            selectedSort === "latest"
-              ? "rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground"
-              : "rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-accent"
-          }
-        >
-          新着順
-        </Link>
-        <Link
-          href={`/problems/${problemId}?sortBy=votes`}
-          className={
-            selectedSort === "votes"
-              ? "rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground"
-              : "rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-accent"
-          }
-        >
-          いいね順
-        </Link>
+        <Button asChild size="sm" variant={selectedSort === "latest" ? "default" : "outline"}>
+          <Link href={`/problems/${problemId}?sortBy=latest`}>新着順</Link>
+        </Button>
+        <Button asChild size="sm" variant={selectedSort === "votes" ? "default" : "outline"}>
+          <Link href={`/problems/${problemId}?sortBy=votes`}>いいね順</Link>
+        </Button>
       </div>
 
       {solutions.length === 0 ? (
@@ -94,27 +77,25 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {solutions.map((solution) => (
-            <Link
-              key={solution.id}
-              href={`/solutions/${solution.id}`}
-              className="block rounded-xl border bg-card p-4 transition-colors hover:bg-accent"
-            >
-              <article>
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
-                  <div className="flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-sm">
-                    <Heart className="size-4" />
-                    <span>{solution.votesCount}</span>
+            <Link key={solution.id} href={`/solutions/${solution.id}`} className="block">
+              <Card className="transition-colors hover:bg-accent">
+                <CardContent className="p-4">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
+                    <Badge variant="outline" className="shrink-0 gap-1 rounded-md px-2 py-1 text-sm">
+                      <Heart className="size-4" />
+                      {solution.votesCount}
+                    </Badge>
                   </div>
-                </div>
 
-                <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <span>投稿者: {solution.userName}</span>
-                  <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
-                </div>
+                  <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span>投稿者: {solution.userName}</span>
+                    <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
+                  </div>
 
-                <p className="text-sm font-medium">解説を読む</p>
-              </article>
+                  <p className="text-sm font-medium">解説を読む</p>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>

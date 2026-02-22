@@ -23,6 +23,18 @@ export interface SolutionListItem {
   updatedAt: string;
 }
 
+export interface UserSolutionListItem {
+  id: string;
+  title: string;
+  problemId: string;
+  problemTitle: string;
+  userId: string;
+  userName: string;
+  votesCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SolutionVotesCount {
   solutionId: string;
   votesCount: number;

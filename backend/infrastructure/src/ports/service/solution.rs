@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::error::repository::RepositoryError;
 use usecase::{
-    model::solution::{SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort},
+    model::solution::{
+        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
+    },
     service::solution::SolutionService,
 };
 use uuid::Uuid;
@@ -10,7 +12,9 @@ use uuid::Uuid;
 use crate::error::map_sqlx_error;
 use crate::{
     database::ConnectionPool,
-    model::solution::{SolutionCommentViewRaw, SolutionListItemViewRaw},
+    model::solution::{
+        SolutionCommentViewRaw, SolutionListItemViewRaw, UserSolutionListItemViewRaw,
+    },
 };
 
 #[derive(new)]
@@ -120,6 +124,78 @@ impl SolutionService for SolutionServiceImpl {
         Ok(solution)
     }
 
+    async fn get_solutions_by_user_name(
+        &self,
+        user_name: String,
+        sort: SolutionListSort,
+    ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
+        let user_name_ref = user_name.as_str();
+        let rows = match sort {
+            SolutionListSort::Latest => {
+                sqlx::query_as!(
+                    UserSolutionListItemViewRaw,
+                    r#"
+                        SELECT s.id, s.title, s.problem_id, p.title AS "problem_title!", s.user_id, u.user_name,
+                               COUNT(sv.user_id) AS "votes_count!",
+                               s.created_at, s.updated_at
+                        FROM solutions s
+                        JOIN users u ON s.user_id = u.id
+                        JOIN problems p ON s.problem_id = p.id
+                        LEFT JOIN solution_votes sv ON sv.solution_id = s.id
+                        WHERE u.user_name = $1
+                        GROUP BY s.id, s.title, s.problem_id, p.title, s.user_id, u.user_name, s.created_at, s.updated_at
+                        ORDER BY s.created_at DESC
+                    "#,
+                    user_name_ref
+                )
+                .fetch_all(self.db.inner_ref())
+                .await
+                .map_err(map_sqlx_error)?
+            }
+            SolutionListSort::Votes => {
+                sqlx::query_as!(
+                    UserSolutionListItemViewRaw,
+                    r#"
+                        SELECT s.id, s.title, s.problem_id, p.title AS "problem_title!", s.user_id, u.user_name,
+                               COUNT(sv.user_id) AS "votes_count!",
+                               s.created_at, s.updated_at
+                        FROM solutions s
+                        JOIN users u ON s.user_id = u.id
+                        JOIN problems p ON s.problem_id = p.id
+                        LEFT JOIN solution_votes sv ON sv.solution_id = s.id
+                        WHERE u.user_name = $1
+                        GROUP BY s.id, s.title, s.problem_id, p.title, s.user_id, u.user_name, s.created_at, s.updated_at
+                        ORDER BY "votes_count!" DESC, s.created_at DESC
+                    "#,
+                    user_name_ref
+                )
+                .fetch_all(self.db.inner_ref())
+                .await
+                .map_err(map_sqlx_error)?
+            }
+        };
+
+        Ok(rows.into_iter().map(UserSolutionListItem::from).collect())
+    }
+
+    async fn user_name_exists(&self, user_name: &str) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM users
+                    WHERE user_name = $1
+                ) AS "exists!"
+            "#,
+            user_name
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.exists)
+    }
+
     async fn get_solution_votes_count(&self, solution_id: Uuid) -> Result<i64, RepositoryError> {
         let rec = sqlx::query!(
             r#"
@@ -196,6 +272,56 @@ impl SolutionService for SolutionServiceImpl {
         .map_err(map_sqlx_error)?;
 
         Ok(comments.into_iter().map(SolutionComment::from).collect())
+    }
+
+    async fn get_solution_user_id(&self, solution_id: Uuid) -> Result<String, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT user_id
+                FROM solutions
+                WHERE id = $1
+            "#,
+            solution_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.user_id)
+    }
+
+    async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM comments
+                    WHERE id = $1
+                ) AS "exists!"
+            "#,
+            comment_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.exists)
+    }
+
+    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<String, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT user_id
+                FROM comments
+                WHERE id = $1
+            "#,
+            comment_id
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.user_id)
     }
 
     async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError> {

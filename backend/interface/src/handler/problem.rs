@@ -1,9 +1,6 @@
 use std::{cmp::Reverse, collections::BTreeMap};
 
-use axum::{
-    extract::{Query, State},
-    http::StatusCode,
-};
+use axum::{extract::State, http::StatusCode};
 use domain::model::problem::ContestSeries;
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
@@ -14,6 +11,7 @@ use usecase::problem::{
 };
 
 use crate::error::ToHttpError;
+use crate::http::ApiQuery;
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
@@ -22,8 +20,8 @@ use crate::model::problem::{
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
     let atcoder_problems_port = reg.atcoder_problems_port();
-    let problems_repository = reg.problem_repository();
-    let usecase = ImportProblemsUsecase::new(atcoder_problems_port, problems_repository);
+    let problem_tx_manager = reg.problem_tx_manager();
+    let usecase = ImportProblemsUsecase::new(atcoder_problems_port, problem_tx_manager);
 
     match usecase.run().await {
         Ok(_) => StatusCode::OK,
@@ -36,7 +34,7 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
 
 pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetProblemsByContestRequestParams>,
+    ApiQuery(query): ApiQuery<GetProblemsByContestRequestParams>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
     let contest = query.contest.trim();
     if contest.is_empty() {
@@ -53,7 +51,7 @@ pub async fn get_problems_by_contest_handler(
 
 pub async fn get_contest_group_by_contest_series_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetContestGroupByContestSeriesRequestParams>,
+    ApiQuery(query): ApiQuery<GetContestGroupByContestSeriesRequestParams>,
 ) -> Result<ApiResponse<BTreeMap<Reverse<String>, Vec<ProblemResponse>>>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);

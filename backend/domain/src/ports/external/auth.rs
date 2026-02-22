@@ -4,6 +4,7 @@ use thiserror::Error;
 pub struct Principal {
     pub uid: String,
     pub email: String,
+    pub issued_at: i64,
 }
 
 #[derive(Error, Debug)]

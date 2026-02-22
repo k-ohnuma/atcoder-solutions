@@ -162,3 +162,56 @@ async fn find_by_uid_no_record(pool: PgPool) -> Result<()> {
 
     Ok(())
 }
+
+#[sqlx::test(migrations = "./migrations")]
+async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
+    seed_roles(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = UserRepositoryImpl::new(conn);
+
+    let uid = "revoke-target";
+    repo.create_user(make_user(uid, "revoker")).await?;
+
+    let before_revoke = repo.is_token_revoked(uid, 0).await?;
+    assert!(!before_revoke);
+
+    repo.revoke_tokens_by_uid(uid).await?;
+
+    let revoked_epoch = sqlx::query_scalar!(
+        r#"
+        SELECT EXTRACT(EPOCH FROM token_revoked_before)::BIGINT AS "epoch"
+        FROM users
+        WHERE id = $1
+        "#,
+        uid
+    )
+    .fetch_one(&pool)
+    .await?
+    .unwrap_or(0);
+    assert!(revoked_epoch > 0);
+
+    let should_be_revoked = repo.is_token_revoked(uid, revoked_epoch - 1).await?;
+    assert!(should_be_revoked);
+
+    let should_not_be_revoked_same_second = repo.is_token_revoked(uid, revoked_epoch).await?;
+    assert!(!should_not_be_revoked_same_second);
+
+    let should_not_be_revoked = repo.is_token_revoked(uid, revoked_epoch + 1).await?;
+    assert!(!should_not_be_revoked);
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "./migrations")]
+async fn missing_user_is_treated_as_revoked(pool: PgPool) -> Result<()> {
+    seed_roles(&pool).await?;
+
+    let conn = ConnectionPool::new(pool.clone());
+    let repo = UserRepositoryImpl::new(conn);
+
+    let revoked = repo.is_token_revoked("missing-user", 0).await?;
+    assert!(revoked);
+
+    Ok(())
+}

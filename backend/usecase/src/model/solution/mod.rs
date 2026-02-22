@@ -1,5 +1,7 @@
 pub mod create;
 pub mod create_comment;
+pub mod update;
+pub mod update_comment;
 
 use chrono::{DateTime, Utc};
 use domain::error::repository::RepositoryError;
@@ -17,6 +19,19 @@ pub struct SolutionListItem {
     pub id: Uuid,
     pub title: String,
     pub problem_id: String,
+    pub user_id: String,
+    pub user_name: String,
+    pub votes_count: i64,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct UserSolutionListItem {
+    pub id: Uuid,
+    pub title: String,
+    pub problem_id: String,
+    pub problem_title: String,
     pub user_id: String,
     pub user_name: String,
     pub votes_count: i64,
@@ -65,6 +80,8 @@ pub struct SolutionComment {
 pub enum SolutionError {
     #[error("{0}")]
     BadRequest(String),
+    #[error("{0}")]
+    Forbidden(String),
     #[error("{0}")]
     DBError(String),
     #[error("{0}")]

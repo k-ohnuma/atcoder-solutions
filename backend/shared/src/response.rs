@@ -16,6 +16,8 @@ where
     pub data: Option<T>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "errorCode")]
+    pub error_code: Option<String>,
 }
 
 impl<T> ApiResponse<T>
@@ -28,15 +30,25 @@ where
             status: StatusCode::OK.as_u16(),
             data: Some(data),
             error: None,
+            error_code: None,
         }
     }
 
     pub fn err(status: StatusCode, msg: impl Into<String>) -> Self {
+        Self::err_with_code(status, msg, None::<String>)
+    }
+
+    pub fn err_with_code(
+        status: StatusCode,
+        msg: impl Into<String>,
+        error_code: impl Into<Option<String>>,
+    ) -> Self {
         Self {
             ok: false,
             status: status.as_u16(),
             data: None,
             error: Some(msg.into()),
+            error_code: error_code.into(),
         }
     }
 }

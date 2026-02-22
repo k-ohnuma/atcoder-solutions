@@ -1,7 +1,13 @@
 use shared::config::DatabaseConfig;
 use sqlx::{PgPool, postgres::PgConnectOptions};
+use std::str::FromStr;
 
 fn make_pg_connect_options(cfg: &DatabaseConfig) -> PgConnectOptions {
+    if let Some(url) = &cfg.app_database_url {
+        return PgConnectOptions::from_str(url)
+            .unwrap_or_else(|e| panic!("invalid APP_DATABASE_URL: {e}"));
+    }
+
     PgConnectOptions::new()
         .host(&cfg.host)
         .port(cfg.port)

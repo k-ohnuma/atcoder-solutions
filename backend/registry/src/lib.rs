@@ -5,8 +5,8 @@ use domain::ports::{
         atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort, id::IdProviderPort,
     },
     repository::{
-        health::HealthCheckRepository, problem::ProblemRepository, solution::tx::SolutionTxManager,
-        user::UserRepository,
+        health::HealthCheckRepository, problem::ProblemRepository, problem::tx::ProblemTxManager,
+        solution::tx::SolutionTxManager, user::UserRepository,
     },
 };
 use infrastructure::{
@@ -16,7 +16,8 @@ use infrastructure::{
         external::{auth::FirebaseAuthenticator, id::UuidProvider},
         repository::{
             health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
-            solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
+            problem::tx::ProblemTransactionManager, solution::tx::SolutionTransactionManager,
+            user::UserRepositoryImpl,
         },
         service::{contests::ContestServiceImpl, solution::SolutionServiceImpl},
     },
@@ -30,6 +31,7 @@ pub struct Registry {
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
     health_check_repository: Arc<dyn HealthCheckRepository>,
     problem_repository: Arc<dyn ProblemRepository>,
+    problem_tx_manager: Arc<dyn ProblemTxManager>,
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
     solution_tx_manager: Arc<dyn SolutionTxManager>,
@@ -44,6 +46,7 @@ impl Registry {
         let pool = connect_database_with(&config.database);
         let health_check_repository = Arc::new(HealthCheckRepositoryImpl::new(pool.to_owned()));
         let problem_repository = Arc::new(ProblemRepositoryImpl::new(pool.to_owned()));
+        let problem_tx_manager = Arc::new(ProblemTransactionManager::new(pool.to_owned()));
         let user_repository = Arc::new(UserRepositoryImpl::new(pool.to_owned()));
 
         let authenticator = Arc::new(FirebaseAuthenticator::new(&config.auth.project_id));
@@ -58,6 +61,7 @@ impl Registry {
             atcoder_problems_port: atcoder_problems_client,
             health_check_repository,
             problem_repository,
+            problem_tx_manager,
             auth_port: authenticator,
             user_repository,
             id_provider,
@@ -72,6 +76,9 @@ impl Registry {
     }
     pub fn problem_repository(&self) -> Arc<dyn ProblemRepository> {
         self.problem_repository.to_owned()
+    }
+    pub fn problem_tx_manager(&self) -> Arc<dyn ProblemTxManager> {
+        self.problem_tx_manager.to_owned()
     }
     pub fn atcoder_problems_port(&self) -> Arc<dyn AtcoderProblemsPort> {
         self.atcoder_problems_port.to_owned()

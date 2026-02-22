@@ -36,6 +36,18 @@ impl UserRepository for DummyUserRepository {
         }
         Err(RepositoryError::NotFound("Not found".into()))
     }
+
+    async fn delete_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn revoke_tokens_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn is_token_revoked(&self, _uid: &str, _issued_at: i64) -> Result<bool, RepositoryError> {
+        Ok(false)
+    }
 }
 
 #[tokio::test]
@@ -97,6 +109,24 @@ async fn usecase_create_user_bad_request_when_user_name_blank() -> Result<()> {
     let input = CreateUserInput {
         uid: "valid".into(),
         user_name: "   ".into(),
+    };
+
+    let err = uc.run(input).await.expect_err("should be bad request");
+    assert!(matches!(err, UserError::BadRequest(_)));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn usecase_create_user_bad_request_when_user_name_contains_non_ascii() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+    });
+    let uc = CreateUserUsecase::new(repo);
+
+    let input = CreateUserInput {
+        uid: "valid".into(),
+        user_name: "日本語name".into(),
     };
 
     let err = uc.run(input).await.expect_err("should be bad request");

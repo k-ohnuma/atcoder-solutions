@@ -24,6 +24,7 @@ impl ToHttpError for SolutionError {
     fn to_http_error(self) -> HttpError {
         match self {
             SolutionError::BadRequest(reason) => HttpError::BadRequest(reason),
+            SolutionError::Forbidden(reason) => HttpError::Forbidden(reason),
             SolutionError::NotFound(reason) => HttpError::NotFound(reason),
             SolutionError::Conflict(reason) => HttpError::Conflict(reason),
             SolutionError::DBError(reason) => {

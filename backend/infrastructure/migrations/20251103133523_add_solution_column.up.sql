@@ -1,2 +1,0 @@
-ALTER TABLE solutions
-  ADD COLUMN title TEXT NOT NULL

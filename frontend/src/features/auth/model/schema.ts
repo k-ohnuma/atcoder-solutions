@@ -1,5 +1,7 @@
 import z from "zod";
 
+const userNamePattern = /^[A-Za-z0-9_]+$/;
+
 export const signInSchema = z.object({
   email: z.email({ error: "メールアドレスの形式が正しくありません" }),
   password: z.string().min(1, "パスワードを入力してください"),
@@ -8,7 +10,12 @@ export type SignInSchema = z.infer<typeof signInSchema>;
 
 export const signUpSchema = z
   .object({
-    userName: z.string().trim().min(1, "ユーザー名を入力してください").max(120, "ユーザー名は120文字以内にしてください"),
+    userName: z
+      .string()
+      .trim()
+      .min(1, "ユーザー名を入力してください")
+      .max(120, "ユーザー名は120文字以内にしてください")
+      .regex(userNamePattern, "ユーザー名は半角英数字とアンダースコア(_)のみ使用できます"),
     email: z.email({ error: "メールアドレスの形式が正しくありません" }),
     password: z
       .string()

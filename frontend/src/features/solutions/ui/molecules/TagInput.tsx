@@ -7,9 +7,10 @@ type TagsInputFieldProps = {
   values: string[];
   onChangeAction: (value: string[]) => void;
   className?: string;
+  hideLabel?: boolean;
 };
 
-export function TagsInputField({ values, onChangeAction, label, className }: TagsInputFieldProps) {
+export function TagsInputField({ values, onChangeAction, label, className, hideLabel = false }: TagsInputFieldProps) {
   return (
     <TagsInput
       value={values}
@@ -19,7 +20,7 @@ export function TagsInputField({ values, onChangeAction, label, className }: Tag
       addOnPaste
       className={className}
     >
-      <TagsInputLabel>{label}</TagsInputLabel>
+      {!hideLabel && <TagsInputLabel>{label}</TagsInputLabel>}
       <TagsInputList>
         {values.map((tag) => (
           <TagsInputItem key={tag} value={tag}>
