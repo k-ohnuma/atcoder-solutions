@@ -4,9 +4,10 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::{external::ExternalError, repository::RepositoryError},
-    model::problem::{ContestSeries, Problem},
+    model::problem::Problem,
     ports::{
-        external::atcoder_problems::AtcoderProblemsPort, repository::problem::ProblemRepository,
+        external::atcoder_problems::AtcoderProblemsPort,
+        repository::problem::tx::{ProblemRepositoryTx, ProblemTxManager, ProblemUnitOfWork},
     },
 };
 use usecase::problem::create::ImportProblemsUsecase;
@@ -22,32 +23,80 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
     }
 }
 
-struct DummyProblemsRepository {
-    calls: Mutex<Vec<Problem>>,
+#[derive(Default)]
+struct TxCalls {
+    contests: Vec<(String, String)>,
+    problems: Vec<Problem>,
+    commits: usize,
+}
+
+struct DummyProblemUow {
+    shared: Arc<Mutex<TxCalls>>,
 }
 
 #[async_trait]
-impl ProblemRepository for DummyProblemsRepository {
-    async fn create_records(&self, problems: Vec<Problem>) -> Result<(), RepositoryError> {
-        self.calls.lock().unwrap().extend(problems);
+impl ProblemRepositoryTx for DummyProblemUow {
+    async fn upsert_contest(
+        &mut self,
+        contest_code: &str,
+        series_code: &str,
+    ) -> Result<(), RepositoryError> {
+        self.shared
+            .lock()
+            .unwrap()
+            .contests
+            .push((contest_code.to_string(), series_code.to_string()));
         Ok(())
     }
-    async fn get_problems_by_contest_series(
-        &self,
-        _series: ContestSeries,
-    ) -> Result<Vec<Problem>, RepositoryError> {
-        Ok(vec![])
+
+    async fn upsert_problem(
+        &mut self,
+        problem_id: &str,
+        contest_code: &str,
+        problem_index: &str,
+        title: &str,
+    ) -> Result<(), RepositoryError> {
+        self.shared.lock().unwrap().problems.push(Problem {
+            id: problem_id.to_string(),
+            contest_code: contest_code.to_string(),
+            problem_index: problem_index.to_string(),
+            title: title.to_string(),
+        });
+        Ok(())
     }
-    async fn get_problems_by_contest(
-        &self,
-        _contest: &str,
-    ) -> Result<Vec<Problem>, RepositoryError> {
-        Ok(vec![])
+}
+
+#[async_trait]
+impl ProblemUnitOfWork for DummyProblemUow {
+    fn problems(&mut self) -> &mut dyn ProblemRepositoryTx {
+        self
+    }
+
+    async fn commit(self: Box<Self>) -> Result<(), RepositoryError> {
+        self.shared.lock().unwrap().commits += 1;
+        Ok(())
+    }
+
+    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+}
+
+struct DummyProblemTxManager {
+    shared: Arc<Mutex<TxCalls>>,
+}
+
+#[async_trait]
+impl ProblemTxManager for DummyProblemTxManager {
+    async fn begin(&self) -> Result<Box<dyn ProblemUnitOfWork>, RepositoryError> {
+        Ok(Box::new(DummyProblemUow {
+            shared: self.shared.clone(),
+        }))
     }
 }
 
 #[tokio::test]
-async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
+async fn usecase_imports_problems_in_single_uow() -> Result<()> {
     let port = Arc::new(DummyAtcoderProblemsPort {
         item: vec![
             Problem {
@@ -64,18 +113,23 @@ async fn usecase_calls_repo_with_converted_problems() -> Result<()> {
             },
         ],
     });
-    let repo = Arc::new(DummyProblemsRepository {
-        calls: Mutex::new(vec![]),
+    let calls = Arc::new(Mutex::new(TxCalls::default()));
+    let txm = Arc::new(DummyProblemTxManager {
+        shared: calls.clone(),
     });
 
-    let uc = ImportProblemsUsecase::new(port, repo.clone());
+    let uc = ImportProblemsUsecase::new(port, txm);
     uc.run().await.unwrap();
 
-    let calls = repo.calls.lock().unwrap();
-    assert_eq!(calls.len(), 2);
-    let sent = &calls[0];
+    let calls = calls.lock().unwrap();
+    assert_eq!(calls.commits, 1);
+    assert_eq!(calls.problems.len(), 2);
+    assert_eq!(calls.contests.len(), 1);
+    assert_eq!(calls.contests[0].0, "abc234");
+    assert_eq!(calls.contests[0].1, "ABC");
+
+    let sent = &calls.problems[0];
     assert_eq!(sent.id, "abc234_a");
     assert_eq!(sent.title, "A - Example");
-
     Ok(())
 }
