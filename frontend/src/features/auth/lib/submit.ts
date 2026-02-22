@@ -27,6 +27,8 @@ function toFirebaseAuthErrorMessage(error: unknown): string {
       return "試行回数が多すぎます。しばらく待ってから再度お試しください。";
     case "auth/invalid-credential":
       return "メールアドレスまたはパスワードが間違っています。";
+    case "auth/requires-recent-login":
+      return "安全のため、再ログイン後にもう一度お試しください。";
     default:
       return "認証処理でエラーが発生しました。入力内容を確認して再度お試しください。";
   }
@@ -130,21 +132,28 @@ export const onSubmitDeleteAccount = async () => {
   }
 
   const idToken = await user.getIdToken();
-  const res = await fetch("/api/users/me", {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const message = typeof json?.error === "string" && json.error.length > 0 ? json.error : "ユーザー削除に失敗しました。";
-    throw new Error(message);
-  }
-
   try {
     await deleteUser(user);
   } catch (e) {
     throw new Error(toFirebaseAuthErrorMessage(e));
+  }
+
+  try {
+    const res = await fetch("/api/users/me", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      const message =
+        typeof json?.error === "string" && json.error.length > 0 ? json.error : "サーバー上のデータ削除に失敗しました。";
+      throw new Error(message);
+    }
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : "unknown error";
+    console.error("backend delete failed after firebase delete", detail);
+    throw new Error("アカウント削除は完了しましたが、サーバー上のデータ削除で一部失敗しました。時間をおいて確認してください。");
   }
 };
