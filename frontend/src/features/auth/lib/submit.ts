@@ -100,3 +100,30 @@ export const onSubmitSignout = async () => {
   const auth = getFirebaseAuth();
   await signOut(auth);
 };
+
+export const onSubmitDeleteAccount = async () => {
+  const auth = getFirebaseAuth();
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("ログイン状態を確認できませんでした。再ログインしてください。");
+  }
+
+  const idToken = await user.getIdToken();
+  const res = await fetch("/api/users/me", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const message = typeof json?.error === "string" && json.error.length > 0 ? json.error : "ユーザー削除に失敗しました。";
+    throw new Error(message);
+  }
+
+  try {
+    await deleteUser(user);
+  } catch (e) {
+    throw new Error(toFirebaseAuthErrorMessage(e));
+  }
+};

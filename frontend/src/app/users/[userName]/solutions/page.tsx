@@ -4,7 +4,6 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 import { SolutionListSortBy } from "@/shared/model/solution";
@@ -24,21 +23,20 @@ const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
 
 type PageProps = {
   params: Promise<{
-    problemId: string;
+    userName: string;
   }>;
   searchParams: Promise<{
     sortBy?: string;
   }>;
 };
 
-export default async function ProblemSolutionsPage({ params, searchParams }: PageProps) {
-  const { problemId } = await params;
+export default async function UserSolutionsPage({ params, searchParams }: PageProps) {
+  const { userName } = await params;
   const { sortBy } = await searchParams;
-  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId);
   const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
-  const solutionsResp = await apiClient.getSolutionsByProblemId(problemId, selectedSort);
+  const solutionsResp = await apiClient.getSolutionsByUserName(userName, selectedSort);
 
-  const h1Title = `${problemId} の解説一覧`;
+  const h1Title = `@${userName} の解説一覧`;
 
   if (!solutionsResp.ok) {
     return (
@@ -55,28 +53,18 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
 
   return (
     <PageContainer as="div">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="mb-1 text-2xl font-bold">{h1Title}</h1>
-          <Link href={atcoderProblemUrl} target="_blank" rel="noreferrer" className="inline-block text-sm hover:underline">
-            AtCoder問題ページ
-          </Link>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/solutions/create?problemId=${encodeURIComponent(problemId)}`}>この問題の記事を書く</Link>
-        </Button>
-      </div>
+      <h1 className="mb-4 text-2xl font-bold">{h1Title}</h1>
       <div className="mb-6 flex items-center gap-2 text-sm">
         <Button asChild size="sm" variant={selectedSort === "latest" ? "default" : "outline"}>
-          <Link href={`/problems/${problemId}?sortBy=latest`}>新着順</Link>
+          <Link href={`/users/${encodeURIComponent(userName)}/solutions?sortBy=latest`}>新着順</Link>
         </Button>
         <Button asChild size="sm" variant={selectedSort === "votes" ? "default" : "outline"}>
-          <Link href={`/problems/${problemId}?sortBy=votes`}>いいね順</Link>
+          <Link href={`/users/${encodeURIComponent(userName)}/solutions?sortBy=votes`}>いいね順</Link>
         </Button>
       </div>
 
       {solutions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">この問題の解説はまだありません。</p>
+        <p className="text-sm text-muted-foreground">このユーザーの解説はまだありません。</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {solutions.map((solution) => (
@@ -90,13 +78,11 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
                     {solution.votesCount}
                   </Badge>
                 </div>
-
-                <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <span>投稿者: {solution.userName}</span>
-                  <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary">{solution.problemId}</Badge>
+                  <span>{solution.problemTitle}</span>
                 </div>
-
-                <p className="text-sm font-medium">解説を読む</p>
+                <div className="text-xs text-muted-foreground">{dateTimeFormatter.format(new Date(solution.createdAt))}</div>
                 </CardContent>
               </Card>
             </Link>

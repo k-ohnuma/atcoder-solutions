@@ -52,4 +52,25 @@ impl UserRepository for UserRepositoryImpl {
 
         Ok(user_row.try_into()?)
     }
+
+    async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
+        let result = sqlx::query!(
+            r#"
+            DELETE FROM users
+            WHERE id = $1
+            "#,
+            uid
+        )
+        .execute(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        if result.rows_affected() == 0 {
+            return Err(RepositoryError::NotFound(format!(
+                "user not found: {}",
+                uid
+            )));
+        }
+        Ok(())
+    }
 }

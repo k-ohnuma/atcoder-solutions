@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 
@@ -34,17 +37,9 @@ export default async function Home({ searchParams }: HomePageProps) {
           {supportedSeries.map((code) => {
             const active = code === selectedSeries;
             return (
-              <Link
-                key={code}
-                href={`/?series=${code}`}
-                className={
-                  active
-                    ? "inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
-                    : "inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-accent"
-                }
-              >
-                {code}
-              </Link>
+              <Button key={code} asChild size="sm" variant={active ? "default" : "outline"}>
+                <Link href={`/?series=${code}`}>{code}</Link>
+              </Button>
             );
           })}
         </div>
@@ -52,23 +47,27 @@ export default async function Home({ searchParams }: HomePageProps) {
 
       <section className="space-y-3">
         {list.map(([contestId, problems]) => (
-          <article key={contestId} className="rounded-xl border bg-background p-4">
-            <h2 className="mb-3 text-base font-semibold">{contestId}</h2>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <Card key={contestId}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{contestId}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2 pt-0 sm:grid-cols-2 lg:grid-cols-3">
               {[...problems]
                 .sort((a, b) => a.problemIndex.localeCompare(b.problemIndex))
                 .map((problem) => (
                   <Link
                     key={problem.id}
                     href={`/problems/${problem.id}`}
-                    className="block rounded-md border px-3 py-2 transition-colors hover:bg-accent"
+                    className="block rounded-md border bg-background px-3 py-2 transition-colors hover:bg-accent"
                   >
-                    <p className="mb-1 text-xs text-muted-foreground">{problem.problemIndex}</p>
+                    <Badge variant="outline" className="mb-1">
+                      {problem.problemIndex}
+                    </Badge>
                     <p className="text-sm font-medium">{problem.title}</p>
                   </Link>
                 ))}
-            </div>
-          </article>
+            </CardContent>
+          </Card>
         ))}
       </section>
     </PageContainer>
