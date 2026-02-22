@@ -5,9 +5,15 @@ use async_trait::async_trait;
 use chrono::Utc;
 use domain::error::repository::RepositoryError;
 use usecase::{
-    model::solution::{SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort, UserSolutionListItem},
+    model::solution::{
+        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
+        UserSolutionListItem,
+    },
     service::solution::SolutionService,
-    solution::{get_by_problem_id::GetSolutionsByProblemIdUsecase, get_by_user_name::GetSolutionsByUserNameUsecase},
+    solution::{
+        get_by_problem_id::GetSolutionsByProblemIdUsecase,
+        get_by_user_name::GetSolutionsByUserNameUsecase,
+    },
 };
 use uuid::Uuid;
 
@@ -190,9 +196,7 @@ async fn get_solutions_by_user_name_passes_sort_to_service() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(true, true));
     let uc = GetSolutionsByUserNameUsecase::new(service.clone());
 
-    let result = uc
-        .run("alice".to_string(), SolutionListSort::Votes)
-        .await?;
+    let result = uc.run("alice".to_string(), SolutionListSort::Votes).await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].problem_title, "A - Sample");
 

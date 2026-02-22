@@ -25,8 +25,8 @@ impl ProblemRepository for ProblemRepositoryImpl {
         let contests = problems
             .iter()
             .map(|e| {
-                let series =
-                    ContestSeries::try_from(e.contest_code.as_str()).unwrap_or(ContestSeries::OTHER);
+                let series = ContestSeries::try_from(e.contest_code.as_str())
+                    .unwrap_or(ContestSeries::OTHER);
                 (e.contest_code.as_str(), series)
             })
             .collect::<HashSet<(&str, ContestSeries)>>();
@@ -103,10 +103,7 @@ async fn safe_insert_contest(
     Ok(())
 }
 
-async fn upsert_problem(
-    problem: &Problem,
-    db: &PgPool,
-) -> Result<(), RepositoryError> {
+async fn upsert_problem(problem: &Problem, db: &PgPool) -> Result<(), RepositoryError> {
     sqlx::query!(
         r#"
         INSERT INTO problems (id, contest_code, problem_index, title)

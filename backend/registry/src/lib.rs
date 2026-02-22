@@ -5,8 +5,8 @@ use domain::ports::{
         atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort, id::IdProviderPort,
     },
     repository::{
-        health::HealthCheckRepository, problem::ProblemRepository,
-        problem::tx::ProblemTxManager, solution::tx::SolutionTxManager, user::UserRepository,
+        health::HealthCheckRepository, problem::ProblemRepository, problem::tx::ProblemTxManager,
+        solution::tx::SolutionTxManager, user::UserRepository,
     },
 };
 use infrastructure::{
@@ -16,8 +16,8 @@ use infrastructure::{
         external::{auth::FirebaseAuthenticator, id::UuidProvider},
         repository::{
             health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
-            problem::tx::ProblemTransactionManager,
-            solution::tx::SolutionTransactionManager, user::UserRepositoryImpl,
+            problem::tx::ProblemTransactionManager, solution::tx::SolutionTransactionManager,
+            user::UserRepositoryImpl,
         },
         service::{contests::ContestServiceImpl, solution::SolutionServiceImpl},
     },

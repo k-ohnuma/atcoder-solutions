@@ -4,17 +4,21 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
-    ports::repository::solution::tx::{CommentRepositoryTx, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork, VoteRepositoryTx},
+    ports::repository::solution::tx::{
+        CommentRepositoryTx, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
+        VoteRepositoryTx,
+    },
 };
 use usecase::{
     model::solution::{
-        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort, UserSolutionListItem,
-        update::UpdateSolutionInput, update_comment::UpdateCommentInput,
+        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
+        UserSolutionListItem, update::UpdateSolutionInput, update_comment::UpdateCommentInput,
     },
     service::solution::SolutionService,
     solution::{
-        delete::DeleteSolutionUsecase, delete_comment::DeleteCommentUsecase, unvote::UnvoteSolutionUsecase,
-        update::UpdateSolutionUsecase, update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
+        delete::DeleteSolutionUsecase, delete_comment::DeleteCommentUsecase,
+        unvote::UnvoteSolutionUsecase, update::UpdateSolutionUsecase,
+        update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
     },
 };
 use uuid::Uuid;
@@ -130,7 +134,7 @@ async fn update_solution_forbidden_for_non_owner() -> Result<()> {
         tags: vec![],
     };
 
-    let err = uc.run(input).await.err().expect("should be forbidden");
+    let err = uc.run(input).await.expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
     Ok(())
 }
@@ -149,8 +153,7 @@ async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
         .await
-        .err()
-        .expect("should be forbidden");
+        .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
     Ok(())
 }
@@ -190,8 +193,7 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
         .await
-        .err()
-        .expect("should be forbidden");
+        .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
     Ok(())
 }
@@ -209,8 +211,7 @@ async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
-        .err()
-        .expect("should be bad request");
+        .expect_err("should be bad request");
     assert!(matches!(err, SolutionError::BadRequest(_)));
     Ok(())
 }
@@ -228,8 +229,7 @@ async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
-        .err()
-        .expect("should be bad request");
+        .expect_err("should be bad request");
     assert!(matches!(err, SolutionError::BadRequest(_)));
     Ok(())
 }
@@ -253,7 +253,7 @@ async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()
         tags: vec![],
     };
 
-    let err = uc.run(input).await.err().expect("should be not found");
+    let err = uc.run(input).await.expect_err("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
     Ok(())
 }
@@ -283,16 +283,29 @@ async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()>
 struct _NoopSolutionRepo;
 #[async_trait]
 impl SolutionRespositoryTx for _NoopSolutionRepo {
-    async fn create(&mut self, _s: &domain::model::solution::Solution) -> Result<Uuid, RepositoryError> {
+    async fn create(
+        &mut self,
+        _s: &domain::model::solution::Solution,
+    ) -> Result<Uuid, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
-    async fn update(&mut self, _solution_id: Uuid, _title: &str, _body_md: &str, _submit_url: &str) -> Result<(), RepositoryError> {
+    async fn update(
+        &mut self,
+        _solution_id: Uuid,
+        _title: &str,
+        _body_md: &str,
+        _submit_url: &str,
+    ) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn delete(&mut self, _solution_id: Uuid) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
-    async fn replace_tags(&mut self, _solution_id: Uuid, _tag_id: &[Uuid]) -> Result<(), RepositoryError> {
+    async fn replace_tags(
+        &mut self,
+        _solution_id: Uuid,
+        _tag_id: &[Uuid],
+    ) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
 }
@@ -319,10 +332,19 @@ impl VoteRepositoryTx for _NoopVoteRepo {
 struct _NoopCommentRepo;
 #[async_trait]
 impl CommentRepositoryTx for _NoopCommentRepo {
-    async fn create_comment(&mut self, _user_id: &str, _solution_id: Uuid, _body_md: &str) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
+    async fn create_comment(
+        &mut self,
+        _user_id: &str,
+        _solution_id: Uuid,
+        _body_md: &str,
+    ) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
-    async fn update_comment(&mut self, _comment_id: Uuid, _body_md: &str) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
+    async fn update_comment(
+        &mut self,
+        _comment_id: Uuid,
+        _body_md: &str,
+    ) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn delete_comment(&mut self, _comment_id: Uuid) -> Result<(), RepositoryError> {

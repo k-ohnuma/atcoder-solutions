@@ -248,9 +248,11 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
             .await?;
     }
 
-    let old_solution_id = create_solution_only(conn.to_owned(), "abc300_a", "author1", "old").await?;
+    let old_solution_id =
+        create_solution_only(conn.to_owned(), "abc300_a", "author1", "old").await?;
     sleep(Duration::from_millis(20)).await;
-    let new_solution_id = create_solution_only(conn.to_owned(), "abc300_a", "author2", "new").await?;
+    let new_solution_id =
+        create_solution_only(conn.to_owned(), "abc300_a", "author2", "new").await?;
 
     insert_vote(&pool, "voter1", old_solution_id).await?;
     insert_vote(&pool, "voter2", old_solution_id).await?;
@@ -347,7 +349,9 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
 }
 
 #[sqlx::test(migrations = "./migrations")]
-async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(pool: PgPool) -> Result<()> {
+async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
+    pool: PgPool,
+) -> Result<()> {
     seed_contest_series(&pool).await?;
     seed_roles(&pool).await?;
 
@@ -427,8 +431,7 @@ async fn create_solution_with_missing_problem_returns_fk_violation(pool: PgPool)
         .solutions()
         .create(&solution)
         .await
-        .err()
-        .expect("fk violation expected");
+        .expect_err("fk violation expected");
     assert!(matches!(err, RepositoryError::ForeignKeyViolation(_)));
     Ok(())
 }

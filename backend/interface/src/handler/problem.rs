@@ -1,9 +1,6 @@
 use std::{cmp::Reverse, collections::BTreeMap};
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-};
+use axum::{extract::State, http::StatusCode};
 use domain::model::problem::ContestSeries;
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};

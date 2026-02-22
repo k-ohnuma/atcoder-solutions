@@ -14,10 +14,7 @@ use interface::{
     },
 };
 use registry::Registry;
-use shared::{
-    config::AppConfig,
-    env::which_env,
-};
+use shared::{config::AppConfig, env::which_env};
 use tokio::net::TcpListener;
 use tower_http::{
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer},

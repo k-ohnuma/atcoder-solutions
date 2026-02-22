@@ -1,7 +1,4 @@
-use axum::{
-    extract::State,
-    Json,
-};
+use axum::{Json, extract::State};
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::model::solution::create_comment::CreateCommentInput;

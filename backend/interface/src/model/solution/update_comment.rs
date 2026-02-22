@@ -49,8 +49,8 @@ impl From<CreatedCommentView> for UpdateCommentResponse {
 mod tests {
     use chrono::Utc;
     use serde_json::json;
-    use uuid::Uuid;
     use usecase::dto::solution::CreatedCommentView;
+    use uuid::Uuid;
 
     use super::{UpdateCommentRequest, UpdateCommentResponse, from_req_for_input};
 

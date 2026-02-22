@@ -26,11 +26,9 @@ pub enum AuthRejection {
 impl IntoResponse for AuthRejection {
     fn into_response(self) -> axum::response::Response {
         let (status, message, error_code) = match self {
-            AuthRejection::Unauthorized => (
-                StatusCode::UNAUTHORIZED,
-                "Unauthorized",
-                "UNAUTHORIZED",
-            ),
+            AuthRejection::Unauthorized => {
+                (StatusCode::UNAUTHORIZED, "Unauthorized", "UNAUTHORIZED")
+            }
             AuthRejection::Unavailable => (
                 StatusCode::SERVICE_UNAVAILABLE,
                 "Service Unavailable",
@@ -120,10 +118,7 @@ where
 {
     type Rejection = HttpError;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         Query::<T>::from_request_parts(parts, state)
             .await
             .map(|Query(value)| ApiQuery(value))

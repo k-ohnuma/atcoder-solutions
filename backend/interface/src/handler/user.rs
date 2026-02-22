@@ -1,4 +1,4 @@
-use axum::{extract::State, Json};
+use axum::{Json, extract::State};
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::{
