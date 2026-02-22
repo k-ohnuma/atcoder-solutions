@@ -1,7 +1,10 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
 use anyhow::{Context, Result, anyhow};
-use axum::{Router, http::StatusCode};
+use axum::{
+    Router,
+    http::{Request, StatusCode},
+};
 use interface::{
     handler::problem::import_problem,
     route::{
@@ -13,50 +16,33 @@ use interface::{
 use registry::Registry;
 use shared::{
     config::AppConfig,
-    env::{Environment, which_env},
+    env::which_env,
 };
 use tokio::net::TcpListener;
 use tower_http::{
-    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
-    trace::{DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer},
+    trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn init_logger() -> Result<()> {
-    let env = which_env()?;
-    let log_level = match env {
-        Environment::Dev => "debug",
-        _ => "info",
-    };
-    let env_filter = tracing_subscriber::EnvFilter::from(log_level);
+    let _env = which_env()?;
+    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
 
-    if matches!(env, Environment::Dev) {
-        let subscriber = tracing_subscriber::fmt::layer()
-            .pretty()
-            .with_ansi(true)
-            .with_file(true)
-            .with_line_number(true)
-            .with_target(false);
-        tracing_subscriber::registry()
-            .with(subscriber)
-            .with(env_filter)
-            .with(ErrorLayer::default())
-            .try_init()?;
-    } else {
-        let subscriber = tracing_subscriber::fmt::layer()
-            .json()
-            .with_file(true)
-            .with_line_number(true)
-            .with_target(false);
+    let subscriber = tracing_subscriber::fmt::layer()
+        .json()
+        .with_file(true)
+        .with_line_number(true)
+        .with_target(true);
 
-        tracing_subscriber::registry()
-            .with(subscriber)
-            .with(env_filter)
-            .with(ErrorLayer::default())
-            .try_init()?;
-    }
+    tracing_subscriber::registry()
+        .with(subscriber)
+        .with(env_filter)
+        .with(ErrorLayer::default())
+        .try_init()?;
     Ok(())
 }
 
@@ -71,15 +57,47 @@ pub async fn run() -> Result<()> {
         .merge(build_solution_routers())
         .merge(build_contests_routers())
         .with_state(registry.to_owned())
-        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .make_span_with(|request: &Request<_>| {
+                    let request_id = request
+                        .extensions()
+                        .get::<RequestId>()
+                        .and_then(|v| v.header_value().to_str().ok())
+                        .or_else(|| {
+                            request
+                                .headers()
+                                .get("x-request-id")
+                                .and_then(|v| v.to_str().ok())
+                        })
+                        .unwrap_or("");
+                    let content_length = request
+                        .headers()
+                        .get("content-length")
+                        .and_then(|v| v.to_str().ok())
+                        .unwrap_or("");
+                    let user_agent = request
+                        .headers()
+                        .get("user-agent")
+                        .and_then(|v| v.to_str().ok())
+                        .unwrap_or("");
+                    tracing::span!(
+                        Level::INFO,
+                        "request",
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        version = ?request.version(),
+                        request_id = %request_id,
+                        content_length = %content_length,
+                        user_agent = %user_agent
+                    )
+                })
                 .on_request(DefaultOnRequest::new().level(Level::INFO))
                 .on_response(DefaultOnResponse::new().level(Level::INFO))
                 .on_failure(DefaultOnFailure::new().level(Level::ERROR)),
-        );
+        )
+        .layer(PropagateRequestIdLayer::x_request_id())
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
     let addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 8080);
     let listener = TcpListener::bind(addr).await?;
