@@ -79,9 +79,15 @@ export const onSubmitSignUp = async (values: SignUpSchema) => {
   } catch (e) {
     try {
       await deleteUser(cred.user);
-      // console.error(`rollback complete: delete ${cred.user.email}`);
+      console.error(`rollback complete: delete ${cred.user.email}`);
     } catch (rollbackError) {
       console.error("rollback failed", rollbackError);
+    } finally {
+      try {
+        await signOut(auth);
+      } catch (signOutError) {
+        console.error("sign out after signup failure failed", signOutError);
+      }
     }
     throw e;
   }
