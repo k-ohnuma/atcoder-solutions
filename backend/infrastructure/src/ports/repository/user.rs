@@ -103,7 +103,7 @@ impl UserRepository for UserRepositoryImpl {
         let revoked = sqlx::query(
             r#"
             SELECT COALESCE(
-                (EXTRACT(EPOCH FROM token_revoked_before)::BIGINT >= $2),
+                (EXTRACT(EPOCH FROM token_revoked_before)::BIGINT > $2),
                 FALSE
             ) AS revoked
             FROM users

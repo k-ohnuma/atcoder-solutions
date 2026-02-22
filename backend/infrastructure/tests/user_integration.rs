@@ -194,6 +194,9 @@ async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
     let should_be_revoked = repo.is_token_revoked(uid, revoked_epoch - 1).await?;
     assert!(should_be_revoked);
 
+    let should_not_be_revoked_same_second = repo.is_token_revoked(uid, revoked_epoch).await?;
+    assert!(!should_not_be_revoked_same_second);
+
     let should_not_be_revoked = repo.is_token_revoked(uid, revoked_epoch + 1).await?;
     assert!(!should_not_be_revoked);
 
