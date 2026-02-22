@@ -1,4 +1,4 @@
-use axum::{Json, extract::State};
+use axum::{extract::State, Json};
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::{
@@ -8,7 +8,7 @@ use usecase::user::{
 
 use crate::{
     error::ToHttpError,
-    http::AuthUser,
+    http::{ApiJson, AuthUser},
     model::user::create_user::{
         CreateUserRequest, CreateUserResponse, try_from_create_user_request_for_create_user_input,
     },
@@ -20,7 +20,7 @@ use crate::{
 pub async fn create_user_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<CreateUserRequest>,
+    ApiJson(req): ApiJson<CreateUserRequest>,
 ) -> Result<Json<ApiResponse<CreateUserResponse>>, HttpError> {
     let uid = user.uid;
     let create_user_input = try_from_create_user_request_for_create_user_input(req, uid)

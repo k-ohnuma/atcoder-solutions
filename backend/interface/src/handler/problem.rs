@@ -1,7 +1,7 @@
 use std::{cmp::Reverse, collections::BTreeMap};
 
 use axum::{
-    extract::{Query, State},
+    extract::State,
     http::StatusCode,
 };
 use domain::model::problem::ContestSeries;
@@ -14,6 +14,7 @@ use usecase::problem::{
 };
 
 use crate::error::ToHttpError;
+use crate::http::ApiQuery;
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
@@ -36,7 +37,7 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
 
 pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetProblemsByContestRequestParams>,
+    ApiQuery(query): ApiQuery<GetProblemsByContestRequestParams>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
     let contest = query.contest.trim();
     if contest.is_empty() {
@@ -53,7 +54,7 @@ pub async fn get_problems_by_contest_handler(
 
 pub async fn get_contest_group_by_contest_series_handler(
     State(reg): State<Registry>,
-    Query(query): Query<GetContestGroupByContestSeriesRequestParams>,
+    ApiQuery(query): ApiQuery<GetContestGroupByContestSeriesRequestParams>,
 ) -> Result<ApiResponse<BTreeMap<Reverse<String>, Vec<ProblemResponse>>>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);

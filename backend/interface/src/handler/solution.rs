@@ -1,6 +1,6 @@
 use axum::{
+    extract::State,
     Json,
-    extract::{Query, State},
 };
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
@@ -19,7 +19,7 @@ use usecase::solution::{
 
 use crate::{
     error::ToHttpError,
-    http::AuthUser,
+    http::{ApiJson, ApiQuery, AuthUser},
     model::solution::{
         create_comment::{CreateCommentRequest, CreateCommentResponse},
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
@@ -55,7 +55,7 @@ use crate::{
 pub async fn create_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<CreateSolutionRequest>,
+    ApiJson(req): ApiJson<CreateSolutionRequest>,
 ) -> Result<Json<ApiResponse<CreateSolutionResponse>>, HttpError> {
     let user_id = user.uid;
     let repo = CreateSolutionUsecase::new(
@@ -72,7 +72,7 @@ pub async fn create_solution_handler(
 pub async fn update_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<UpdateSolutionRequest>,
+    ApiJson(req): ApiJson<UpdateSolutionRequest>,
 ) -> Result<Json<ApiResponse<UpdateSolutionResponse>>, HttpError> {
     let uc =
         UpdateSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
@@ -84,7 +84,7 @@ pub async fn update_solution_handler(
 pub async fn delete_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Query(req): Query<DeleteSolutionRequest>,
+    ApiQuery(req): ApiQuery<DeleteSolutionRequest>,
 ) -> Result<Json<ApiResponse<DeleteSolutionResponse>>, HttpError> {
     let uc =
         DeleteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
@@ -96,7 +96,7 @@ pub async fn delete_solution_handler(
 }
 pub async fn get_solutions_by_problems_id_handler(
     State(registry): State<Registry>,
-    Query(req): Query<GetSolutionsByProblemIdRequest>,
+    ApiQuery(req): ApiQuery<GetSolutionsByProblemIdRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByProblemIdResponse>>>, HttpError> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
     let problem_id = req.problem_id.trim();
@@ -127,7 +127,7 @@ pub async fn get_solutions_by_problems_id_handler(
 
 pub async fn get_solutions_by_user_name_handler(
     State(registry): State<Registry>,
-    Query(req): Query<GetSolutionsByUserNameRequest>,
+    ApiQuery(req): ApiQuery<GetSolutionsByUserNameRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByUserNameResponse>>>, HttpError> {
     let uc = GetSolutionsByUserNameUsecase::new(registry.solution_service());
     let user_name = req.user_name.trim();
@@ -156,7 +156,7 @@ pub async fn get_solutions_by_user_name_handler(
 
 pub async fn get_solution_by_solution_id_handler(
     State(registry): State<Registry>,
-    Query(req): Query<GetSolutionBySolutionIdRequest>,
+    ApiQuery(req): ApiQuery<GetSolutionBySolutionIdRequest>,
 ) -> Result<Json<ApiResponse<GetSolutionBySolutionIdResponse>>, HttpError> {
     let uc = GetSolutionBySolutionIdUsecase::new(registry.solution_service());
     let solution = uc
@@ -169,7 +169,7 @@ pub async fn get_solution_by_solution_id_handler(
 pub async fn vote_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<VoteSolutionRequest>,
+    ApiJson(req): ApiJson<VoteSolutionRequest>,
 ) -> Result<Json<ApiResponse<VoteSolutionResponse>>, HttpError> {
     let uc = VoteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     uc.run(user.uid, req.solution_id)
@@ -183,7 +183,7 @@ pub async fn vote_solution_handler(
 pub async fn unvote_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Query(req): Query<UnvoteSolutionRequest>,
+    ApiQuery(req): ApiQuery<UnvoteSolutionRequest>,
 ) -> Result<Json<ApiResponse<UnvoteSolutionResponse>>, HttpError> {
     let uc =
         UnvoteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
@@ -197,7 +197,7 @@ pub async fn unvote_solution_handler(
 
 pub async fn get_solution_votes_count_handler(
     State(registry): State<Registry>,
-    Query(req): Query<GetSolutionVotesCountRequest>,
+    ApiQuery(req): ApiQuery<GetSolutionVotesCountRequest>,
 ) -> Result<Json<ApiResponse<GetSolutionVotesCountResponse>>, HttpError> {
     let uc = GetSolutionVotesCountUsecase::new(registry.solution_service());
     let count = uc
@@ -213,7 +213,7 @@ pub async fn get_solution_votes_count_handler(
 pub async fn get_my_vote_status_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Query(req): Query<GetMyVoteStatusRequest>,
+    ApiQuery(req): ApiQuery<GetMyVoteStatusRequest>,
 ) -> Result<Json<ApiResponse<GetMyVoteStatusResponse>>, HttpError> {
     let uc = GetMyVoteStatusUsecase::new(registry.solution_service());
     let liked = uc
@@ -229,7 +229,7 @@ pub async fn get_my_vote_status_handler(
 pub async fn create_comment_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<CreateCommentRequest>,
+    ApiJson(req): ApiJson<CreateCommentRequest>,
 ) -> Result<Json<ApiResponse<CreateCommentResponse>>, HttpError> {
     let uc = CreateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     let input = CreateCommentInput {
@@ -244,7 +244,7 @@ pub async fn create_comment_handler(
 pub async fn update_comment_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Json(req): Json<UpdateCommentRequest>,
+    ApiJson(req): ApiJson<UpdateCommentRequest>,
 ) -> Result<Json<ApiResponse<UpdateCommentResponse>>, HttpError> {
     let uc = UpdateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     let input = from_req_for_update_comment(user.uid, req);
@@ -255,7 +255,7 @@ pub async fn update_comment_handler(
 pub async fn delete_comment_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-    Query(req): Query<DeleteCommentRequest>,
+    ApiQuery(req): ApiQuery<DeleteCommentRequest>,
 ) -> Result<Json<ApiResponse<DeleteCommentResponse>>, HttpError> {
     let uc = DeleteCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     let deleted_id = uc
@@ -267,7 +267,7 @@ pub async fn delete_comment_handler(
 
 pub async fn get_comments_by_solution_id_handler(
     State(registry): State<Registry>,
-    Query(req): Query<GetCommentsBySolutionIdRequest>,
+    ApiQuery(req): ApiQuery<GetCommentsBySolutionIdRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetCommentsBySolutionIdResponse>>>, HttpError> {
     let uc = GetCommentsBySolutionIdUsecase::new(registry.solution_service());
     let comments = uc
