@@ -9,7 +9,7 @@
     "get": "cdktf get",
     "build": "tsc",
     "synth": "cdktf synth",
-    "compile": "tsc --pretty",
+    "compile": "tsc --pretty --noEmit",
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
