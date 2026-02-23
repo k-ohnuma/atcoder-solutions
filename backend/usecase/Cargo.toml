@@ -12,9 +12,9 @@ domain.workspace = true
 itertools.workspace = true
 shared.workspace = true
 thiserror.workspace = true
+tracing.workspace = true
 uuid.workspace = true
 validator.workspace = true
-tracing.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true

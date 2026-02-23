@@ -4,3 +4,5 @@ formatter:
 exclude:
   - frontend/pnpm-lock.yaml
   - frontend/node_modules
+  - infra/pnpm-lock.yaml
+  - infra/node_modules

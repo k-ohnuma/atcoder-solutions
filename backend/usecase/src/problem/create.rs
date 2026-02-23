@@ -38,7 +38,10 @@ impl ImportProblemsUsecase {
 
         let contests = contests.into_iter().collect::<Vec<(String, String)>>();
         let mut uow = self.problem_tx_manager.begin().await?;
-        info!(contests = contests.len(), "problem import upserting contests");
+        info!(
+            contests = contests.len(),
+            "problem import upserting contests"
+        );
         uow.problems().upsert_contests_bulk(&contests).await?;
         info!(
             total = problems.len(),
