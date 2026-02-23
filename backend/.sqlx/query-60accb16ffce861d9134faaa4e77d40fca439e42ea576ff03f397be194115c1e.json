@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM solution_tags WHERE solution_id = $1 AND NOT (tag_id = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "60accb16ffce861d9134faaa4e77d40fca439e42ea576ff03f397be194115c1e"
+}

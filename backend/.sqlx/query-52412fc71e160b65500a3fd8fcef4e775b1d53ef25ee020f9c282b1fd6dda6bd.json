@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH input(tag) AS (\n              SELECT DISTINCT trim(t) FROM UNNEST($1::text[]) AS t WHERE trim(t) != ''\n            ),\n            ins AS (\n              INSERT INTO tags(name)\n              SELECT tag FROM input\n              ON CONFLICT (name) DO NOTHING\n              RETURNING id\n            )\n            SELECT id FROM ins\n            UNION ALL\n            SELECT t.id\n            FROM tags t\n            JOIN input i ON t.name = i.tag\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "52412fc71e160b65500a3fd8fcef4e775b1d53ef25ee020f9c282b1fd6dda6bd"
+}

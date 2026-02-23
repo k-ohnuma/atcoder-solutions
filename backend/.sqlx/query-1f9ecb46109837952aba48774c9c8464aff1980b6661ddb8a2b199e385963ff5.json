@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT p.id, p.contest_code, p.problem_index, p.title\n            FROM problems p\n            JOIN contests c ON c.code = p.contest_code\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE p.contest_code = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "contest_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_index",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1f9ecb46109837952aba48774c9c8464aff1980b6661ddb8a2b199e385963ff5"
+}

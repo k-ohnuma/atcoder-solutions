@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    s.id,\n                    s.title,\n                    s.problem_id,\n                    p.title as problem_title,\n                    s.user_id,\n                    u.user_name,\n                    COALESCE(\n                        array_remove(array_agg(t.name ORDER BY t.name), NULL),\n                        ARRAY[]::text[]\n                    ) AS \"tags!: Vec<String>\",\n                    s.body_md,\n                    s.submit_url,\n                    s.created_at,\n                    s.updated_at\n                FROM solutions s\n                JOIN users u on s.user_id = u.id\n                JOIN problems p on s.problem_id = p.id\n                LEFT JOIN solution_tags st ON st.solution_id = s.id\n                LEFT JOIN tags t ON t.id = st.tag_id\n                WHERE s.id = $1\n                GROUP BY\n                    s.id,\n                    s.title,\n                    s.problem_id,\n                    p.title,\n                    s.user_id,\n                    u.user_name,\n                    s.body_md,\n                    s.submit_url,\n                    s.created_at,\n                    s.updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "problem_title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "user_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "user_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "tags!: Vec<String>",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "body_md",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "submit_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9c3441a4e6b41ee46f0f6cc1079e01136357bf0f57d1b87d9e32f80ac2f011b6"
+}
