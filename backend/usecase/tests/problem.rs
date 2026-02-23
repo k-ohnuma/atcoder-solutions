@@ -27,6 +27,8 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
 struct TxCalls {
     contests: Vec<(String, String)>,
     problems: Vec<Problem>,
+    contests_bulk_calls: usize,
+    problems_bulk_calls: usize,
     commits: usize,
 }
 
@@ -62,6 +64,23 @@ impl ProblemRepositoryTx for DummyProblemUow {
             problem_index: problem_index.to_string(),
             title: title.to_string(),
         });
+        Ok(())
+    }
+
+    async fn upsert_contests_bulk(
+        &mut self,
+        contests: &[(String, String)],
+    ) -> Result<(), RepositoryError> {
+        let mut calls = self.shared.lock().unwrap();
+        calls.contests_bulk_calls += 1;
+        calls.contests.extend(contests.iter().cloned());
+        Ok(())
+    }
+
+    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
+        let mut calls = self.shared.lock().unwrap();
+        calls.problems_bulk_calls += 1;
+        calls.problems.extend(problems.iter().cloned());
         Ok(())
     }
 }
@@ -123,6 +142,8 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
 
     let calls = calls.lock().unwrap();
     assert_eq!(calls.commits, 1);
+    assert_eq!(calls.contests_bulk_calls, 1);
+    assert_eq!(calls.problems_bulk_calls, 1);
     assert_eq!(calls.problems.len(), 2);
     assert_eq!(calls.contests.len(), 1);
     assert_eq!(calls.contests[0].0, "abc234");
