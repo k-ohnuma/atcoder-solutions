@@ -1,25 +1,34 @@
-import { TerraformOutput, TerraformStack, TerraformVariable } from "cdktf";
+import {
+  GcsBackend,
+  TerraformOutput,
+  TerraformStack,
+  TerraformVariable,
+} from "cdktf";
 import { Construct } from "constructs";
 import { CloudRunV2Job } from "../.gen/providers/google/cloud-run-v2-job";
 import { CloudRunV2JobIamMember } from "../.gen/providers/google/cloud-run-v2-job-iam-member";
+import { CloudRunServiceIamMember } from "../.gen/providers/google/cloud-run-service-iam-member";
 import { CloudRunV2Service } from "../.gen/providers/google/cloud-run-v2-service";
-import { CloudRunV2ServiceIamMember } from "../.gen/providers/google/cloud-run-v2-service-iam-member";
 import { CloudSchedulerJob } from "../.gen/providers/google/cloud-scheduler-job";
 import { GoogleProvider } from "../.gen/providers/google/provider";
 import { ProjectService } from "../.gen/providers/google/project-service";
 import { SecretManagerSecret } from "../.gen/providers/google/secret-manager-secret";
 import { SecretManagerSecretIamMember } from "../.gen/providers/google/secret-manager-secret-iam-member";
-import { SecretManagerSecretVersion } from "../.gen/providers/google/secret-manager-secret-version";
 import { ServiceAccount } from "../.gen/providers/google/service-account";
 import {
   backendStackStaticConfig,
   backendStackVariableDefinitions,
+  stackEnvironmentName,
   type StringVariableDefinition,
 } from "../config/config";
 
 export class BackendStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
+    new GcsBackend(this, {
+      bucket: backendStackStaticConfig.tfStateBackendBucket,
+      prefix: `${backendStackStaticConfig.tfStateBackendPrefixBase}/${stackEnvironmentName}`,
+    });
 
     const defineStringVariable = (
       definition: StringVariableDefinition,
@@ -45,9 +54,6 @@ export class BackendStack extends TerraformStack {
     );
     const apiContainerImage = defineStringVariable(
       backendStackVariableDefinitions.apiContainerImage,
-    );
-    const appDatabaseUrl = defineStringVariable(
-      backendStackVariableDefinitions.appDatabaseUrl,
     );
     const firebaseProjectId = defineStringVariable(
       backendStackVariableDefinitions.firebaseProjectId,
@@ -113,20 +119,15 @@ export class BackendStack extends TerraformStack {
     );
 
     const appDatabaseUrlSecret = new SecretManagerSecret(
-        this,
-        "app-database-url-secret",
-        {
-          project: projectId.value,
-          secretId: appDatabaseSecretId,
-          replication: { auto: {} },
-          dependsOn: serviceEnables,
-        },
+      this,
+      "app-database-url-secret",
+      {
+        project: projectId.value,
+        secretId: appDatabaseSecretId,
+        replication: { auto: {} },
+        dependsOn: serviceEnables,
+      },
     );
-
-    new SecretManagerSecretVersion(this, "app-database-url-secret-version", {
-      secret: appDatabaseUrlSecret.id,
-      secretData: appDatabaseUrl.stringValue,
-    });
 
     new SecretManagerSecretIamMember(this, "run-sa-secret-access", {
       project: projectId.value,
@@ -135,7 +136,7 @@ export class BackendStack extends TerraformStack {
       member: `serviceAccount:${runServiceAccount.email}`,
     });
 
-    new CloudRunV2Service(this, "api-service", {
+    const service = new CloudRunV2Service(this, "api-service", {
       project: projectId.value,
       location: region.value,
       name: apiServiceResourceName,
@@ -175,12 +176,13 @@ export class BackendStack extends TerraformStack {
       dependsOn: [runServiceAccount],
     });
 
-    new CloudRunV2ServiceIamMember(this, "api-service-public-invoker", {
+    new CloudRunServiceIamMember(this, "api-service-public-invoker", {
       project: projectId.value,
       location: region.value,
-      name: apiServiceResourceName,
+      service: apiServiceResourceName,
       role: "roles/run.invoker",
       member: "allUsers",
+      dependsOn: [service],
     });
 
     const dailyImportJob = new CloudRunV2Job(this, "daily-import-job", {
@@ -190,11 +192,12 @@ export class BackendStack extends TerraformStack {
       deletionProtection: false,
       template: {
         template: {
+          timeout: backendStackStaticConfig.dailyJobTimeout,
           serviceAccount: runServiceAccount.email,
           containers: [
             {
               image: apiContainerImage.value,
-              args: [backendStackStaticConfig.runDailyJobArg],
+              command: [...backendStackStaticConfig.runDailyJobCommand],
               env: [
                 {
                   name: "APP_DATABASE_URL",
@@ -257,8 +260,8 @@ export class BackendStack extends TerraformStack {
     });
 
     new TerraformOutput(this, "api_service_uri", {
-      value: `https://${apiServiceResourceName}-${region.value}.a.run.app`,
-      description: "Public URL for backend API",
+      value: service.uri,
+      description: "api_endpoint",
     });
     new TerraformOutput(this, "daily_job_name_output", {
       value: dailyImportJob.name,

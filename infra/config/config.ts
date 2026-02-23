@@ -1,4 +1,5 @@
 export type TerraformVariableType = "string";
+export const stackEnvironmentName = process.env.CDKTF_ENV ?? "dev";
 
 export interface StringVariableDefinition {
   tfName: string;
@@ -14,7 +15,6 @@ export interface BackendStackVariableDefinitions {
   apiServiceName: StringVariableDefinition;
   dailyJobName: StringVariableDefinition;
   apiContainerImage: StringVariableDefinition;
-  appDatabaseUrl: StringVariableDefinition;
   firebaseProjectId: StringVariableDefinition;
   atcoderProblemsBaseEndpoint: StringVariableDefinition;
   dailyCron: StringVariableDefinition;
@@ -51,11 +51,6 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
     tfName: "api_container_image",
     type: "string",
   },
-  appDatabaseUrl: {
-    tfName: "app_database_url",
-    type: "string",
-    sensitive: true,
-  },
   firebaseProjectId: {
     tfName: "firebase_project_id",
     type: "string",
@@ -79,17 +74,22 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
 };
 
 export interface BackendStackStaticConfig {
+  tfStateBackendBucket: string;
+  tfStateBackendPrefixBase: string;
   requiredProjectServices: readonly string[];
   runServiceAccountIdBase: string;
   schedulerServiceAccountIdBase: string;
   appDatabaseSecretIdBase: string;
   schedulerJobNameBase: string;
-  runDailyJobArg: string;
+  runDailyJobCommand: readonly string[];
+  dailyJobTimeout: string;
   runtimeEnv: string;
   schedulerOidcAudience: string;
 }
 
 export const backendStackStaticConfig: BackendStackStaticConfig = {
+  tfStateBackendBucket: "atcoder-solutions-tfstate",
+  tfStateBackendPrefixBase: "atcoder-solutions-backend-infra",
   requiredProjectServices: [
     "run.googleapis.com",
     "cloudscheduler.googleapis.com",
@@ -97,10 +97,11 @@ export const backendStackStaticConfig: BackendStackStaticConfig = {
     "iam.googleapis.com",
   ],
   runServiceAccountIdBase: "atcoder-solutions-run",
-  schedulerServiceAccountIdBase: "atcoder-solutions-scheduler",
+  schedulerServiceAccountIdBase: "atcoder-solutions-rule",
   appDatabaseSecretIdBase: "app-database-url",
   schedulerJobNameBase: "atcoder-solutions-daily-import",
-  runDailyJobArg: "run_daily_job",
-  runtimeEnv: "prd",
+  runDailyJobCommand: ["./run_daily_job"],
+  dailyJobTimeout: "3600s",
+  runtimeEnv: "dev",
   schedulerOidcAudience: "https://run.googleapis.com/",
 };
