@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::error::repository::RepositoryError;
+use crate::model::problem::Problem;
 
 #[async_trait]
 pub trait ProblemRepositoryTx: Send + Sync {
@@ -16,6 +17,11 @@ pub trait ProblemRepositoryTx: Send + Sync {
         problem_index: &str,
         title: &str,
     ) -> Result<(), RepositoryError>;
+    async fn upsert_contests_bulk(
+        &mut self,
+        contests: &[(String, String)],
+    ) -> Result<(), RepositoryError>;
+    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError>;
 }
 
 #[async_trait]

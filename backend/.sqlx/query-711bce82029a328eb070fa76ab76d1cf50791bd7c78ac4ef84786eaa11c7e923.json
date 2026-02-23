@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO solution_tags (solution_id, tag_id)\n               SELECT $1, x FROM UNNEST($2::uuid[]) AS t(x)\n               ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "711bce82029a328eb070fa76ab76d1cf50791bd7c78ac4ef84786eaa11c7e923"
+}

@@ -21,6 +21,7 @@ use tower_http::{
     trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
+use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -109,10 +110,11 @@ pub async fn run(app_config: AppConfig) -> Result<()> {
 }
 
 pub async fn run_daily_job(reg: &Registry) -> Result<()> {
+    info!("daily job started");
     match import_problem(reg).await {
         StatusCode::OK => Ok(()),
         _ => Err(anyhow!("daily fetch failed")),
     }?;
-
+    info!("daily job finished");
     Ok(())
 }

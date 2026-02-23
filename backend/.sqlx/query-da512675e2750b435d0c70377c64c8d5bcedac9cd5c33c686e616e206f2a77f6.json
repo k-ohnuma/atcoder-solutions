@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO contests (code, series_code)\n        VALUES ($1, $2)\n        ON CONFLICT (code) DO NOTHING\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "da512675e2750b435d0c70377c64c8d5bcedac9cd5c33c686e616e206f2a77f6"
+}

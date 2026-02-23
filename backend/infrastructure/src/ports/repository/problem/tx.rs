@@ -2,9 +2,10 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
+    model::problem::Problem,
     ports::repository::problem::tx::{ProblemRepositoryTx, ProblemTxManager, ProblemUnitOfWork},
 };
-use sqlx::{Postgres, Transaction};
+use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::{database::ConnectionPool, error::map_sqlx_error};
 
@@ -98,6 +99,56 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
         .execute(self.conn())
         .await
         .map_err(map_sqlx_error)?;
+        Ok(())
+    }
+
+    async fn upsert_contests_bulk(
+        &mut self,
+        contests: &[(String, String)],
+    ) -> Result<(), RepositoryError> {
+        if contests.is_empty() {
+            return Ok(());
+        }
+
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("INSERT INTO contests (code, series_code) ");
+
+        query_builder.push_values(contests.iter(), |mut b, (contest_code, series_code)| {
+            b.push_bind(contest_code).push_bind(series_code);
+        });
+        query_builder.push(" ON CONFLICT (code) DO NOTHING");
+
+        query_builder
+            .build()
+            .execute(self.conn())
+            .await
+            .map_err(map_sqlx_error)?;
+        Ok(())
+    }
+
+    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
+        if problems.is_empty() {
+            return Ok(());
+        }
+
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("INSERT INTO problems (id, contest_code, problem_index, title) ");
+
+        query_builder.push_values(problems.iter(), |mut b, problem| {
+            b.push_bind(&problem.id)
+                .push_bind(&problem.contest_code)
+                .push_bind(&problem.problem_index)
+                .push_bind(&problem.title);
+        });
+        query_builder.push(
+            " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title",
+        );
+
+        query_builder
+            .build()
+            .execute(self.conn())
+            .await
+            .map_err(map_sqlx_error)?;
         Ok(())
     }
 }

@@ -1,0 +1,59 @@
+[tools]
+node = "22.11.0"
+pnpm = "latest"
+
+[env]
+IMAGE_BASE = "asia-northeast1-docker.pkg.dev/atcoder-solutions/atcoder-solutions"
+
+[tasks.buildbackend]
+run = '''
+docker buildx build --platform linux/amd64 -t atcoder-solutions-backend:${usage_env?} --load ../backend
+'''
+usage = '''
+arg "<env>" default="dev"
+'''
+
+[tasks.push]
+run = '''
+set -e
+IMAGE_NAME="{{env.IMAGE_BASE}}-${usage_env?}/backend:${usage_tag?}"
+docker buildx build --platform linux/amd64 -t "$IMAGE_NAME" --push ../backend
+'''
+usage = '''
+arg "<env>" default="dev"
+arg "<tag>"
+'''
+
+[tasks.cdkdiff]
+run = '''
+set -e
+IMAGE_NAME="{{env.IMAGE_BASE}}-${usage_env?}/backend:${usage_tag?}"
+CDKTF_ENV="${usage_env?}" TF_VAR_api_container_image="$IMAGE_NAME" TF_VAR_project_id="atcoder-solutions" cdktf diff
+'''
+usage = '''
+arg "<env>" default="dev"
+arg "<tag>"
+'''
+
+[tasks.cdkdeploy]
+run = '''
+set -e
+IMAGE_NAME="{{env.IMAGE_BASE}}-${usage_env?}/backend:${usage_tag?}"
+CDKTF_ENV="${usage_env?}" TF_VAR_api_container_image="$IMAGE_NAME" TF_VAR_project_id="atcoder-solutions" cdktf deploy
+'''
+usage = '''
+arg "<env>" default="dev"
+arg "<tag>"
+'''
+
+[tasks.setsecret]
+run = '''
+set -e
+SECRET_NAME="app-database-url-${usage_env?}"
+printf '%s' "${usage_dburl?}" | gcloud secrets versions add "$SECRET_NAME" --data-file=- --project="${usage_project?}"
+'''
+usage = '''
+arg "<env>" default="dev"
+arg "<dburl>" default=""
+arg "<project>" default="atcoder-solutions"
+'''

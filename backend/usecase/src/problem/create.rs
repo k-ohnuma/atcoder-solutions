@@ -8,8 +8,11 @@ use domain::{
         external::atcoder_problems::AtcoderProblemsPort, repository::problem::tx::ProblemTxManager,
     },
 };
+use tracing::info;
 
 use crate::model::problem::create::ImportProblemsUsecaseError;
+
+const PROBLEM_UPSERT_CHUNK_SIZE: usize = 500;
 
 #[derive(new)]
 pub struct ImportProblemsUsecase {
@@ -19,7 +22,9 @@ pub struct ImportProblemsUsecase {
 
 impl ImportProblemsUsecase {
     pub async fn run(&self) -> Result<(), ImportProblemsUsecaseError> {
+        info!("problem import started");
         let problems = self.atcoder_problems_port.fetch_problems().await?;
+        info!(problems = problems.len(), "problem import fetched");
 
         let contests = problems
             .iter()
@@ -31,23 +36,32 @@ impl ImportProblemsUsecase {
             })
             .collect::<HashSet<(String, String)>>();
 
+        let contests = contests.into_iter().collect::<Vec<(String, String)>>();
         let mut uow = self.problem_tx_manager.begin().await?;
-        for (contest_code, series_code) in contests {
-            uow.problems()
-                .upsert_contest(&contest_code, &series_code)
-                .await?;
-        }
-        for problem in problems {
-            uow.problems()
-                .upsert_problem(
-                    &problem.id,
-                    &problem.contest_code,
-                    &problem.problem_index,
-                    &problem.title,
-                )
-                .await?;
+        info!(
+            contests = contests.len(),
+            "problem import upserting contests"
+        );
+        uow.problems().upsert_contests_bulk(&contests).await?;
+        info!(
+            total = problems.len(),
+            chunk_size = PROBLEM_UPSERT_CHUNK_SIZE,
+            "problem import upserting problems in chunks"
+        );
+
+        for (chunk_index, chunk) in problems.chunks(PROBLEM_UPSERT_CHUNK_SIZE).enumerate() {
+            uow.problems().upsert_problems_bulk(chunk).await?;
+            let processed = ((chunk_index + 1) * PROBLEM_UPSERT_CHUNK_SIZE).min(problems.len());
+            info!(
+                chunk = chunk_index + 1,
+                chunk_size = chunk.len(),
+                processed,
+                total = problems.len(),
+                "problem import chunk completed"
+            );
         }
         uow.commit().await?;
+        info!("problem import committed");
         Ok(())
     }
 }

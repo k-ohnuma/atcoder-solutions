@@ -1,0 +1,10 @@
+target
+.git
+.gitignore
+compose.yaml
+Dockerfile
+mise.toml
+Makefile.toml
+tests
+**/*.log
+**/.DS_Store
