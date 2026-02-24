@@ -5,9 +5,10 @@ import {
   signInWithEmailAndPassword,
   signOut,
   type UserCredential,
+  updatePassword,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/shared/firebase/client";
-import { SignInSchema, SignUpSchema } from "../model/schema";
+import { SignInSchema, SignUpSchema, UpdatePasswordSchema } from "../model/schema";
 
 function toFirebaseAuthErrorMessage(error: unknown): string {
   if (!(error instanceof FirebaseError)) {
@@ -161,5 +162,19 @@ export const onSubmitDeleteAccount = async () => {
     const detail = e instanceof Error ? e.message : "unknown error";
     console.error("backend delete failed after firebase delete", detail);
     throw new Error("アカウント削除は完了しましたが、サーバー上のデータ削除で一部失敗しました。時間をおいて確認してください。");
+  }
+};
+
+export const onSubmitUpdatePassword = async (values: UpdatePasswordSchema) => {
+  const auth = getFirebaseAuth();
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("ログイン状態を確認できませんでした。再ログインしてください。");
+  }
+
+  try {
+    await updatePassword(user, values.password);
+  } catch (e) {
+    throw new Error(toFirebaseAuthErrorMessage(e));
   }
 };
