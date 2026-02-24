@@ -3,13 +3,12 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
-
-const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
+import { Problem } from "@/shared/model/problem";
 
 const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
+type ContestGroupCollection = Map<string, Problem[]>;
 
 type HomePageProps = {
   searchParams: Promise<{
@@ -24,10 +23,28 @@ function normalizeSeries(value?: string): SupportedSeries {
   return "ABC";
 }
 
+async function getContestGroupBySeries(series: SupportedSeries): Promise<ContestGroupCollection> {
+  const url = new URL("/api/problems/contest-group", serverConfig.appConfig.appOrigin);
+  url.searchParams.set("series", series);
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const json = (await res.json()) as { ok?: boolean; data?: Record<string, Problem[]> };
+  if (!res.ok || !json.ok || !json.data) {
+    return new Map();
+  }
+
+  return new Map<string, Problem[]>(Object.entries(json.data));
+}
+
 export default async function Home({ searchParams }: HomePageProps) {
   const { series } = await searchParams;
   const selectedSeries = normalizeSeries(series);
-  const contestGroupCollection = await apiClient.getContestGroupByContestSeries(selectedSeries);
+  const contestGroupCollection = await getContestGroupBySeries(selectedSeries);
   const list = [...contestGroupCollection.entries()].sort(([a], [b]) => b.localeCompare(a));
 
   return (

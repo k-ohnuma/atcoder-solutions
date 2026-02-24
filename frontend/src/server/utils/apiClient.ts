@@ -21,12 +21,14 @@ export class BackendApiClient {
     token,
     body,
     params,
+    revalidateSeconds,
   }: {
     method: "GET" | "POST" | "PATCH" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
     params?: Record<string, string>;
+    revalidateSeconds?: number;
   }): Promise<Resp<T>> {
     const url = new URL(path.replace(/^\//, ""), this.baseEndpoint);
 
@@ -46,6 +48,10 @@ export class BackendApiClient {
       method,
       headers: reqHeaders,
     };
+    if (method === "GET" && revalidateSeconds !== undefined) {
+      init.cache = "force-cache";
+      (init as RequestInit & { next?: { revalidate: number } }).next = { revalidate: revalidateSeconds };
+    }
     if (hasBody) {
       if (!reqHeaders["Content-Type"]) {
         reqHeaders["Content-Type"] = "application/json";
@@ -66,12 +72,12 @@ export class BackendApiClient {
     }
   }
 
-  async get<T>(path: string, params?: QueryParams): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, params });
+  async get<T>(path: string, params?: QueryParams, revalidateSeconds?: number): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, params, revalidateSeconds });
   }
 
-  async getWithToken<T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, token, params });
+  async getWithToken<T>(path: string, token: string, params?: QueryParams, revalidateSeconds?: number): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, token, params, revalidateSeconds });
   }
 
   async post<T>(path: string, body: JsonValue): Promise<Resp<T>> {

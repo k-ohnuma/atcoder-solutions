@@ -7,6 +7,7 @@ import { serverConfig } from "@/shared/config/backend";
 
 export class ContestRepositoryImpl implements ContestRepository {
   private client: BackendApiClient;
+  private static readonly READ_CACHE_SECONDS = 60 * 60;
   constructor() {
     const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
@@ -19,6 +20,6 @@ export class ContestRepositoryImpl implements ContestRepository {
   getContestsBySeries = async (series: ContestSeries): Promise<Resp<Contest[]>> => {
     const params = { series };
     const path = this.getContestsByContestSeriesPath();
-    return await this.client.get<Contest[]>(path, params);
+    return await this.client.get<Contest[]>(path, params, ContestRepositoryImpl.READ_CACHE_SECONDS);
   };
 }
