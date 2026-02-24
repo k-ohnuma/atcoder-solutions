@@ -20,8 +20,8 @@ export const signUpSchema = z
     password: z
       .string()
       .min(1, "パスワードを入力してください")
-      .refine((val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(val), {
-        message: "パスワードは6文字以上で、大文字・小文字・数字をすべて含めてください",
+      .refine((val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z0-9#$%&@^`~]{6,}$/.test(val), {
+        message: "パスワードは6文字以上で、大文字・小文字・数字を含み、使用できる記号は #$%&@^`~ のみです",
       }),
     confirm: z.string(),
   })
@@ -31,3 +31,22 @@ export const signUpSchema = z
   });
 
 export type SignUpSchema = z.infer<typeof signUpSchema>;
+
+const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z0-9#$%&@^`~]{6,}$/;
+
+export const updatePasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, "パスワードを入力してください")
+      .refine((val) => passwordPattern.test(val), {
+        message: "パスワードは6文字以上で、大文字・小文字・数字を含み、使用できる記号は #$%&@^`~ のみです",
+      }),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ["confirm"],
+    message: "パスワードが一致しません",
+  });
+
+export type UpdatePasswordSchema = z.infer<typeof updatePasswordSchema>;

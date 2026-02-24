@@ -113,6 +113,11 @@ export function Header({ appName }: { appName: string }) {
                         解説一覧
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings/password" onClick={() => setIsMyPageMenuOpen(false)}>
+                        パスワード変更
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       className="cursor-pointer"
                       onSelect={async () => {
