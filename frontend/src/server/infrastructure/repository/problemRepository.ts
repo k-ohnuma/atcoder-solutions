@@ -6,6 +6,7 @@ import { serverConfig } from "@/shared/config/backend";
 
 export class ProblemRepositoryImpl implements ProblemRepository {
   private client: BackendApiClient;
+  private static readonly READ_CACHE_SECONDS = 60 * 60;
   constructor() {
     const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
@@ -21,11 +22,11 @@ export class ProblemRepositoryImpl implements ProblemRepository {
   getProblemsByContest = async (contest: string): Promise<Resp<Problem[]>> => {
     const params = { contest };
     const path = this.getProblemsByContestSeriesPath();
-    return await this.client.get<Problem[]>(path, params);
+    return await this.client.get<Problem[]>(path, params, ProblemRepositoryImpl.READ_CACHE_SECONDS);
   };
   getContestGroupByContestSeries = async (series: ContestSeries): Promise<Resp<ContestGroupCollection>> => {
     const params = { series };
     const path = this.getContestGroupByContestSeriesPath();
-    return await this.client.get<ContestGroupCollection>(path, params);
+    return await this.client.get<ContestGroupCollection>(path, params, ProblemRepositoryImpl.READ_CACHE_SECONDS);
   };
 }

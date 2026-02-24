@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { publicCacheHeaders } from "@/server/http/cache";
 import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
 import { getProblemsByContestSeriesQueryParams } from "@/server/interface/problem/get";
 
@@ -15,5 +16,5 @@ export async function GET(req: NextRequest) {
   if (!problems.ok) {
     return NextResponse.json({ ok: false, error: problems.error }, { status: problems.status });
   }
-  return NextResponse.json({ ok: true, data: problems.data }, { status: 200 });
+  return NextResponse.json({ ok: true, data: problems.data }, { status: 200, headers: publicCacheHeaders(3600, 300) });
 }
