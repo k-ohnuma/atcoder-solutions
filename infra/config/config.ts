@@ -84,7 +84,6 @@ export interface BackendStackStaticConfig {
   runDailyJobCommand: readonly string[];
   dailyJobTimeout: string;
   runtimeEnv: string;
-  schedulerOidcAudience: string;
 }
 
 export const backendStackStaticConfig: BackendStackStaticConfig = {
@@ -103,5 +102,4 @@ export const backendStackStaticConfig: BackendStackStaticConfig = {
   runDailyJobCommand: ["./run_daily_job"],
   dailyJobTimeout: "3600s",
   runtimeEnv: "dev",
-  schedulerOidcAudience: "https://run.googleapis.com/",
 };
