@@ -251,9 +251,8 @@ export class BackendStack extends TerraformStack {
       httpTarget: {
         uri: `https://run.googleapis.com/v2/projects/${projectId.value}/locations/${region.value}/jobs/${dailyJobResourceName}:run`,
         httpMethod: "POST",
-        oidcToken: {
+        oauthToken: {
           serviceAccountEmail: schedulerServiceAccount.email,
-          audience: backendStackStaticConfig.schedulerOidcAudience,
         },
       },
       dependsOn: [dailyImportJob],
