@@ -3,6 +3,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ShowAllButton } from "@/features/problems/ui/molecules/ShowAllButton";
 import { serverConfig } from "@/shared/config/backend";
 import { Problem } from "@/shared/model/problem";
 
@@ -13,6 +15,8 @@ type ContestGroupCollection = Map<string, Problem[]>;
 type HomePageProps = {
   searchParams: Promise<{
     series?: string;
+    showAll?: string;
+    q?: string;
   }>;
 };
 
@@ -42,10 +46,37 @@ async function getContestGroupBySeries(series: SupportedSeries): Promise<Contest
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
-  const { series } = await searchParams;
+  const { series, showAll, q } = await searchParams;
   const selectedSeries = normalizeSeries(series);
   const contestGroupCollection = await getContestGroupBySeries(selectedSeries);
-  const list = [...contestGroupCollection.entries()].sort(([a], [b]) => b.localeCompare(a));
+  const query = q?.trim() ?? "";
+  const normalizedQuery = query.toLowerCase();
+  const list = [...contestGroupCollection.entries()]
+    .map(([contestId, problems]) => {
+      if (!normalizedQuery) {
+        return [contestId, problems] as const;
+      }
+      const filteredProblems = problems.filter((problem) => {
+        const problemTitle = problem.title.toLowerCase();
+        const problemIndex = problem.problemIndex.toLowerCase();
+        const problemId = problem.id.toLowerCase();
+        const contestCode = contestId.toLowerCase();
+        return (
+          problemTitle.includes(normalizedQuery) ||
+          problemIndex.includes(normalizedQuery) ||
+          problemId.includes(normalizedQuery) ||
+          contestCode.includes(normalizedQuery)
+        );
+      });
+      return [contestId, filteredProblems] as const;
+    })
+    .filter(([, problems]) => problems.length > 0);
+
+  const INITIAL_RENDER_LIMIT = 50;
+  const shouldShowAll = showAll === "1" || normalizedQuery.length > 0;
+  const visibleList = shouldShowAll ? list : list.slice(0, INITIAL_RENDER_LIMIT);
+  const remainingContestCount = Math.max(0, list.length - visibleList.length);
+  const totalMatchedProblems = visibleList.reduce((acc, [, problems]) => acc + problems.length, 0);
 
   return (
     <PageContainer>
@@ -60,33 +91,55 @@ export default async function Home({ searchParams }: HomePageProps) {
             );
           })}
         </div>
+
+        <form method="GET" className="flex w-full items-center gap-2">
+          <input type="hidden" name="series" value={selectedSeries} />
+          <Input name="q" placeholder="検索" defaultValue={query} />
+          <Button type="submit" variant="outline">
+            検索
+          </Button>
+          {query && (
+            <Button asChild type="button" variant="ghost">
+              <Link href={`/?series=${selectedSeries}`}>クリア</Link>
+            </Button>
+          )}
+        </form>
+        {query && (
+          <p className="text-sm text-muted-foreground">
+            「{query}」の検索: {totalMatchedProblems} 件
+          </p>
+        )}
       </section>
 
       <section className="space-y-3">
-        {list.map(([contestId, problems]) => (
+        {visibleList.map(([contestId, problems]) => (
           <Card key={contestId}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{contestId}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2 pt-0 sm:grid-cols-2 lg:grid-cols-3">
-              {[...problems]
-                .sort((a, b) => a.problemIndex.localeCompare(b.problemIndex))
-                .map((problem) => (
-                  <Link
-                    key={problem.id}
-                    href={`/problems/${problem.id}`}
-                    className="block rounded-md border bg-background px-3 py-2 transition-colors hover:bg-accent"
-                  >
-                    <Badge variant="outline" className="mb-1">
-                      {problem.problemIndex}
-                    </Badge>
-                    <p className="text-sm font-medium">{problem.title}</p>
-                  </Link>
-                ))}
+              {problems.map((problem) => (
+                <Link
+                  key={problem.id}
+                  href={`/problems/${problem.id}`}
+                  className="block rounded-md border bg-background px-3 py-2 transition-colors hover:bg-accent"
+                >
+                  <Badge variant="outline" className="mb-1">
+                    {problem.problemIndex}
+                  </Badge>
+                  <p className="text-sm font-medium">{problem.title}</p>
+                </Link>
+              ))}
             </CardContent>
           </Card>
         ))}
       </section>
+
+      {!shouldShowAll && remainingContestCount > 0 && (
+        <section className="mt-6 flex justify-center">
+          <ShowAllButton href={`/?series=${selectedSeries}&showAll=1`} remainingContestCount={remainingContestCount} />
+        </section>
+      )}
     </PageContainer>
   );
 }
