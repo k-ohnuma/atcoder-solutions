@@ -17,6 +17,7 @@ export interface BackendStackVariableDefinitions {
   apiContainerImage: StringVariableDefinition;
   firebaseProjectId: StringVariableDefinition;
   atcoderProblemsBaseEndpoint: StringVariableDefinition;
+  atcoderDifficultyBaseEndpoint: StringVariableDefinition;
   dailyCron: StringVariableDefinition;
   dailyTimeZone: StringVariableDefinition;
 }
@@ -61,10 +62,15 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
     type: "string",
     defaultValue: "https://kenkoooo.com/atcoder",
   },
+  atcoderDifficultyBaseEndpoint: {
+    tfName: "atcoder_diff_base_endpoint",
+    type: "string",
+    defaultValue: "https://v8a0p8685g.execute-api.ap-northeast-1.amazonaws.com/dev",
+  },
   dailyCron: {
     tfName: "daily_cron",
     type: "string",
-    defaultValue: "0 5 * * *",
+    defaultValue: "0 1 * * *",
   },
   dailyTimeZone: {
     tfName: "daily_time_zone",
