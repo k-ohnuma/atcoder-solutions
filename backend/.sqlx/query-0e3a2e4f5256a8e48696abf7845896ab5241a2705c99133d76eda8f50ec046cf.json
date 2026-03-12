@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT p.id, p.contest_code, p.problem_index, p.title\n            FROM problems p\n            JOIN contests c ON c.code = p.contest_code\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE s.code = $1\n            ORDER BY p.contest_code DESC\n            ",
+  "query": "\n            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty\n            FROM problems p\n            JOIN contests c ON c.code = p.contest_code\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE p.contest_code = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "title",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "difficulty",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
@@ -33,8 +38,9 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "3f0de60f1e4cb21ecabf101c7a318a2825ad065ac39445844d0241b8e5a6e430"
+  "hash": "0e3a2e4f5256a8e48696abf7845896ab5241a2705c99133d76eda8f50ec046cf"
 }

@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO problems (id, contest_code, problem_index, title, difficulty)\n        VALUES ($1, $2, $3, $4, $5)\n        ON CONFLICT (id) DO UPDATE\n        SET\n            contest_code = EXCLUDED.contest_code,\n            problem_index = EXCLUDED.problem_index,\n            title = EXCLUDED.title,\n            difficulty = EXCLUDED.difficulty\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3513878621c58872e56e0f7838a9585d47c87f00f83d36a05024b33e30bbe324"
+}
