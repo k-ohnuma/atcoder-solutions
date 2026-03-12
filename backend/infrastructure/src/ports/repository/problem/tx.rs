@@ -91,7 +91,7 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
                 contest_code = EXCLUDED.contest_code,
                 problem_index = EXCLUDED.problem_index,
                 title = EXCLUDED.title,
-                difficulty = EXCLUDED.difficulty
+                difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)
             "#,
             problem_id,
             contest_code,
@@ -146,7 +146,7 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
                 .push_bind(problem.difficulty);
         });
         query_builder.push(
-            " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title, difficulty = EXCLUDED.difficulty",
+            " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title, difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)",
         );
 
         query_builder

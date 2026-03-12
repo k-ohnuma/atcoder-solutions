@@ -138,7 +138,7 @@ async fn upsert_problem(problem: &Problem, db: &PgPool) -> Result<(), Repository
             contest_code = EXCLUDED.contest_code,
             problem_index = EXCLUDED.problem_index,
             title = EXCLUDED.title,
-            difficulty = EXCLUDED.difficulty
+            difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)
         "#,
         problem.id,
         problem.contest_code,
