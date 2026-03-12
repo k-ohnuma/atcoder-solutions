@@ -134,10 +134,9 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
             return Ok(());
         }
 
-        let mut query_builder: QueryBuilder<Postgres> =
-            QueryBuilder::new(
-                "INSERT INTO problems (id, contest_code, problem_index, title, difficulty) ",
-            );
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
+            "INSERT INTO problems (id, contest_code, problem_index, title, difficulty) ",
+        );
 
         query_builder.push_values(problems.iter(), |mut b, problem| {
             b.push_bind(&problem.id)

@@ -61,10 +61,7 @@ impl AtcoderProblemsClient {
         }
     }
 
-    async fn fetch_difficulty(
-        &self,
-        problem_id: &str,
-    ) -> Result<Option<i32>, ExternalError> {
+    async fn fetch_difficulty(&self, problem_id: &str) -> Result<Option<i32>, ExternalError> {
         let resp = self
             .client
             .get(self.difficulty_endpoint.as_str())
@@ -109,13 +106,18 @@ impl AtcoderProblemsPort for AtcoderProblemsClient {
                 map_reqwest_error(e)
             }
         })?;
-        Ok(json.into_iter().map(Problem::from).collect::<Vec<Problem>>())
+        Ok(json
+            .into_iter()
+            .map(Problem::from)
+            .collect::<Vec<Problem>>())
     }
 
     async fn fetch_difficulty(&self, problem_id: &str) -> Result<Option<i32>, ExternalError> {
-        self.fetch_difficulty(problem_id).await.inspect_err(|error| {
-            warn!(problem_id, error = ?error, "difficulty fetch failed");
-        })
+        self.fetch_difficulty(problem_id)
+            .await
+            .inspect_err(|error| {
+                warn!(problem_id, error = ?error, "difficulty fetch failed");
+            })
     }
 }
 
@@ -219,11 +221,16 @@ mod tests {
         let client = server_and_client.1;
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "difficulty": 1279 })))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({ "difficulty": 1279 })),
+            )
             .mount(&server)
             .await;
 
-        let got = client.fetch_difficulty("abc323_e").await.expect("should be success");
+        let got = client
+            .fetch_difficulty("abc323_e")
+            .await
+            .expect("should be success");
         assert_eq!(got, Some(1279));
     }
 
@@ -240,7 +247,10 @@ mod tests {
             .mount(&server)
             .await;
 
-        let got = client.fetch_difficulty("no_such_problem").await.expect("should be success");
+        let got = client
+            .fetch_difficulty("no_such_problem")
+            .await
+            .expect("should be success");
         assert_eq!(got, None);
     }
 }

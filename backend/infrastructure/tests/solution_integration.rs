@@ -66,7 +66,7 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
-    difficulty: None,
+        difficulty: None,
     };
     seed_problem(&repo, p1).await;
 
@@ -126,7 +126,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
-    difficulty: None,
+        difficulty: None,
     };
     seed_problem(&repo, p1).await;
 
@@ -229,7 +229,7 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
             contest_code: "abc300".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
-        difficulty: None,
+            difficulty: None,
         },
     )
     .await;
@@ -298,7 +298,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
             contest_code: "abc300".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
-        difficulty: None,
+            difficulty: None,
         },
     )
     .await;
@@ -309,7 +309,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
             contest_code: "abc300".into(),
             problem_index: "b".into(),
             title: "B - Example".into(),
-        difficulty: None,
+            difficulty: None,
         },
     )
     .await;
@@ -369,7 +369,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
             contest_code: "abc301".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
-        difficulty: None,
+            difficulty: None,
         },
     )
     .await;
@@ -456,7 +456,7 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
             contest_code: "abc302".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
-        difficulty: None,
+            difficulty: None,
         },
     )
     .await;

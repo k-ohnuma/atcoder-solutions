@@ -46,7 +46,11 @@ impl ImportProblemsUsecase {
             }
 
             difficulty_fetch_target_count += 1;
-            match self.atcoder_problems_port.fetch_difficulty(problem.id.as_str()).await {
+            match self
+                .atcoder_problems_port
+                .fetch_difficulty(problem.id.as_str())
+                .await
+            {
                 Ok(difficulty) => {
                     problem.difficulty = difficulty;
                 }

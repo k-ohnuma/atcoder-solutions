@@ -162,14 +162,14 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
                 contest_code: "abc234".into(),
                 problem_index: "A".into(),
                 title: "A - Example".into(),
-            difficulty: None,
+                difficulty: None,
             },
             Problem {
                 id: "abc234_b".into(),
                 contest_code: "abc234".into(),
                 problem_index: "B".into(),
                 title: "B - Example".into(),
-            difficulty: None,
+                difficulty: None,
             },
         ],
     });
