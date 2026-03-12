@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO problems (id, contest_code, problem_index, title, difficulty)\n            VALUES ($1, $2, $3, $4, $5)\n            ON CONFLICT (id) DO UPDATE\n            SET\n                contest_code = EXCLUDED.contest_code,\n                problem_index = EXCLUDED.problem_index,\n                title = EXCLUDED.title,\n                difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b5ab3e65fc38770ceaf6a59517a19996e204e87abd81dea9e6676b7b7bff95f6"
+}

@@ -8,6 +8,10 @@ use crate::model::problem::{ContestSeries, Problem};
 #[async_trait]
 pub trait ProblemRepository: Send + Sync {
     async fn create_records(&self, problems: Vec<Problem>) -> Result<(), RepositoryError>;
+    async fn get_problem_ids_with_difficulty(
+        &self,
+        problem_ids: &[String],
+    ) -> Result<Vec<String>, RepositoryError>;
     async fn get_problems_by_contest_series(
         &self,
         series: ContestSeries,

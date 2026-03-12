@@ -61,6 +61,9 @@ export class BackendStack extends TerraformStack {
     const atcoderProblemsBaseEndpoint = defineStringVariable(
       backendStackVariableDefinitions.atcoderProblemsBaseEndpoint,
     );
+    const atcoderDifficultyBaseEndpoint = defineStringVariable(
+      backendStackVariableDefinitions.atcoderDifficultyBaseEndpoint,
+    );
     const dailyCron = defineStringVariable(
       backendStackVariableDefinitions.dailyCron,
     );
@@ -169,6 +172,10 @@ export class BackendStack extends TerraformStack {
                 name: "ATCODER_PROBLEMS_BASE_ENDPOINT",
                 value: atcoderProblemsBaseEndpoint.value,
               },
+              {
+                name: "ATCODER_PROBLEMS_DIFFICULTY_ENDPOINT",
+                value: atcoderDifficultyBaseEndpoint.value,
+              },
             ],
           },
         ],
@@ -219,6 +226,10 @@ export class BackendStack extends TerraformStack {
                 {
                   name: "ATCODER_PROBLEMS_BASE_ENDPOINT",
                   value: atcoderProblemsBaseEndpoint.value,
+                },
+                {
+                  name: "ATCODER_PROBLEMS_DIFFICULTY_ENDPOINT",
+                  value: atcoderDifficultyBaseEndpoint.value,
                 },
               ],
             },

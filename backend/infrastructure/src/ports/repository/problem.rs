@@ -40,6 +40,31 @@ impl ProblemRepository for ProblemRepositoryImpl {
         }
         Ok(())
     }
+
+    async fn get_problem_ids_with_difficulty(
+        &self,
+        problem_ids: &[String],
+    ) -> Result<Vec<String>, RepositoryError> {
+        if problem_ids.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let rows = sqlx::query_scalar!(
+            r#"
+            SELECT id
+            FROM problems
+            WHERE id = ANY($1)
+              AND difficulty IS NOT NULL
+            "#,
+            problem_ids
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rows)
+    }
+
     async fn get_problems_by_contest_series(
         &self,
         series: ContestSeries,
@@ -47,7 +72,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         let problems: Vec<Problem> = sqlx::query_as!(
             Problem,
             r#"
-            SELECT p.id, p.contest_code, p.problem_index, p.title
+            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
             JOIN contests c ON c.code = p.contest_code
             JOIN contest_series s ON s.code = c.series_code
@@ -68,7 +93,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         let problems: Vec<Problem> = sqlx::query_as!(
             Problem,
             r#"
-            SELECT p.id, p.contest_code, p.problem_index, p.title
+            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
             JOIN contests c ON c.code = p.contest_code
             JOIN contest_series s ON s.code = c.series_code
@@ -106,18 +131,20 @@ async fn safe_insert_contest(
 async fn upsert_problem(problem: &Problem, db: &PgPool) -> Result<(), RepositoryError> {
     sqlx::query!(
         r#"
-        INSERT INTO problems (id, contest_code, problem_index, title)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO problems (id, contest_code, problem_index, title, difficulty)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (id) DO UPDATE
         SET
             contest_code = EXCLUDED.contest_code,
             problem_index = EXCLUDED.problem_index,
-            title = EXCLUDED.title
+            title = EXCLUDED.title,
+            difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)
         "#,
         problem.id,
         problem.contest_code,
         problem.problem_index,
-        problem.title
+        problem.title,
+        problem.difficulty
     )
     .execute(db)
     .await

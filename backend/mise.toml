@@ -6,6 +6,7 @@ rust-analyzer = "2025-11-10"
 
 [env]
 ATCODER_PROBLEMS_BASE_ENDPOINT = "https://kenkoooo.com/atcoder"
+ATCODER_PROBLEMS_DIFFICULTY_ENDPOINT = "https://v8a0p8685g.execute-api.ap-northeast-1.amazonaws.com/dev"
 ENV = "dev"
 FIREBASE_PROJECT_ID = "atcoder-solutions"
 

@@ -9,6 +9,7 @@ export interface Problem {
   contestCode: string;
   problemIndex: string;
   title: string;
+  difficulty?: number | null;
 }
 export type ContestGroupCollection = Map<string, Problem[]>;
 

@@ -3,4 +3,5 @@ export interface Problem {
   contestCode: string;
   problemIndex: string;
   title: string;
+  difficulty?: number | null;
 }

@@ -11,6 +11,8 @@ pub struct ProblemRow {
     pub problem_index: String,
     // title
     pub title: String,
+    // atcoder difficulty
+    pub difficulty: Option<i32>,
 }
 
 pub struct ContestRow {

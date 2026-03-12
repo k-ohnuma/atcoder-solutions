@@ -7,6 +7,7 @@ pub struct Problem {
     pub contest_code: String,
     pub problem_index: String,
     pub title: String,
+    pub difficulty: Option<i32>,
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Display)]

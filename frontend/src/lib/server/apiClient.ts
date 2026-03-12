@@ -92,6 +92,14 @@ export class ApiClient {
   // }
 
   // problems
+  getProblemsByContest = async (contest: string): Promise<Problem[]> => {
+    const path = "problems";
+    const resp = await this.get<Problem[]>(path, { contest });
+    if (resp.ok) return resp.data;
+    console.log(`error: ${resp.error}, status: ${resp.status}`);
+    return [];
+  };
+
   getProblemsByContestSeries = async <T>(contestSeries: string): Promise<T> => {
     const path = "problems";
     const resp = await this.get<T>(path, { series: contestSeries });
