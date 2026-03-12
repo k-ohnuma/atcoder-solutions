@@ -40,7 +40,7 @@ export function ContestProblemSelectorSection({
   problemErrorMessage,
 }: ContestProblemSelectorSectionProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-4">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-2">
           <div className="text-xs font-medium text-muted-foreground">コンテスト種別</div>
