@@ -109,7 +109,7 @@ export const MarkdownPlayground: React.FC = () => {
       })}
     >
       <PageContainer as="div" className="flex min-h-[calc(100vh-80px)] flex-col gap-4 md:py-6">
-        <div className="sticky top-16 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-sm backdrop-blur">
+        <div className="sticky top-16 z-20 rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{title || "新規解説"}</p>
@@ -124,7 +124,7 @@ export const MarkdownPlayground: React.FC = () => {
           {submitError && <p className="mt-2 text-sm text-destructive">{submitError}</p>}
         </div>
 
-        <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
+        <section className="space-y-4 p-1">
           <ContestProblemSelectorSection
             series={series}
             onSeriesChangeAction={(value) => {
