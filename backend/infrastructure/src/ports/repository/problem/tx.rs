@@ -80,21 +80,24 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
         contest_code: &str,
         problem_index: &str,
         title: &str,
+        difficulty: Option<i32>,
     ) -> Result<(), RepositoryError> {
         sqlx::query!(
             r#"
-            INSERT INTO problems (id, contest_code, problem_index, title)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO problems (id, contest_code, problem_index, title, difficulty)
+            VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (id) DO UPDATE
             SET
                 contest_code = EXCLUDED.contest_code,
                 problem_index = EXCLUDED.problem_index,
-                title = EXCLUDED.title
+                title = EXCLUDED.title,
+                difficulty = EXCLUDED.difficulty
             "#,
             problem_id,
             contest_code,
             problem_index,
-            title
+            title,
+            difficulty
         )
         .execute(self.conn())
         .await
@@ -132,16 +135,19 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
         }
 
         let mut query_builder: QueryBuilder<Postgres> =
-            QueryBuilder::new("INSERT INTO problems (id, contest_code, problem_index, title) ");
+            QueryBuilder::new(
+                "INSERT INTO problems (id, contest_code, problem_index, title, difficulty) ",
+            );
 
         query_builder.push_values(problems.iter(), |mut b, problem| {
             b.push_bind(&problem.id)
                 .push_bind(&problem.contest_code)
                 .push_bind(&problem.problem_index)
-                .push_bind(&problem.title);
+                .push_bind(&problem.title)
+                .push_bind(problem.difficulty);
         });
         query_builder.push(
-            " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title",
+            " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title, difficulty = EXCLUDED.difficulty",
         );
 
         query_builder

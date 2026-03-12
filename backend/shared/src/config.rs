@@ -12,6 +12,7 @@ impl AppConfig {
     pub fn new() -> Result<Self> {
         let atcoder_problems = AtcoderProblemsConfig {
             base_endpoint: std::env::var("ATCODER_PROBLEMS_BASE_ENDPOINT")?,
+            difficulty_endpoint: std::env::var("ATCODER_PROBLEMS_DIFFICULTY_ENDPOINT")?
         };
         let app_database_url = std::env::var("APP_DATABASE_URL").ok();
         let database = if app_database_url.is_some() {
@@ -62,6 +63,7 @@ impl AppConfig {
 
 pub struct AtcoderProblemsConfig {
     pub base_endpoint: String,
+    pub difficulty_endpoint: String,
 }
 
 pub struct DatabaseConfig {

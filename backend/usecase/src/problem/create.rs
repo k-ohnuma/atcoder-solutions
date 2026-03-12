@@ -5,10 +5,11 @@ use derive_new::new;
 use domain::{
     model::problem::ContestSeries,
     ports::{
-        external::atcoder_problems::AtcoderProblemsPort, repository::problem::tx::ProblemTxManager,
+        external::atcoder_problems::AtcoderProblemsPort,
+        repository::problem::{ProblemRepository, tx::ProblemTxManager},
     },
 };
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::model::problem::create::ImportProblemsUsecaseError;
 
@@ -17,14 +18,53 @@ const PROBLEM_UPSERT_CHUNK_SIZE: usize = 500;
 #[derive(new)]
 pub struct ImportProblemsUsecase {
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
+    problem_repository: Arc<dyn ProblemRepository>,
     problem_tx_manager: Arc<dyn ProblemTxManager>,
 }
 
 impl ImportProblemsUsecase {
     pub async fn run(&self) -> Result<(), ImportProblemsUsecaseError> {
         info!("problem import started");
-        let problems = self.atcoder_problems_port.fetch_problems().await?;
+        let mut problems = self.atcoder_problems_port.fetch_problems().await?;
         info!(problems = problems.len(), "problem import fetched");
+
+        let all_problem_ids = problems
+            .iter()
+            .map(|problem| problem.id.clone())
+            .collect::<Vec<_>>();
+        let existing_difficulty_problem_ids = self
+            .problem_repository
+            .get_problem_ids_with_difficulty(all_problem_ids.as_slice())
+            .await?
+            .into_iter()
+            .collect::<HashSet<String>>();
+
+        let mut difficulty_fetch_target_count = 0usize;
+        for problem in &mut problems {
+            if existing_difficulty_problem_ids.contains(problem.id.as_str()) {
+                continue;
+            }
+
+            difficulty_fetch_target_count += 1;
+            match self.atcoder_problems_port.fetch_difficulty(problem.id.as_str()).await {
+                Ok(difficulty) => {
+                    problem.difficulty = difficulty;
+                }
+                Err(error) => {
+                    warn!(
+                        problem_id = problem.id,
+                        error = ?error,
+                        "failed to fetch problem difficulty. keep null and continue"
+                    );
+                }
+            }
+        }
+        info!(
+            total = problems.len(),
+            skipped = existing_difficulty_problem_ids.len(),
+            fetched = difficulty_fetch_target_count,
+            "problem difficulty fetch summary"
+        );
 
         let contests = problems
             .iter()

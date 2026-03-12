@@ -11,6 +11,7 @@ pub struct ProblemResponse {
     pub contest_code: String,
     pub problem_index: String,
     pub title: String,
+    pub difficulty: Option<i32>,
 }
 
 impl From<Problem> for ProblemResponse {
@@ -20,6 +21,7 @@ impl From<Problem> for ProblemResponse {
             contest_code: value.contest_code,
             problem_index: value.problem_index,
             title: value.title,
+            difficulty: value.difficulty,
         }
     }
 }

@@ -16,6 +16,7 @@ pub trait ProblemRepositoryTx: Send + Sync {
         contest_code: &str,
         problem_index: &str,
         title: &str,
+        difficulty: Option<i32>,
     ) -> Result<(), RepositoryError>;
     async fn upsert_contests_bulk(
         &mut self,

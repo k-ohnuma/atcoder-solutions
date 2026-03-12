@@ -29,12 +29,14 @@ async fn create_records(pool: PgPool) -> Result<()> {
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
+    difficulty: None,
     };
     let p2 = Problem {
         id: "abc300_b".into(),
         contest_code: "abc300".into(),
         problem_index: "b".into(),
         title: "B - Example".into(),
+    difficulty: None,
     };
 
     repo.create_records(vec![p1, p2]).await?;
@@ -64,6 +66,7 @@ async fn upsert_records(pool: PgPool) -> Result<()> {
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
+    difficulty: None,
     };
     repo.create_records(vec![p1.to_owned()]).await?;
     let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
@@ -94,24 +97,28 @@ async fn get_problems_by_contest_series(pool: PgPool) -> Result<()> {
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
+    difficulty: None,
     };
     let p2 = Problem {
         id: "abc300_b".into(),
         contest_code: "abc300".into(),
         problem_index: "b".into(),
         title: "B - Example".into(),
+    difficulty: None,
     };
     let p3 = Problem {
         id: "arc001_b".into(),
         contest_code: "arc001".into(),
         problem_index: "b".into(),
         title: "B - Example2".into(),
+    difficulty: None,
     };
     let p4 = Problem {
         id: "abc001_c".into(),
         contest_code: "abc001".into(),
         problem_index: "c".into(),
         title: "C - 001".into(),
+    difficulty: None,
     };
 
     repo.create_records(vec![p1, p2, p3, p4]).await?;
@@ -145,6 +152,7 @@ async fn create_records_with_unknown_series_uses_other(pool: PgPool) -> Result<(
         contest_code: "tessoku-book".into(),
         problem_index: "a1".into(),
         title: "A1 - Example".into(),
+    difficulty: None,
     };
 
     repo.create_records(vec![p1]).await?;
