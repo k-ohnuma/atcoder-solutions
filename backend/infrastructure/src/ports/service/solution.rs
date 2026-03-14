@@ -28,6 +28,7 @@ impl SolutionService for SolutionServiceImpl {
         &self,
         problem_id: String,
         sort: SolutionListSort,
+        size: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         let problem_id_ref = problem_id.as_str();
         let solutions = match sort {
@@ -44,8 +45,10 @@ impl SolutionService for SolutionServiceImpl {
                         WHERE s.problem_id = $1
                         GROUP BY s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at
                         ORDER BY s.created_at DESC
+                        LIMIT COALESCE($2, 2147483647)
                     "#,
-                    problem_id_ref
+                    problem_id_ref,
+                    size
                 )
                 .fetch_all(self.db.inner_ref())
                 .await
@@ -64,8 +67,10 @@ impl SolutionService for SolutionServiceImpl {
                         WHERE s.problem_id = $1
                         GROUP BY s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at
                         ORDER BY "votes_count!" DESC, s.created_at DESC
+                        LIMIT COALESCE($2, 2147483647)
                     "#,
-                    problem_id_ref
+                    problem_id_ref,
+                    size
                 )
                 .fetch_all(self.db.inner_ref())
                 .await

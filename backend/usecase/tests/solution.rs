@@ -41,6 +41,7 @@ impl SolutionService for DummySolutionService {
         &self,
         _problem_id: String,
         sort: SolutionListSort,
+        _size: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {
@@ -137,7 +138,7 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
     let uc = GetSolutionsByProblemIdUsecase::new(service);
 
     let err = uc
-        .run("   ".to_string(), SolutionListSort::Latest)
+        .run("   ".to_string(), SolutionListSort::Latest, None)
         .await
         .err()
         .expect("blank problem id should be bad request");
@@ -152,7 +153,7 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
     let uc = GetSolutionsByProblemIdUsecase::new(service);
 
     let err = uc
-        .run("abc100_a".to_string(), SolutionListSort::Latest)
+        .run("abc100_a".to_string(), SolutionListSort::Latest, None)
         .await
         .err()
         .expect("unknown problem should be not found");
@@ -167,7 +168,7 @@ async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
     let uc = GetSolutionsByProblemIdUsecase::new(service.clone());
 
     let result = uc
-        .run("abc100_a".to_string(), SolutionListSort::Votes)
+        .run("abc100_a".to_string(), SolutionListSort::Votes, None)
         .await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].votes_count, 3);

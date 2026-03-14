@@ -264,14 +264,14 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     let service = SolutionServiceImpl::new(conn);
 
     let latest = service
-        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Latest)
+        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Latest, None)
         .await?;
     assert_eq!(latest.len(), 2);
     assert_eq!(latest[0].id, new_solution_id);
     assert_eq!(latest[1].id, old_solution_id);
 
     let votes = service
-        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Votes)
+        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Votes, None)
         .await?;
     assert_eq!(votes.len(), 2);
     assert_eq!(votes[0].id, old_solution_id);
@@ -399,7 +399,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
 
     let service = SolutionServiceImpl::new(conn);
     let rows = service
-        .get_solutions_by_problem_id("abc301_a".to_string(), SolutionListSort::Votes)
+        .get_solutions_by_problem_id("abc301_a".to_string(), SolutionListSort::Votes, None)
         .await?;
 
     assert_eq!(rows.len(), 2);

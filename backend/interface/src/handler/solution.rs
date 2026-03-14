@@ -112,7 +112,7 @@ pub async fn get_solutions_by_problems_id_handler(
         }
     };
     let solutions = uc
-        .run(problem_id.to_string(), sort)
+        .run(problem_id.to_string(), sort, req.size)
         .await
         .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
