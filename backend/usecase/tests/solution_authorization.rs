@@ -44,10 +44,18 @@ struct GateService {
 
 #[async_trait]
 impl SolutionService for GateService {
+    async fn get_latest_solutions(
+        &self,
+        _size: Option<i32>,
+    ) -> Result<Vec<SolutionListItem>, RepositoryError> {
+        Ok(vec![])
+    }
+
     async fn get_solutions_by_problem_id(
         &self,
         _problem_id: String,
         _sort: SolutionListSort,
+        _size: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![])
     }

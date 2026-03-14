@@ -3,6 +3,7 @@ pub mod create_comment;
 pub mod delete;
 pub mod delete_comment;
 pub mod get_by_problem_id;
+pub mod get_latest;
 pub mod get_by_solution_id;
 pub mod get_by_user_name;
 pub mod get_comments_by_solution_id;

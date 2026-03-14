@@ -24,6 +24,32 @@ pub struct SolutionServiceImpl {
 
 #[async_trait]
 impl SolutionService for SolutionServiceImpl {
+    async fn get_latest_solutions(
+        &self,
+        size: Option<i32>,
+    ) -> Result<Vec<SolutionListItem>, RepositoryError> {
+        let solutions = sqlx::query_as!(
+            SolutionListItemViewRaw,
+            r#"
+                SELECT s.id, s.title, s.problem_id, s.user_id, u.user_name,
+                       COUNT(sv.user_id) AS "votes_count!",
+                       s.created_at, s.updated_at
+                FROM solutions s
+                JOIN users u on s.user_id = u.id
+                LEFT JOIN solution_votes sv ON sv.solution_id = s.id
+                GROUP BY s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at
+                ORDER BY s.created_at DESC
+                LIMIT COALESCE($1, 2147483647)
+            "#,
+            size
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(solutions.into_iter().map(SolutionListItem::from).collect())
+    }
+
     async fn get_solutions_by_problem_id(
         &self,
         problem_id: String,

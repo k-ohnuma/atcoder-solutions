@@ -11,7 +11,7 @@ use usecase::{
     },
     service::solution::SolutionService,
     solution::{
-        get_by_problem_id::GetSolutionsByProblemIdUsecase,
+        get_by_problem_id::GetSolutionsByProblemIdUsecase, get_latest::GetLatestSolutionsUsecase,
         get_by_user_name::GetSolutionsByUserNameUsecase,
     },
 };
@@ -37,6 +37,22 @@ impl DummySolutionService {
 
 #[async_trait]
 impl SolutionService for DummySolutionService {
+    async fn get_latest_solutions(
+        &self,
+        _size: Option<i32>,
+    ) -> Result<Vec<SolutionListItem>, RepositoryError> {
+        Ok(vec![SolutionListItem {
+            id: Uuid::now_v7(),
+            title: "latest".to_string(),
+            problem_id: "abc100_a".to_string(),
+            user_id: "uid".to_string(),
+            user_name: "alice".to_string(),
+            votes_count: 1,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }])
+    }
+
     async fn get_solutions_by_problem_id(
         &self,
         _problem_id: String,
@@ -175,6 +191,18 @@ async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
 
     let sort = *service.last_problem_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
+    Ok(())
+}
+
+#[tokio::test]
+async fn get_latest_solutions_returns_items() -> Result<()> {
+    let service = Arc::new(DummySolutionService::new(true, true));
+    let uc = GetLatestSolutionsUsecase::new(service);
+
+    let result = uc.run(Some(10)).await?;
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].title, "latest");
+
     Ok(())
 }
 
