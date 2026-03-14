@@ -67,9 +67,13 @@ async function getContestGroupBySeries(series: SupportedSeries): Promise<Contest
       Accept: "application/json",
     },
   });
-  const json = (await res.json()) as { ok?: boolean; data?: Record<string, Problem[]> };
+  const json = (await res.json()) as {
+    ok?: boolean;
+    data?: Record<string, Problem[]>;
+    error?: string;
+  };
   if (!res.ok || !json.ok || !json.data) {
-    return new Map();
+    throw new Error(`failed to fetch contest groups: status=${res.status}, error=${json.error ?? "unknown error"}`);
   }
 
   return new Map<string, Problem[]>(Object.entries(json.data));

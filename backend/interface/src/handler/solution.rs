@@ -9,9 +9,9 @@ use usecase::solution::{
     get_by_solution_id::GetSolutionBySolutionIdUsecase,
     get_by_user_name::GetSolutionsByUserNameUsecase,
     get_comments_by_solution_id::GetCommentsBySolutionIdUsecase,
-    get_my_vote_status::GetMyVoteStatusUsecase, get_votes_count::GetSolutionVotesCountUsecase,
-    unvote::UnvoteSolutionUsecase, update::UpdateSolutionUsecase,
-    update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
+    get_latest::GetLatestSolutionsUsecase, get_my_vote_status::GetMyVoteStatusUsecase,
+    get_votes_count::GetSolutionVotesCountUsecase, unvote::UnvoteSolutionUsecase,
+    update::UpdateSolutionUsecase, update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
 };
 
 use crate::{
@@ -25,6 +25,7 @@ use crate::{
         get_comments_by_solution_id::{
             GetCommentsBySolutionIdRequest, GetCommentsBySolutionIdResponse,
         },
+        get_latest_solutions::{GetLatestSolutionsRequest, GetLatestSolutionsResponse},
         get_my_vote_status::{GetMyVoteStatusRequest, GetMyVoteStatusResponse},
         get_solution_by_solution_id::{
             GetSolutionBySolutionIdRequest, GetSolutionBySolutionIdResponse,
@@ -112,12 +113,25 @@ pub async fn get_solutions_by_problems_id_handler(
         }
     };
     let solutions = uc
-        .run(problem_id.to_string(), sort)
+        .run(problem_id.to_string(), sort, req.size)
         .await
         .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByProblemIdResponse::from)
+        .collect();
+    Ok(Json(ApiResponse::ok(ret)))
+}
+
+pub async fn get_latest_solutions_handler(
+    State(registry): State<Registry>,
+    ApiQuery(req): ApiQuery<GetLatestSolutionsRequest>,
+) -> Result<Json<ApiResponse<Vec<GetLatestSolutionsResponse>>>, HttpError> {
+    let uc = GetLatestSolutionsUsecase::new(registry.solution_service());
+    let solutions = uc.run(req.size).await.map_err(|e| e.to_http_error())?;
+    let ret: Vec<_> = solutions
+        .into_iter()
+        .map(GetLatestSolutionsResponse::from)
         .collect();
     Ok(Json(ApiResponse::ok(ret)))
 }

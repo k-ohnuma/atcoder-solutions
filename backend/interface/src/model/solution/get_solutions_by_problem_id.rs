@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub struct GetSolutionsByProblemIdRequest {
     pub problem_id: String,
     pub sort_by: Option<String>,
+    pub size: Option<i32>,
 }
 
 impl GetSolutionsByProblemIdRequest {
@@ -73,6 +74,7 @@ mod tests {
         let req = GetSolutionsByProblemIdRequest {
             problem_id: "abc100_a".to_string(),
             sort_by: None,
+            size: None,
         };
         assert!(matches!(req.list_sort(), SolutionListSort::Latest));
     }
@@ -82,6 +84,7 @@ mod tests {
         let req = GetSolutionsByProblemIdRequest {
             problem_id: "abc100_a".to_string(),
             sort_by: Some("votes".to_string()),
+            size: None,
         };
         assert!(matches!(req.list_sort(), SolutionListSort::Votes));
     }
@@ -95,6 +98,7 @@ mod tests {
         let req: GetSolutionsByProblemIdRequest = serde_json::from_value(raw).expect("valid json");
         assert_eq!(req.problem_id, "abc100_a");
         assert_eq!(req.sort_by.as_deref(), Some("votes"));
+        assert_eq!(req.size, None);
     }
 
     #[test]

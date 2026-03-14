@@ -122,14 +122,9 @@ export class ApiClient {
     return new Map();
   };
 
-  getSolutionById = async (solutionId: string): Promise<SolutionDetail | null> => {
+  getSolutionById = async (solutionId: string): Promise<Resp<SolutionDetail>> => {
     const path = "solutions";
-    const resp = await this.get<SolutionDetail>(path, { solutionId });
-    if (resp.ok) {
-      return resp.data;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return null;
+    return await this.get<SolutionDetail>(path, { solutionId });
   };
 
   getSolutionsByProblemId = async (

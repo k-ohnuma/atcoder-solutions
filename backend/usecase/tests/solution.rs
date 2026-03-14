@@ -12,7 +12,7 @@ use usecase::{
     service::solution::SolutionService,
     solution::{
         get_by_problem_id::GetSolutionsByProblemIdUsecase,
-        get_by_user_name::GetSolutionsByUserNameUsecase,
+        get_by_user_name::GetSolutionsByUserNameUsecase, get_latest::GetLatestSolutionsUsecase,
     },
 };
 use uuid::Uuid;
@@ -37,10 +37,27 @@ impl DummySolutionService {
 
 #[async_trait]
 impl SolutionService for DummySolutionService {
+    async fn get_latest_solutions(
+        &self,
+        _size: Option<i32>,
+    ) -> Result<Vec<SolutionListItem>, RepositoryError> {
+        Ok(vec![SolutionListItem {
+            id: Uuid::now_v7(),
+            title: "latest".to_string(),
+            problem_id: "abc100_a".to_string(),
+            user_id: "uid".to_string(),
+            user_name: "alice".to_string(),
+            votes_count: 1,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }])
+    }
+
     async fn get_solutions_by_problem_id(
         &self,
         _problem_id: String,
         sort: SolutionListSort,
+        _size: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {
@@ -137,7 +154,7 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
     let uc = GetSolutionsByProblemIdUsecase::new(service);
 
     let err = uc
-        .run("   ".to_string(), SolutionListSort::Latest)
+        .run("   ".to_string(), SolutionListSort::Latest, None)
         .await
         .err()
         .expect("blank problem id should be bad request");
@@ -152,7 +169,7 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
     let uc = GetSolutionsByProblemIdUsecase::new(service);
 
     let err = uc
-        .run("abc100_a".to_string(), SolutionListSort::Latest)
+        .run("abc100_a".to_string(), SolutionListSort::Latest, None)
         .await
         .err()
         .expect("unknown problem should be not found");
@@ -167,13 +184,25 @@ async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
     let uc = GetSolutionsByProblemIdUsecase::new(service.clone());
 
     let result = uc
-        .run("abc100_a".to_string(), SolutionListSort::Votes)
+        .run("abc100_a".to_string(), SolutionListSort::Votes, None)
         .await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].votes_count, 3);
 
     let sort = *service.last_problem_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
+    Ok(())
+}
+
+#[tokio::test]
+async fn get_latest_solutions_returns_items() -> Result<()> {
+    let service = Arc::new(DummySolutionService::new(true, true));
+    let uc = GetLatestSolutionsUsecase::new(service);
+
+    let result = uc.run(Some(10)).await?;
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].title, "latest");
+
     Ok(())
 }
 
