@@ -8,11 +8,10 @@ use usecase::solution::{
     get_by_problem_id::GetSolutionsByProblemIdUsecase,
     get_by_solution_id::GetSolutionBySolutionIdUsecase,
     get_by_user_name::GetSolutionsByUserNameUsecase,
-    get_latest::GetLatestSolutionsUsecase,
     get_comments_by_solution_id::GetCommentsBySolutionIdUsecase,
-    get_my_vote_status::GetMyVoteStatusUsecase, get_votes_count::GetSolutionVotesCountUsecase,
-    unvote::UnvoteSolutionUsecase, update::UpdateSolutionUsecase,
-    update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
+    get_latest::GetLatestSolutionsUsecase, get_my_vote_status::GetMyVoteStatusUsecase,
+    get_votes_count::GetSolutionVotesCountUsecase, unvote::UnvoteSolutionUsecase,
+    update::UpdateSolutionUsecase, update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
 };
 
 use crate::{

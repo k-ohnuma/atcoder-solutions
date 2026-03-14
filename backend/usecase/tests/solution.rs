@@ -11,8 +11,8 @@ use usecase::{
     },
     service::solution::SolutionService,
     solution::{
-        get_by_problem_id::GetSolutionsByProblemIdUsecase, get_latest::GetLatestSolutionsUsecase,
-        get_by_user_name::GetSolutionsByUserNameUsecase,
+        get_by_problem_id::GetSolutionsByProblemIdUsecase,
+        get_by_user_name::GetSolutionsByUserNameUsecase, get_latest::GetLatestSolutionsUsecase,
     },
 };
 use uuid::Uuid;
