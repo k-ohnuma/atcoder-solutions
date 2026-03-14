@@ -50,6 +50,15 @@ use crate::{
     },
 };
 
+fn validate_size(size: Option<i32>) -> Result<Option<i32>, HttpError> {
+    match size {
+        Some(value) if value <= 0 => Err(HttpError::BadRequest(
+            "size must be greater than 0".to_string(),
+        )),
+        _ => Ok(size),
+    }
+}
+
 pub async fn create_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
@@ -112,8 +121,9 @@ pub async fn get_solutions_by_problems_id_handler(
             ));
         }
     };
+    let size = validate_size(req.size)?;
     let solutions = uc
-        .run(problem_id.to_string(), sort, req.size)
+        .run(problem_id.to_string(), sort, size)
         .await
         .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
@@ -128,7 +138,8 @@ pub async fn get_latest_solutions_handler(
     ApiQuery(req): ApiQuery<GetLatestSolutionsRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetLatestSolutionsResponse>>>, HttpError> {
     let uc = GetLatestSolutionsUsecase::new(registry.solution_service());
-    let solutions = uc.run(req.size).await.map_err(|e| e.to_http_error())?;
+    let size = validate_size(req.size)?;
+    let solutions = uc.run(size).await.map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetLatestSolutionsResponse::from)
