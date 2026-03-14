@@ -13,13 +13,18 @@ type PageProps = {
 
 export default async function SolutionPage({ params }: PageProps) {
   const { solutionId } = await params;
-  const solution = await apiClient.getSolutionById(solutionId);
+  const solutionResp = await apiClient.getSolutionById(solutionId);
   const votesCount = await apiClient.getSolutionVotesCount(solutionId);
   const comments = await apiClient.getCommentsBySolutionId(solutionId);
 
-  if (!solution) {
-    notFound();
+  if (!solutionResp.ok) {
+    if (solutionResp.status === 404) {
+      notFound();
+    }
+    throw new Error(`failed to fetch solution: status=${solutionResp.status}, error=${solutionResp.error}`);
   }
+
+  const solution = solutionResp.data;
 
   return (
     <SolutionDetail

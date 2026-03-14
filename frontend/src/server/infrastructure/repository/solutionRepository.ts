@@ -27,6 +27,9 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   private getSolutionsByProblemIdPath = () => {
     return "solutions/problems";
   };
+  private getLatestSolutionsPath = () => {
+    return "solutions/latest";
+  };
   private votesPath = () => {
     return "solutions/votes";
   };
@@ -60,6 +63,15 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     const path = this.createSolutionPath();
     const params = { solutionId };
     return await this.client.get<SolutionDetail>(path, params);
+  };
+
+  getLatest = async (size?: number): Promise<Resp<SolutionListItem[]>> => {
+    const path = this.getLatestSolutionsPath();
+    const params: Record<string, string> = {};
+    if (size !== undefined) {
+      params.size = size.toString();
+    }
+    return await this.client.get<SolutionListItem[]>(path, params);
   };
 
   getByProblemId = async (problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>> => {

@@ -80,6 +80,11 @@ export function Header({ appName }: { appName: string }) {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          <nav className="hidden items-center gap-1 md:flex">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/recent">最近の記事</Link>
+            </Button>
+          </nav>
           {isLoggedIn ? (
             <nav className="hidden items-center gap-1 md:flex">
               <Button asChild variant="ghost" size="sm">
