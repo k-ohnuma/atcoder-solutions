@@ -49,10 +49,7 @@ export function HeaderMobileMenu({
               {myUserName ? (
                 <>
                   <Button asChild variant="ghost" className="justify-start">
-                    <Link
-                      href={`/users/${encodeURIComponent(myUserName)}/solutions`}
-                      onClick={() => onOpenChangeAction(false)}
-                    >
+                    <Link href={`/users/${encodeURIComponent(myUserName)}/solutions`} onClick={() => onOpenChangeAction(false)}>
                       解説一覧
                     </Link>
                   </Button>

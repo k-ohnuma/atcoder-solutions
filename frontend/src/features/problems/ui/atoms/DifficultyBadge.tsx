@@ -30,13 +30,7 @@ function difficultyBadgeClass(difficulty?: number | null): string {
 
 const compactBadgeClass = "mb-1 px-1.5 py-0 text-[12px] leading-tight";
 
-export function DifficultyBadge({
-  problemIndex,
-  difficulty,
-}: {
-  problemIndex: string;
-  difficulty?: number | null;
-}) {
+export function DifficultyBadge({ problemIndex, difficulty }: { problemIndex: string; difficulty?: number | null }) {
   return (
     <Badge
       variant="outline"

@@ -2,11 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Problem } from "@/shared/model/problem";
 import { ProblemCard } from "../molecules/ProblemCard";
 
-export function ContestProblemSections({
-  contests,
-}: {
-  contests: Array<readonly [string, Problem[]]>;
-}) {
+export function ContestProblemSections({ contests }: { contests: Array<readonly [string, Problem[]]> }) {
   return (
     <section className="space-y-3">
       {contests.map(([contestId, problems]) => (
