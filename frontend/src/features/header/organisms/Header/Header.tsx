@@ -5,15 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { getFirebaseAuth } from "@/shared/firebase/client";
+import { DeleteAccountDialogs } from "./DeleteAccountDialogs";
+import { HeaderDesktopNav } from "./HeaderDesktopNav";
+import { HeaderMobileMenu } from "./HeaderMobileMenu";
 
 export function Header({ appName }: { appName: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [myUserName, setMyUserName] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMyPageMenuOpen, setIsMyPageMenuOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteErrorDialogOpen, setIsDeleteErrorDialogOpen] = useState(false);
@@ -52,6 +53,7 @@ export function Header({ appName }: { appName: string }) {
   const router = useRouter();
 
   const handleSignOut = async () => {
+    setIsMobileMenuOpen(false);
     await onSubmitSignout();
     router.push("/");
   };
@@ -80,106 +82,33 @@ export function Header({ appName }: { appName: string }) {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
-          <nav className="hidden items-center gap-1 md:flex">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/recent">最近の記事</Link>
-            </Button>
-          </nav>
-          {isLoggedIn ? (
-            <nav className="hidden items-center gap-1 md:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/solutions/create">記事を書く</Link>
-              </Button>
-              {myUserName ? (
-                <DropdownMenu open={isMyPageMenuOpen} modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsMyPageMenuOpen((prev) => !prev);
-                      }}
-                    >
-                      マイページ
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-44"
-                    onEscapeKeyDown={() => setIsMyPageMenuOpen(false)}
-                    onInteractOutside={() => setIsMyPageMenuOpen(false)}
-                  >
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={`/users/${encodeURIComponent(myUserName)}/solutions`}
-                        onClick={() => setIsMyPageMenuOpen(false)}
-                      >
-                        解説一覧
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings/password" onClick={() => setIsMyPageMenuOpen(false)}>
-                        パスワード変更
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onSelect={async () => {
-                        setIsMyPageMenuOpen(false);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      退会
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-              <Button onClick={handleSignOut} type="button" variant="ghost" size="sm">
-                ログアウト
-              </Button>
-            </nav>
-          ) : (
-            <nav className="hidden items-center gap-1 md:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/signin">ログイン</Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/signup">新規登録</Link>
-              </Button>
-            </nav>
-          )}
+          <HeaderMobileMenu
+            isOpen={isMobileMenuOpen}
+            onOpenChangeAction={setIsMobileMenuOpen}
+            isLoggedIn={isLoggedIn}
+            myUserName={myUserName}
+            onOpenDeleteDialogAction={() => setIsDeleteDialogOpen(true)}
+            onSignOutAction={handleSignOut}
+          />
+          <HeaderDesktopNav
+            isLoggedIn={isLoggedIn}
+            myUserName={myUserName}
+            isMyPageMenuOpen={isMyPageMenuOpen}
+            setIsMyPageMenuOpenAction={setIsMyPageMenuOpen}
+            onOpenDeleteDialogAction={() => setIsDeleteDialogOpen(true)}
+            onSignOutAction={handleSignOut}
+          />
         </div>
       </div>
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>アカウントを削除しますか？</DialogTitle>
-            <DialogDescription>この操作は取り消せません。</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
-              キャンセル
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
-              {isDeleting ? "削除中..." : "削除する"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isDeleteErrorDialogOpen} onOpenChange={setIsDeleteErrorDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>アカウント削除に失敗しました</DialogTitle>
-            <DialogDescription>{deleteErrorMessage}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" onClick={() => setIsDeleteErrorDialogOpen(false)}>
-              閉じる
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteAccountDialogs
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        onDeleteDialogOpenChangeAction={setIsDeleteDialogOpen}
+        isDeleteErrorDialogOpen={isDeleteErrorDialogOpen}
+        onDeleteErrorDialogOpenChangeAction={setIsDeleteErrorDialogOpen}
+        deleteErrorMessage={deleteErrorMessage}
+        isDeleting={isDeleting}
+        onDeleteAccountAction={handleDeleteAccount}
+      />
     </header>
   );
 }

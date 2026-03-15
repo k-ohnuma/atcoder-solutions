@@ -1,27 +1,15 @@
-import { Heart } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
 import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { ApiClient } from "@/lib/server/apiClient";
 import { serverConfig } from "@/shared/config/backend";
 import { SolutionListSortBy } from "@/shared/model/solution";
 
 const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
-
-const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
-  timeZone: "Asia/Tokyo",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
 
 type PageProps = {
   params: Promise<{
@@ -103,26 +91,15 @@ export default async function ProblemSolutionsPage({ params, searchParams }: Pag
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {solutions.map((solution) => (
-            <Link key={solution.id} href={`/solutions/${solution.id}`} className="block">
-              <Card className="transition-colors hover:bg-accent">
-                <CardContent className="p-4">
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{solution.title}</h2>
-                    <Badge variant="outline" className="shrink-0 gap-1 rounded-md px-2 py-1 text-sm">
-                      <Heart className="size-4" />
-                      {solution.votesCount}
-                    </Badge>
-                  </div>
-
-                  <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                    <span>投稿者: {solution.userName}</span>
-                    <span>{dateTimeFormatter.format(new Date(solution.createdAt))}</span>
-                  </div>
-
-                  <p className="text-sm font-medium">解説を読む</p>
-                </CardContent>
-              </Card>
-            </Link>
+            <SolutionSummaryCard
+              key={solution.id}
+              href={`/solutions/${solution.id}`}
+              title={solution.title}
+              votesCount={solution.votesCount}
+              createdAt={solution.createdAt}
+              userName={solution.userName}
+              footerLabel="解説を読む"
+            />
           ))}
         </div>
       )}

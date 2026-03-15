@@ -6,8 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { serverConfig } from "@/shared/config/backend";
 import { SolutionListItem } from "@/shared/model/solution";
 
-export const dynamic = "force-dynamic";
-
 const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   timeZone: "Asia/Tokyo",
   year: "numeric",

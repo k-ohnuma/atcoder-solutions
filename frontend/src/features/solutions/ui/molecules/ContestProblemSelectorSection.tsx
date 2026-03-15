@@ -18,7 +18,6 @@ type ContestProblemSelectorSectionProps = {
   problemsLoading: boolean;
   problemsIsError: boolean;
   selectedProblemId: string | null;
-  selectedProblem: Problem | null;
   onProblemChangeAction: (value: string) => void;
   problemErrorMessage?: string;
 };
@@ -35,7 +34,6 @@ export function ContestProblemSelectorSection({
   problemsLoading,
   problemsIsError,
   selectedProblemId,
-  selectedProblem,
   onProblemChangeAction,
   problemErrorMessage,
 }: ContestProblemSelectorSectionProps) {
@@ -71,11 +69,6 @@ export function ContestProblemSelectorSection({
       <div className="mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <div className="text-xs font-medium text-muted-foreground">問題</div>
-          {selectedProblem && (
-            <div className="text-xs text-muted-foreground">
-              選択中: <span className="font-medium text-foreground">{selectedProblem.id}</span>
-            </div>
-          )}
         </div>
 
         <ProblemButtonSelect
