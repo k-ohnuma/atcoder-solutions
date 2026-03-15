@@ -1,7 +1,14 @@
 # AtCoder Solutions
 
-AtCoder Solutions is a full-stack platform, inspired by Qiita, where users can post, share, and discover editorials for AtCoder problems. In addition to publishing and browsing editorials, it also provides community features such as likes and comments.
+AtCoder SolutionsはAtCoderの問題に対する解説を投稿・共有・検索できる、Qiita風のサービスです。解説の閲覧や投稿に加えて、いいねやコメントといった機能も提供しています。
 
-In the future, I plan to develop a user script that allows editorials posted on this service to be displayed directly on the official AtCoder editorial pages.
+また、このサービスに投稿された解説を公式 AtCoder 解説ページ上で表示するための拡張機能も公開しています。  
+`atcoder-solutions-viewer`: https://github.com/k-ohnuma/atcoder-solutions-viewer
 
-![screenshot](docs/screenshot.png)
+コントリビュートも随時お待ちしてます。
+
+![](docs/screenshot.png)
+
+![](docs/screenshot2.png)
+
+![](docs/extension.png)
