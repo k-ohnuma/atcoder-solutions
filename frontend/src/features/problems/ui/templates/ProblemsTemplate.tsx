@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShowAllButton } from "../molecules/ShowAllButton";
-import { ContestProblemSections } from "../organisis/ContestProblemSections";
+import { ContestProblemSections } from "../organisms/ContestProblemSections";
 
 const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
