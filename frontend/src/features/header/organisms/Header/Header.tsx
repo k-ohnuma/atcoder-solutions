@@ -1,6 +1,7 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,12 +9,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
 export function Header({ appName }: { appName: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [myUserName, setMyUserName] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMyPageMenuOpen, setIsMyPageMenuOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteErrorDialogOpen, setIsDeleteErrorDialogOpen] = useState(false);
@@ -52,6 +55,7 @@ export function Header({ appName }: { appName: string }) {
   const router = useRouter();
 
   const handleSignOut = async () => {
+    setIsMobileMenuOpen(false);
     await onSubmitSignout();
     router.push("/");
   };
@@ -80,6 +84,78 @@ export function Header({ appName }: { appName: string }) {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="md:hidden" aria-label="メニューを開く">
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[20rem] p-0">
+              <SheetHeader className="border-b px-6 py-5 text-left">
+                <SheetTitle>メニュー</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-2 p-4">
+                <Button asChild variant="ghost" className="justify-start">
+                  <Link href="/recent" onClick={() => setIsMobileMenuOpen(false)}>
+                    最近の記事
+                  </Link>
+                </Button>
+                {isLoggedIn ? (
+                  <>
+                    <Button asChild variant="ghost" className="justify-start">
+                      <Link href="/solutions/create" onClick={() => setIsMobileMenuOpen(false)}>
+                        記事を書く
+                      </Link>
+                    </Button>
+                    {myUserName ? (
+                      <>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link
+                            href={`/users/${encodeURIComponent(myUserName)}/solutions`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            解説一覧
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/settings/password" onClick={() => setIsMobileMenuOpen(false)}>
+                            パスワード変更
+                          </Link>
+                        </Button>
+                      </>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
+                      退会
+                    </Button>
+                    <Button type="button" variant="ghost" className="justify-start" onClick={handleSignOut}>
+                      ログアウト
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="ghost" className="justify-start">
+                      <Link href="/signin" onClick={() => setIsMobileMenuOpen(false)}>
+                        ログイン
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" className="justify-start">
+                      <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                        新規登録
+                      </Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
           <nav className="hidden items-center gap-1 md:flex">
             <Button asChild variant="ghost" size="sm">
               <Link href="/recent">最近の記事</Link>

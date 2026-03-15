@@ -144,7 +144,6 @@ export const MarkdownPlayground: React.FC = () => {
             problemsLoading={problemsLoading}
             problemsIsError={problemsIsError}
             selectedProblemId={problemId}
-            selectedProblem={selectedProblem}
             onProblemChangeAction={(id) => setValue("problemId", id, { shouldValidate: true })}
             problemErrorMessage={errors.problemId?.message}
           />
@@ -189,13 +188,7 @@ export const MarkdownPlayground: React.FC = () => {
           </section>
 
           <section className="min-h-[65vh]">
-            <MarkdownPreviewPanel
-              title={title}
-              bodyMd={bodyMd}
-              contestId={contestId}
-              selectedProblemIndex={selectedProblem?.problemIndex}
-              selectedProblemTitle={selectedProblem?.title}
-            />
+            <MarkdownPreviewPanel title={title} bodyMd={bodyMd} />
           </section>
         </div>
       </PageContainer>
