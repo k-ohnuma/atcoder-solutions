@@ -70,7 +70,7 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
   dailyCron: {
     tfName: "daily_cron",
     type: "string",
-    defaultValue: "0 1 * * *",
+    defaultValue: "30 1 * * 0-2",
   },
   dailyTimeZone: {
     tfName: "daily_time_zone",

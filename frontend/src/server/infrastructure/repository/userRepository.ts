@@ -6,6 +6,7 @@ import { serverConfig } from "@/shared/config/backend";
 
 export class UserRepositoryImpl implements UserRepository {
   private client: BackendApiClient;
+  private static readonly NO_STORE = { kind: "no-store" } as const;
   constructor() {
     const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
@@ -32,7 +33,7 @@ export class UserRepositoryImpl implements UserRepository {
 
   async getMe(token: string): Promise<Resp<UserMe>> {
     const path = this.mePath();
-    return await this.client.getWithToken<UserMe>(path, token);
+    return await this.client.getWithToken<UserMe>(path, token, undefined, UserRepositoryImpl.NO_STORE);
   }
 
   async deleteMe(token: string): Promise<Resp<{ id: string }>> {

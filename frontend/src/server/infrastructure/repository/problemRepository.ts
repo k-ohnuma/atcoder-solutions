@@ -22,11 +22,17 @@ export class ProblemRepositoryImpl implements ProblemRepository {
   getProblemsByContest = async (contest: string): Promise<Resp<Problem[]>> => {
     const params = { contest };
     const path = this.getProblemsByContestSeriesPath();
-    return await this.client.get<Problem[]>(path, params, ProblemRepositoryImpl.READ_CACHE_SECONDS);
+    return await this.client.get<Problem[]>(path, params, {
+      kind: "revalidate",
+      seconds: ProblemRepositoryImpl.READ_CACHE_SECONDS,
+    });
   };
   getContestGroupByContestSeries = async (series: ContestSeries): Promise<Resp<ContestGroupCollection>> => {
     const params = { series };
     const path = this.getContestGroupByContestSeriesPath();
-    return await this.client.get<ContestGroupCollection>(path, params, ProblemRepositoryImpl.READ_CACHE_SECONDS);
+    return await this.client.get<ContestGroupCollection>(path, params, {
+      kind: "revalidate",
+      seconds: ProblemRepositoryImpl.READ_CACHE_SECONDS,
+    });
   };
 }

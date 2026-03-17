@@ -16,6 +16,8 @@ import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
 export class SolutionRepositoryImpl implements SolutionRepository {
   private client: BackendApiClient;
+  private static readonly NO_STORE = { kind: "no-store" } as const;
+  private static readonly SHORT_REVALIDATE = { kind: "revalidate", seconds: 60 } as const;
   constructor() {
     const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
@@ -62,7 +64,7 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   getBySolutionId = async (solutionId: string): Promise<Resp<SolutionDetail>> => {
     const path = this.createSolutionPath();
     const params = { solutionId };
-    return await this.client.get<SolutionDetail>(path, params);
+    return await this.client.get<SolutionDetail>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getLatest = async (size?: number): Promise<Resp<SolutionListItem[]>> => {
@@ -71,7 +73,7 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     if (size !== undefined) {
       params.size = size.toString();
     }
-    return await this.client.get<SolutionListItem[]>(path, params);
+    return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.SHORT_REVALIDATE);
   };
 
   getByProblemId = async (problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>> => {
@@ -80,13 +82,13 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     if (sortBy) {
       params.sortBy = sortBy;
     }
-    return await this.client.get<SolutionListItem[]>(path, params);
+    return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getCommentsBySolutionId = async (solutionId: string): Promise<Resp<SolutionComment[]>> => {
     const path = this.commentsPath();
     const params = { solutionId };
-    return await this.client.get<SolutionComment[]>(path, params);
+    return await this.client.get<SolutionComment[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   createComment = async (solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
@@ -119,12 +121,12 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   getVotesCount = async (solutionId: string): Promise<Resp<SolutionVotesCount>> => {
     const path = this.votesPath();
     const params = { solutionId };
-    return await this.client.get<SolutionVotesCount>(path, params);
+    return await this.client.get<SolutionVotesCount>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getMyVoteStatus = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {
     const path = this.myVotesPath();
     const params = { solutionId };
-    return await this.client.getWithToken<SolutionLikeStatus>(path, token, params);
+    return await this.client.getWithToken<SolutionLikeStatus>(path, token, params, SolutionRepositoryImpl.NO_STORE);
   };
 }

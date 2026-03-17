@@ -20,6 +20,9 @@ export class ContestRepositoryImpl implements ContestRepository {
   getContestsBySeries = async (series: ContestSeries): Promise<Resp<Contest[]>> => {
     const params = { series };
     const path = this.getContestsByContestSeriesPath();
-    return await this.client.get<Contest[]>(path, params, ContestRepositoryImpl.READ_CACHE_SECONDS);
+    return await this.client.get<Contest[]>(path, params, {
+      kind: "revalidate",
+      seconds: ContestRepositoryImpl.READ_CACHE_SECONDS,
+    });
   };
 }
