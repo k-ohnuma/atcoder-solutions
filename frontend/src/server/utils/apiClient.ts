@@ -4,6 +4,7 @@ import { Resp } from "../response";
 type JsonValue = string;
 
 type QueryParams = Record<string, string>;
+type GetCacheStrategy = { kind: "revalidate"; seconds: number } | { kind: "no-store" };
 
 export class BackendApiClient {
   private baseEndpoint: string;
@@ -21,14 +22,14 @@ export class BackendApiClient {
     token,
     body,
     params,
-    revalidateSeconds,
+    cacheStrategy,
   }: {
     method: "GET" | "POST" | "PATCH" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
     params?: Record<string, string>;
-    revalidateSeconds?: number;
+    cacheStrategy?: GetCacheStrategy;
   }): Promise<Resp<T>> {
     const url = new URL(path.replace(/^\//, ""), this.baseEndpoint);
 
@@ -48,9 +49,13 @@ export class BackendApiClient {
       method,
       headers: reqHeaders,
     };
-    if (method === "GET" && revalidateSeconds !== undefined) {
-      init.cache = "force-cache";
-      (init as RequestInit & { next?: { revalidate: number } }).next = { revalidate: revalidateSeconds };
+    if (method === "GET" && cacheStrategy) {
+      if (cacheStrategy.kind === "revalidate") {
+        init.cache = "force-cache";
+        (init as RequestInit & { next?: { revalidate: number } }).next = { revalidate: cacheStrategy.seconds };
+      } else {
+        init.cache = "no-store";
+      }
     }
     if (hasBody) {
       if (!reqHeaders["Content-Type"]) {
@@ -72,12 +77,12 @@ export class BackendApiClient {
     }
   }
 
-  async get<T>(path: string, params?: QueryParams, revalidateSeconds?: number): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, params, revalidateSeconds });
+  async get<T>(path: string, params?: QueryParams, cacheStrategy?: GetCacheStrategy): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, params, cacheStrategy });
   }
 
-  async getWithToken<T>(path: string, token: string, params?: QueryParams, revalidateSeconds?: number): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, token, params, revalidateSeconds });
+  async getWithToken<T>(path: string, token: string, params?: QueryParams, cacheStrategy?: GetCacheStrategy): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, token, params, cacheStrategy });
   }
 
   async post<T>(path: string, body: JsonValue): Promise<Resp<T>> {

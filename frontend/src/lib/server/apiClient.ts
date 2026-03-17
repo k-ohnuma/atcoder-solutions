@@ -14,6 +14,7 @@ export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: s
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 type QueryParams = Record<string, string>;
+type GetCacheStrategy = { kind: "no-store" } | { kind: "default" };
 
 export class ApiClient {
   private baseEndpoint: string;
@@ -31,12 +32,14 @@ export class ApiClient {
     token,
     body,
     params,
+    cacheStrategy,
   }: {
     method: "GET" | "POST";
     path: string;
     token?: string;
     body?: JsonValue;
     params?: Record<string, string>;
+    cacheStrategy?: GetCacheStrategy;
   }): Promise<Resp<T>> {
     const url = new URL(path.replace(/^\//, ""), this.baseEndpoint);
 
@@ -56,6 +59,9 @@ export class ApiClient {
       method,
       headers: reqHeaders,
     };
+    if (method === "GET" && cacheStrategy?.kind === "no-store") {
+      init.cache = "no-store";
+    }
     if (hasBody) {
       if (!reqHeaders["Content-Type"]) {
         reqHeaders["Content-Type"] = "application/json";
@@ -75,8 +81,8 @@ export class ApiClient {
       };
     }
   }
-  private async get<T>(path: string, params?: QueryParams): Promise<Resp<T>> {
-    return this.request({ method: "GET", path, params });
+  private async get<T>(path: string, params?: QueryParams, cacheStrategy?: GetCacheStrategy): Promise<Resp<T>> {
+    return this.request({ method: "GET", path, params, cacheStrategy });
   }
 
   // private async _getWithToken<T>(path: string, token: string): Promise<Resp<T>> {
@@ -124,7 +130,7 @@ export class ApiClient {
 
   getSolutionById = async (solutionId: string): Promise<Resp<SolutionDetail>> => {
     const path = "solutions";
-    return await this.get<SolutionDetail>(path, { solutionId });
+    return await this.get<SolutionDetail>(path, { solutionId }, { kind: "no-store" });
   };
 
   getSolutionsByProblemId = async (
@@ -132,7 +138,7 @@ export class ApiClient {
     sortBy: SolutionListSortBy = "latest",
   ): Promise<Resp<SolutionListItem[]>> => {
     const path = "solutions/problems";
-    return await this.get<SolutionListItem[]>(path, { problemId, sortBy });
+    return await this.get<SolutionListItem[]>(path, { problemId, sortBy }, { kind: "no-store" });
   };
 
   getSolutionsByUserName = async (
@@ -140,12 +146,12 @@ export class ApiClient {
     sortBy: SolutionListSortBy = "latest",
   ): Promise<Resp<UserSolutionListItem[]>> => {
     const path = "solutions/users";
-    return await this.get<UserSolutionListItem[]>(path, { userName, sortBy });
+    return await this.get<UserSolutionListItem[]>(path, { userName, sortBy }, { kind: "no-store" });
   };
 
   getSolutionVotesCount = async (solutionId: string): Promise<number> => {
     const path = "solutions/votes";
-    const resp = await this.get<SolutionVotesCount>(path, { solutionId });
+    const resp = await this.get<SolutionVotesCount>(path, { solutionId }, { kind: "no-store" });
     if (resp.ok) {
       return resp.data.votesCount;
     }
@@ -155,7 +161,7 @@ export class ApiClient {
 
   getCommentsBySolutionId = async (solutionId: string): Promise<SolutionComment[]> => {
     const path = "solutions/comments";
-    const resp = await this.get<SolutionComment[]>(path, { solutionId });
+    const resp = await this.get<SolutionComment[]>(path, { solutionId }, { kind: "no-store" });
     if (resp.ok) {
       return resp.data;
     }

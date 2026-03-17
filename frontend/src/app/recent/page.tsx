@@ -23,6 +23,8 @@ async function getLatestSolutions(): Promise<SolutionListItem[]> {
 
   const res = await fetch(url, {
     method: "GET",
+    cache: "force-cache",
+    next: { revalidate: 60 },
     headers: {
       Accept: "application/json",
     },
