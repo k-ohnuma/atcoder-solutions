@@ -12,29 +12,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - name: rustup show
-        run: rustup show
-      - name: install components
-        run: rustup component add clippy rustfmt
+      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
             backend -> target
-      - name: install nextest and cargo-make
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest,cargo-make
-      - name: build
-        run: cargo make test --no-run --locked
-      - name: clippy
-        run: cargo make clippy
-      - name: fmt
-        run: cargo make fmtc
-      - name: test
-        run: cargo make test
+      - name: CI
+        run: nix develop .#backend -c bash -lc 'cd backend && just ci'

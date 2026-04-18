@@ -18,12 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v3
-        with:
-          version: 2025.11.4
-          install: true
-          cache: true
-          cache_key_prefix: "mise-cache-lint"
-          experimental: false
-      - name: ci
-        run: mise run lint:ci
+      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: CI
+        run: nix develop -c just lint-ci
