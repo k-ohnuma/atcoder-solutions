@@ -12,26 +12,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v3
-        with:
-          version: 2025.11.4
-          install: true
-          cache: true
-          cache_key_prefix: "mise-cache-frontend"
-          experimental: false
-          working_directory: frontend
-      - name: Dependency restore
-        id: cache-restore
-        uses: actions/cache@v4
-        with:
-          path: frontend/node_modules
-          key: js-depend-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
-      - name: Dependency installing
-        run: pnpm install --frozen-lockfile
-      - name: check
-        run: mise run ci
+      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: CI
+        run: nix develop .#frontend -c bash -lc 'cd frontend && pnpm install --frozen-lockfile && just ci'
