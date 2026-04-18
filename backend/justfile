@@ -1,0 +1,56 @@
+set shell := ["bash", "-cu"]
+
+default:
+  @just --list
+
+before-build: compose-up-db migrate
+
+before-ci: compose-up-db migrate
+
+compose-up-db:
+  docker compose up -d postgres
+
+compose-down:
+  docker compose down
+
+compose arg="":
+  docker compose {{arg}}
+
+migrate:
+  #!/usr/bin/env bash
+  until sqlx migrate run --source infrastructure/migrations; do
+    sleep 1
+  done
+
+run arg="": before-build
+  cargo run --bin app {{arg}}
+
+runbatch arg="": before-build
+  cargo run --bin run_daily_job {{arg}}
+
+build arg="":
+  cargo build {{arg}}
+
+format-write arg="":
+  cargo fmt {{arg}}
+
+format-check:
+  cargo fmt --all -- --check
+
+clippy:
+  cargo clippy --all --all-targets --all-features --locked -- -D warnings
+
+sqlx arg="":
+  sqlx {{arg}} --source infrastructure/migrations
+
+psql arg="":
+  docker run -it --rm --network host -v "$PWD:/work" postgres:15 psql "${DATABASE_URL}" {{arg}}
+
+test: before-ci
+  cargo nextest run --workspace --status-level all
+
+ci: before-ci build format-check clippy test
+
+alias fmt := format-write
+alias fmtc := format-check
+alias c := clippy

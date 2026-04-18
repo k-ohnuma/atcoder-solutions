@@ -1,0 +1,31 @@
+set shell := ["bash", "-cu"]
+
+image_base := "asia-northeast1-docker.pkg.dev/atcoder-solutions/atcoder-solutions"
+project_id := "atcoder-solutions"
+
+default:
+  @just --list
+
+buildbackend env="dev":
+  docker buildx build --platform linux/amd64 -t atcoder-solutions-backend:{{env}} --load ../backend
+
+push tag env="dev":
+  #!/usr/bin/env bash
+  set -euo pipefail
+  image_name="{{image_base}}-{{env}}/backend:{{tag}}"
+  docker buildx build --platform linux/amd64 -t "$image_name" --push ../backend
+
+cdkdiff tag env="dev":
+  #!/usr/bin/env bash
+  set -euo pipefail
+  image_name="{{image_base}}-{{env}}/backend:{{tag}}"
+  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktf diff
+
+cdkdeploy tag env="dev":
+  #!/usr/bin/env bash
+  set -euo pipefail
+  image_name="{{image_base}}-{{env}}/backend:{{tag}}"
+  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktf deploy
+
+setsecret dburl env="dev" project=project_id:
+  printf '%s' "{{dburl}}" | gcloud secrets versions add "app-database-url-{{env}}" --data-file=- --project="{{project}}"

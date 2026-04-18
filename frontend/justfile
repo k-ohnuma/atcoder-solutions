@@ -1,0 +1,33 @@
+set shell := ["bash", "-cu"]
+
+default:
+  @just --list
+
+dev:
+  pnpm run dev
+
+type-check:
+  pnpm run tc
+
+format-write:
+  pnpm run format:write
+
+fmt-check:
+  pnpm run format:check
+
+lint:
+  pnpm run lint
+
+check:
+  pnpm run check:check
+
+shadcn:
+  pnpm dlx shadcn@latest
+
+ci: type-check fmt-check lint check
+
+alias tc := type-check
+alias fmt := format-write
+alias fmtc := fmt-check
+alias c := check
+alias shad := shadcn
