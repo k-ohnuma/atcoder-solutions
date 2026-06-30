@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ShowAllButton } from "../molecules/ShowAllButton";
 import { ContestProblemSections } from "../organisms/ContestProblemSections";
 
-const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "OTHER"] as const;
+const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
 
 export function ProblemsTemplate({

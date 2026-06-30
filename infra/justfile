@@ -19,13 +19,13 @@ cdkdiff tag env="dev":
   #!/usr/bin/env bash
   set -euo pipefail
   image_name="{{image_base}}-{{env}}/backend:{{tag}}"
-  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktf diff
+  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktn diff
 
 cdkdeploy tag env="dev":
   #!/usr/bin/env bash
   set -euo pipefail
   image_name="{{image_base}}-{{env}}/backend:{{tag}}"
-  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktf deploy
+  CDKTF_ENV="{{env}}" TF_VAR_api_container_image="$image_name" TF_VAR_project_id="{{project_id}}" cdktn deploy
 
 setsecret dburl env="dev" project=project_id:
   printf '%s' "{{dburl}}" | gcloud secrets versions add "app-database-url-{{env}}" --data-file=- --project="{{project}}"

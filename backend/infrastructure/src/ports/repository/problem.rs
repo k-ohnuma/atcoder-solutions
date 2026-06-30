@@ -117,7 +117,8 @@ async fn safe_insert_contest(
         r#"
         INSERT INTO contests (code, series_code)
         VALUES ($1, $2)
-        ON CONFLICT (code) DO NOTHING
+        ON CONFLICT (code) DO UPDATE
+        SET series_code = EXCLUDED.series_code
         "#,
         contest_code,
         series_code

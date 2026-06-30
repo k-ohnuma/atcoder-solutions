@@ -79,7 +79,11 @@ export const MarkdownPlayground: React.FC = () => {
         ? "ARC"
         : upperContest.startsWith("AGC")
           ? "AGC"
-          : "OTHER";
+          : upperContest.startsWith("AHC")
+            ? "AHC"
+            : upperContest.startsWith("AWC")
+              ? "AWC"
+              : "OTHER";
 
     setSeries(nextSeries);
     setContestId(contest);
