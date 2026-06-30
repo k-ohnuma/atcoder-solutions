@@ -25,24 +25,40 @@ struct ApiProblemDifficulty {
     difficulty: Option<i32>,
 }
 
-fn contest_code_from_problem_id(problem_id: &str, fallback_contest_id: &str) -> String {
-    problem_id
-        .rsplit_once('_')
-        .map(|(contest_code, _)| contest_code.to_string())
-        .unwrap_or_else(|| fallback_contest_id.to_string())
+fn normalize_contest_code(value: &str) -> String {
+    value
+        .chars()
+        .filter(|c| *c != '-' && *c != '_')
+        .flat_map(char::to_lowercase)
+        .collect()
 }
 
-fn problem_index_from_problem_id(problem_id: &str, fallback_problem_index: &str) -> String {
-    problem_id
-        .rsplit_once('_')
-        .map(|(_, problem_index)| problem_index.to_ascii_uppercase())
-        .unwrap_or_else(|| fallback_problem_index.to_string())
+fn resolve_contest_code_and_problem_index(
+    problem_id: &str,
+    contest_id: &str,
+    problem_index: &str,
+) -> (String, String) {
+    let Some((derived_contest_code, derived_problem_index)) = problem_id.rsplit_once('_') else {
+        return (contest_id.to_string(), problem_index.to_string());
+    };
+
+    if normalize_contest_code(derived_contest_code) == normalize_contest_code(contest_id) {
+        (contest_id.to_string(), problem_index.to_string())
+    } else {
+        (
+            derived_contest_code.to_string(),
+            derived_problem_index.to_ascii_uppercase(),
+        )
+    }
 }
 
 impl From<ApiProblem> for Problem {
     fn from(value: ApiProblem) -> Self {
-        let contest_code = contest_code_from_problem_id(&value.id, &value.contest_id);
-        let problem_index = problem_index_from_problem_id(&value.id, &value.problem_index);
+        let (contest_code, problem_index) = resolve_contest_code_and_problem_index(
+            &value.id,
+            &value.contest_id,
+            &value.problem_index,
+        );
         Self {
             id: value.id,
             contest_code,
@@ -148,10 +164,7 @@ mod tests {
         matchers::{method, path},
     };
 
-    use super::{
-        ApiProblem, AtcoderProblemsClient, contest_code_from_problem_id,
-        problem_index_from_problem_id,
-    };
+    use super::{ApiProblem, AtcoderProblemsClient, resolve_contest_code_and_problem_index};
 
     async fn server_and_client() -> (MockServer, AtcoderProblemsClient) {
         let server = MockServer::start().await;
@@ -184,37 +197,32 @@ mod tests {
     }
 
     #[test]
-    fn contest_code_is_derived_from_problem_id() {
-        for (problem_id, contest_id, expected) in [
-            ("abc395_a", "adt_easy_20250430_3", "abc395"),
-            ("abc001_1", "abc001", "abc001"),
-            ("tessoku_book_fj", "tessoku-book", "tessoku_book"),
-            ("APG4bPython_ak", "APG4bPython", "APG4bPython"),
+    fn contest_code_and_problem_index_are_resolved_from_problem_identity() {
+        for (problem_id, contest_id, problem_index, expected_contest, expected_index) in [
+            ("abc395_a", "adt_easy_20250430_3", "B", "abc395", "A"),
+            ("abc001_1", "abc001", "A", "abc001", "A"),
+            ("abc007_3", "atc002", "A", "abc007", "3"),
+            (
+                "tessoku_book_fj",
+                "tessoku-book",
+                "a1",
+                "tessoku-book",
+                "a1",
+            ),
+            ("APG4bPython_ak", "APG4bPython", "A", "APG4bPython", "A"),
             (
                 "problem-without-separator",
                 "fallback_contest",
+                "A",
                 "fallback_contest",
+                "A",
             ),
         ] {
+            let (contest, index) =
+                resolve_contest_code_and_problem_index(problem_id, contest_id, problem_index);
             assert_eq!(
-                contest_code_from_problem_id(problem_id, contest_id),
-                expected
-            );
-        }
-    }
-
-    #[test]
-    fn problem_index_is_derived_from_problem_id() {
-        for (problem_id, problem_index, expected) in [
-            ("abc395_a", "B", "A"),
-            ("abc007_1", "A", "1"),
-            ("abc007_3", "A", "3"),
-            ("tessoku_book_fj", "a1", "FJ"),
-            ("problem-without-separator", "A", "A"),
-        ] {
-            assert_eq!(
-                problem_index_from_problem_id(problem_id, problem_index),
-                expected
+                (contest.as_str(), index.as_str()),
+                (expected_contest, expected_index)
             );
         }
     }
