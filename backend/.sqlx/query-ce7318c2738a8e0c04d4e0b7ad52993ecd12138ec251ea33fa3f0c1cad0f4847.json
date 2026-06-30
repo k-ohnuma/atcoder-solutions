@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT *\n                FROM contests\n                WHERE contests.series_code = $1\n                ORDER BY contests.code DESC\n            ",
+  "query": "\n                SELECT c.id, c.code, c.series_code, c.created_at, c.updated_at\n                FROM contests c\n                WHERE c.series_code = $1\n                  AND EXISTS (\n                    SELECT 1\n                    FROM problems p\n                    WHERE p.contest_code = c.code\n                  )\n                ORDER BY c.code DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "1a67a67ae52633fb4e6a8196e3c390a7ae642011c9e415141719c8dff7633da0"
+  "hash": "ce7318c2738a8e0c04d4e0b7ad52993ecd12138ec251ea33fa3f0c1cad0f4847"
 }

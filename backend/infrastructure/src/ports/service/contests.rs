@@ -21,10 +21,15 @@ impl ContestService for ContestServiceImpl {
         let contests = sqlx::query_as!(
             ContestListItemViewRaw,
             r#"
-                SELECT *
-                FROM contests
-                WHERE contests.series_code = $1
-                ORDER BY contests.code DESC
+                SELECT c.id, c.code, c.series_code, c.created_at, c.updated_at
+                FROM contests c
+                WHERE c.series_code = $1
+                  AND EXISTS (
+                    SELECT 1
+                    FROM problems p
+                    WHERE p.contest_code = c.code
+                  )
+                ORDER BY c.code DESC
             "#,
             series.to_string()
         )
