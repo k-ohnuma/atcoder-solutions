@@ -69,6 +69,7 @@
           sqlx-cli
           pkg-config
           openssl
+          cargo-audit
         ];
 
         frontendTools = with pkgs; [
