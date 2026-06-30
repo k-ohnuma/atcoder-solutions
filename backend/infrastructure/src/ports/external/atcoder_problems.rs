@@ -25,40 +25,33 @@ struct ApiProblemDifficulty {
     difficulty: Option<i32>,
 }
 
-fn normalize_contest_code(value: &str) -> String {
-    value
-        .chars()
-        .filter(|c| *c != '-' && *c != '_')
-        .flat_map(char::to_lowercase)
-        .collect()
+fn contest_code_from_problem(problem_id: &str, contest_id: &str) -> String {
+    if !contest_id.starts_with("adt_") {
+        return contest_id.to_string();
+    }
+
+    problem_id
+        .rsplit_once('_')
+        .map(|(contest_code, _)| contest_code.to_string())
+        .unwrap_or_else(|| contest_id.to_string())
 }
 
-fn resolve_contest_code_and_problem_index(
-    problem_id: &str,
-    contest_id: &str,
-    problem_index: &str,
-) -> (String, String) {
-    let Some((derived_contest_code, derived_problem_index)) = problem_id.rsplit_once('_') else {
-        return (contest_id.to_string(), problem_index.to_string());
-    };
-
-    if normalize_contest_code(derived_contest_code) == normalize_contest_code(contest_id) {
-        (contest_id.to_string(), problem_index.to_string())
-    } else {
-        (
-            derived_contest_code.to_string(),
-            derived_problem_index.to_ascii_uppercase(),
-        )
+fn problem_index_from_problem(problem_id: &str, contest_id: &str, problem_index: &str) -> String {
+    if !contest_id.starts_with("adt_") {
+        return problem_index.to_string();
     }
+
+    problem_id
+        .rsplit_once('_')
+        .map(|(_, derived_problem_index)| derived_problem_index.to_ascii_uppercase())
+        .unwrap_or_else(|| problem_index.to_string())
 }
 
 impl From<ApiProblem> for Problem {
     fn from(value: ApiProblem) -> Self {
-        let (contest_code, problem_index) = resolve_contest_code_and_problem_index(
-            &value.id,
-            &value.contest_id,
-            &value.problem_index,
-        );
+        let contest_code = contest_code_from_problem(&value.id, &value.contest_id);
+        let problem_index =
+            problem_index_from_problem(&value.id, &value.contest_id, &value.problem_index);
         Self {
             id: value.id,
             contest_code,
@@ -164,7 +157,9 @@ mod tests {
         matchers::{method, path},
     };
 
-    use super::{ApiProblem, AtcoderProblemsClient, resolve_contest_code_and_problem_index};
+    use super::{
+        ApiProblem, AtcoderProblemsClient, contest_code_from_problem, problem_index_from_problem,
+    };
 
     async fn server_and_client() -> (MockServer, AtcoderProblemsClient) {
         let server = MockServer::start().await;
@@ -197,11 +192,11 @@ mod tests {
     }
 
     #[test]
-    fn contest_code_and_problem_index_are_resolved_from_problem_identity() {
+    fn contest_code_and_problem_index_are_rewritten_only_for_adt() {
         for (problem_id, contest_id, problem_index, expected_contest, expected_index) in [
             ("abc395_a", "adt_easy_20250430_3", "B", "abc395", "A"),
             ("abc001_1", "abc001", "A", "abc001", "A"),
-            ("abc007_3", "atc002", "A", "abc007", "3"),
+            ("abc007_3", "atc002", "A", "atc002", "A"),
             (
                 "tessoku_book_fj",
                 "tessoku-book",
@@ -218,8 +213,8 @@ mod tests {
                 "A",
             ),
         ] {
-            let (contest, index) =
-                resolve_contest_code_and_problem_index(problem_id, contest_id, problem_index);
+            let contest = contest_code_from_problem(problem_id, contest_id);
+            let index = problem_index_from_problem(problem_id, contest_id, problem_index);
             assert_eq!(
                 (contest.as_str(), index.as_str()),
                 (expected_contest, expected_index)
