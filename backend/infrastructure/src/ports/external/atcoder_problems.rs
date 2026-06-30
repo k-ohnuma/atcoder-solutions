@@ -143,7 +143,6 @@ mod tests {
         error::external::ExternalError, model::problem::Problem,
         ports::external::atcoder_problems::AtcoderProblemsPort,
     };
-    use rstest::rstest;
     use wiremock::{
         Mock, MockServer, ResponseTemplate,
         matchers::{method, path},
