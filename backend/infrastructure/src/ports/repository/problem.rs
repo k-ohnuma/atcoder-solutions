@@ -86,6 +86,25 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .map_err(map_sqlx_error)?;
         Ok(problems)
     }
+
+    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
+        let problem = sqlx::query_as!(
+            Problem,
+            r#"
+            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
+            FROM problems p
+            WHERE p.id = $1
+            "#,
+            problem_id
+        )
+        .fetch_optional(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?
+        .ok_or_else(|| RepositoryError::NotFound(problem_id.to_string()))?;
+
+        Ok(problem)
+    }
+
     async fn get_problems_by_contest(
         &self,
         contest: &str,
