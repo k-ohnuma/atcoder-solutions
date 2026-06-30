@@ -171,6 +171,13 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
                 title: "B - Example".into(),
                 difficulty: None,
             },
+            Problem {
+                id: "awc001_a".into(),
+                contest_code: "awc001".into(),
+                problem_index: "A".into(),
+                title: "AWC - Example".into(),
+                difficulty: None,
+            },
         ],
     });
     let calls = Arc::new(Mutex::new(TxCalls::default()));
@@ -186,10 +193,10 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
     assert_eq!(calls.commits, 1);
     assert_eq!(calls.contests_bulk_calls, 1);
     assert_eq!(calls.problems_bulk_calls, 1);
-    assert_eq!(calls.problems.len(), 2);
-    assert_eq!(calls.contests.len(), 1);
-    assert_eq!(calls.contests[0].0, "abc234");
-    assert_eq!(calls.contests[0].1, "ABC");
+    assert_eq!(calls.problems.len(), 3);
+    assert_eq!(calls.contests.len(), 2);
+    assert!(calls.contests.contains(&("abc234".into(), "ABC".into())));
+    assert!(calls.contests.contains(&("awc001".into(), "AWC".into())));
 
     let sent = &calls.problems[0];
     assert_eq!(sent.id, "abc234_a");

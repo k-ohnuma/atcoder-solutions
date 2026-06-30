@@ -14,8 +14,9 @@ pub struct Problem {
 pub enum ContestSeries {
     ABC,
     ARC,
-    AHC,
     AGC,
+    AHC,
+    AWC,
     OTHER,
 }
 
@@ -31,6 +32,8 @@ impl TryFrom<&str> for ContestSeries {
             Ok(ContestSeries::AGC)
         } else if lower.starts_with("ahc") {
             Ok(ContestSeries::AHC)
+        } else if lower.starts_with("awc") {
+            Ok(ContestSeries::AWC)
         } else if lower.starts_with("other") {
             Ok(ContestSeries::OTHER)
         } else {
@@ -54,6 +57,7 @@ impl From<ContestSeries> for String {
             ContestSeries::ARC => "ARC".into(),
             ContestSeries::AGC => "AGC".into(),
             ContestSeries::AHC => "AHC".into(),
+            ContestSeries::AWC => "AWC".into(),
             _ => "OTHER".into(),
         }
     }
@@ -66,6 +70,7 @@ impl From<ContestSeries> for &str {
             ContestSeries::ARC => "ARC",
             ContestSeries::AGC => "AGC",
             ContestSeries::AHC => "AHC",
+            ContestSeries::AWC => "AWC",
             _ => "OTHER",
         }
     }

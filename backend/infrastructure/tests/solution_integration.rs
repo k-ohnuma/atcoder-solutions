@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 #[cfg(test)]
 async fn seed_contest_series(pool: &PgPool) -> Result<()> {
-    for code in ["ABC", "ARC", "AGC", "AHC", "OTHER"] {
+    for code in ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] {
         sqlx::query!(
             r#"INSERT INTO contest_series (code)
                VALUES ($1) ON CONFLICT (code) DO NOTHING"#,
