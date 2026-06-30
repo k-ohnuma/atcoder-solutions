@@ -25,6 +25,7 @@ type SolutionDetailProps = {
   solutionId: string;
   title: string;
   problemId: string;
+  contestCode: string;
   problemTitle: string;
   userId: string;
   userName: string;
@@ -40,6 +41,7 @@ export function SolutionDetail({
   solutionId,
   title,
   problemId,
+  contestCode,
   problemTitle,
   userId,
   userName,
@@ -50,7 +52,7 @@ export function SolutionDetail({
   initialVotesCount,
   initialComments,
 }: SolutionDetailProps) {
-  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId);
+  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId, contestCode);
 
   return (
     <PageContainer as="article">

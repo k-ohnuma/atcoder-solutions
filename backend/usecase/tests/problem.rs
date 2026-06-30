@@ -145,6 +145,10 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
+    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
+        Err(RepositoryError::NotFound(problem_id.to_string()))
+    }
+
     async fn get_problems_by_contest(
         &self,
         _contest: &str,

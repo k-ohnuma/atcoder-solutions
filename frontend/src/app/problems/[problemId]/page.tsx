@@ -37,12 +37,20 @@ function difficultyBadgeClass(difficulty?: number | null): string {
 export default async function ProblemSolutionsPage({ params, searchParams }: PageProps) {
   const { problemId } = await params;
   const { sortBy } = await searchParams;
-  const atcoderProblemUrl = buildAtcoderProblemUrl(problemId);
+  const problemResp = await apiClient.getProblemById(problemId);
   const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
   const solutionsResp = await apiClient.getSolutionsByProblemId(problemId, selectedSort);
-  const contestCode = problemId.split("_")[0] ?? "";
-  const contestProblems = contestCode ? await apiClient.getProblemsByContest(contestCode) : [];
-  const difficulty = contestProblems.find((problem) => problem.id === problemId)?.difficulty ?? null;
+
+  if (!problemResp.ok) {
+    if (problemResp.status === 404) {
+      notFound();
+    }
+    throw new Error(`failed to fetch problem: status=${problemResp.status}, error=${problemResp.error}`);
+  }
+
+  const problem = problemResp.data;
+  const atcoderProblemUrl = buildAtcoderProblemUrl(problem.id, problem.contestCode);
+  const difficulty = problem.difficulty ?? null;
 
   const h1Title = `${problemId} の解説一覧`;
 

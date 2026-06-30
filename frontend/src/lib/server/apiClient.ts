@@ -106,6 +106,11 @@ export class ApiClient {
     return [];
   };
 
+  getProblemById = async (problemId: string): Promise<Resp<Problem>> => {
+    const path = `problems/${encodeURIComponent(problemId)}`;
+    return await this.get<Problem>(path);
+  };
+
   getProblemsByContestSeries = async <T>(contestSeries: string): Promise<T> => {
     const path = "problems";
     const resp = await this.get<T>(path, { series: contestSeries });

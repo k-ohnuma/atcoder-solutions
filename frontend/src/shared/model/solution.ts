@@ -2,6 +2,7 @@ export interface SolutionDetail {
   id: string;
   title: string;
   problemId: string;
+  contestCode: string;
   problemTitle: string;
   userId: string;
   userName: string;

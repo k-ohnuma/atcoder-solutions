@@ -31,6 +31,7 @@ export default async function SolutionPage({ params }: PageProps) {
       solutionId={solution.id}
       title={solution.title}
       problemId={solution.problemId}
+      contestCode={solution.contestCode}
       problemTitle={solution.problemTitle}
       userId={solution.userId}
       userName={solution.userName}
