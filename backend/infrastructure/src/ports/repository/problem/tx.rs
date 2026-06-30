@@ -63,7 +63,8 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
             r#"
             INSERT INTO contests (code, series_code)
             VALUES ($1, $2)
-            ON CONFLICT (code) DO NOTHING
+            ON CONFLICT (code) DO UPDATE
+            SET series_code = EXCLUDED.series_code
             "#,
             contest_code,
             series_code
@@ -119,7 +120,7 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
         query_builder.push_values(contests.iter(), |mut b, (contest_code, series_code)| {
             b.push_bind(contest_code).push_bind(series_code);
         });
-        query_builder.push(" ON CONFLICT (code) DO NOTHING");
+        query_builder.push(" ON CONFLICT (code) DO UPDATE SET series_code = EXCLUDED.series_code");
 
         query_builder
             .build()
