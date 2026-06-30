@@ -43,9 +43,11 @@ export function ContestProblemSelectorSection({
         <div className="space-y-2">
           <div className="text-xs font-medium text-muted-foreground">コンテスト種別</div>
           <Tabs value={series} onValueChange={onSeriesChangeAction}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="ABC">ABC</TabsTrigger>
               <TabsTrigger value="ARC">ARC</TabsTrigger>
+              <TabsTrigger value="AHC">AHC</TabsTrigger>
+              <TabsTrigger value="AWC">AWC</TabsTrigger>
               <TabsTrigger value="AGC">AGC</TabsTrigger>
               <TabsTrigger value="OTHER">OTHER</TabsTrigger>
             </TabsList>

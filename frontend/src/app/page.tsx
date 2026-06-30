@@ -3,7 +3,7 @@ import { ProblemsTemplate } from "@/features/problems/ui/templates/ProblemsTempl
 import { serverConfig } from "@/shared/config/backend";
 import { Problem } from "@/shared/model/problem";
 
-const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "OTHER"] as const;
+const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
 type ContestGroupCollection = Map<string, Problem[]>;
 

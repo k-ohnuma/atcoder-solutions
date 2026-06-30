@@ -1,7 +1,7 @@
 import z from "zod";
 import { Resp } from "../response";
 
-export const contestSeries = z.enum(["ABC", "ARC", "AHC", "AGC", "OTHER"]);
+export const contestSeries = z.enum(["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"]);
 export type ContestSeries = z.infer<typeof contestSeries>;
 
 export interface Problem {
