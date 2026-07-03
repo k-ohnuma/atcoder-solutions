@@ -143,7 +143,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         series: ContestSeries,
         query: &str,
     ) -> Result<Vec<Problem>, RepositoryError> {
-        let pattern = format!("%{}%", query.to_ascii_lowercase());
+        let query = query.to_lowercase();
         let problems = sqlx::query_as!(
             Problem,
             r#"
@@ -152,7 +152,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
                 FROM contests c
                 JOIN contest_series s ON s.code = c.series_code
                 WHERE s.code = $1
-                  AND LOWER(c.code) LIKE $2
+                  AND position($2 in LOWER(c.code)) > 0
             )
             SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
@@ -161,14 +161,14 @@ impl ProblemRepository for ProblemRepositoryImpl {
             WHERE s.code = $1
               AND (
                   p.contest_code IN (SELECT code FROM matched_contests)
-                  OR LOWER(p.id) LIKE $2
-                  OR LOWER(p.problem_index) LIKE $2
-                  OR LOWER(p.title) LIKE $2
+                  OR position($2 in LOWER(p.id)) > 0
+                  OR position($2 in LOWER(p.problem_index)) > 0
+                  OR position($2 in LOWER(p.title)) > 0
               )
             ORDER BY p.contest_code DESC
             "#,
             series.to_string(),
-            pattern,
+            query,
         )
         .fetch_all(self.db.inner_ref())
         .await

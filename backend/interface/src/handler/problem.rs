@@ -22,6 +22,9 @@ use crate::model::problem::{
     get_problems_by_contest::GetProblemsByContestRequestParams,
 };
 
+const MAX_CONTEST_GROUP_QUERY_LENGTH: usize = 100;
+const MAX_CONTEST_GROUP_OFFSET: usize = 5_000;
+
 pub async fn import_problem(reg: &Registry) -> StatusCode {
     let atcoder_problems_port = reg.atcoder_problems_port();
     let problem_repository = reg.problem_repository();
@@ -87,6 +90,23 @@ pub async fn get_contest_group_by_contest_series_handler(
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
     let series =
         ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
+    if query
+        .q
+        .as_ref()
+        .is_some_and(|q| q.chars().count() > MAX_CONTEST_GROUP_QUERY_LENGTH)
+    {
+        return Err(HttpError::BadRequest(format!(
+            "q must be at most {MAX_CONTEST_GROUP_QUERY_LENGTH} characters"
+        )));
+    }
+    if query
+        .offset
+        .is_some_and(|offset| offset > MAX_CONTEST_GROUP_OFFSET)
+    {
+        return Err(HttpError::BadRequest(format!(
+            "offset must be at most {MAX_CONTEST_GROUP_OFFSET}"
+        )));
+    }
 
     let page = usecase
         .run(series, query.q, query.limit, query.offset)
