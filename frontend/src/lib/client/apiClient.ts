@@ -110,12 +110,12 @@ export class ApiClient {
   };
   getContestGroupByContestSeries = async (contestSeries: string): Promise<ContestGroupCollection> => {
     const path = "api/problems/contest-group";
-    const resp = await this.get<Record<string, Problem[]>>(path, {
+    const resp = await this.get<{ items: Record<string, Problem[]> }>(path, {
       series: contestSeries,
     });
     if (resp.ok) {
       const map: Map<string, Problem[]> = new Map<string, Problem[]>(
-        Object.entries(resp.data).map(([contestId, problems]) => [contestId, problems]),
+        Object.entries(resp.data.items).map(([contestId, problems]) => [contestId, problems]),
       );
       return map;
     }

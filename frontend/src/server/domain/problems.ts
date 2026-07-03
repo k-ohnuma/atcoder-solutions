@@ -12,8 +12,18 @@ export interface Problem {
   difficulty?: number | null;
 }
 export type ContestGroupCollection = Map<string, Problem[]>;
+export interface ContestGroupPage {
+  items: ContestGroupCollection;
+  hasMore: boolean;
+  totalContestCount: number;
+}
 
 export interface ProblemRepository {
   getProblemsByContest(contest: string): Promise<Resp<Problem[]>>;
-  getContestGroupByContestSeries(series: ContestSeries): Promise<Resp<ContestGroupCollection>>;
+  getContestGroupByContestSeries(params: {
+    series: ContestSeries;
+    q?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Resp<ContestGroupPage>>;
 }
