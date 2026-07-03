@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty\n            FROM problems p\n            WHERE p.contest_code = ANY($1)\n            ORDER BY p.contest_code DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "contest_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_index",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "difficulty",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "a9ece84b896bb3550679f52ca343d0107ffc0ad7b53444c6aca67814b7d3ca83"
+}

@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Problem } from "@/shared/model/problem";
 import { ShowAllButton } from "../molecules/ShowAllButton";
 import { ContestProblemSections } from "../organisms/ContestProblemSections";
 
@@ -12,16 +16,59 @@ export function ProblemsTemplate({
   query,
   totalMatchedProblems,
   visibleContests,
-  shouldShowAll,
-  remainingContestCount,
+  hasMore,
+  pageSize,
 }: {
   selectedSeries: SupportedSeries;
   query: string;
   totalMatchedProblems: number;
-  visibleContests: Array<readonly [string, import("@/shared/model/problem").Problem[]]>;
-  shouldShowAll: boolean;
-  remainingContestCount: number;
+  visibleContests: Array<readonly [string, Problem[]]>;
+  hasMore: boolean;
+  pageSize: number;
 }) {
+  const [contests, setContests] = useState<Array<readonly [string, Problem[]]>>(visibleContests);
+  const [canLoadMore, setCanLoadMore] = useState(hasMore);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setContests(visibleContests);
+    setCanLoadMore(hasMore);
+  }, [visibleContests, hasMore]);
+
+  const loadMore = async () => {
+    setIsLoadingMore(true);
+    try {
+      const url = new URL("/api/problems/contest-group", window.location.origin);
+      url.searchParams.set("series", selectedSeries);
+      url.searchParams.set("limit", String(pageSize));
+      url.searchParams.set("offset", String(contests.length));
+
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        data?: {
+          items: Record<string, Problem[]>;
+          hasMore: boolean;
+        };
+      };
+      if (!res.ok || !json.ok || !json.data) {
+        return;
+      }
+      const data = json.data;
+
+      setContests((current) => [...current, ...Object.entries(data.items)]);
+      setCanLoadMore(data.hasMore);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const displayedProblemCount = contests.reduce((acc, [, problems]) => acc + problems.length, 0);
+
   return (
     <>
       <section className="mb-6 flex flex-col gap-3">
@@ -50,16 +97,16 @@ export function ProblemsTemplate({
         </form>
         {query && (
           <p className="text-sm text-muted-foreground">
-            「{query}」の検索: {totalMatchedProblems} 件
+            「{query}」の検索: {displayedProblemCount || totalMatchedProblems} 件
           </p>
         )}
       </section>
 
-      <ContestProblemSections contests={visibleContests} />
+      <ContestProblemSections contests={contests} />
 
-      {!shouldShowAll && remainingContestCount > 0 && (
+      {!query && canLoadMore && (
         <section className="mt-6 flex justify-center">
-          <ShowAllButton href={`/?series=${selectedSeries}&showAll=1`} remainingContestCount={remainingContestCount} />
+          <ShowAllButton isLoading={isLoadingMore} onClick={loadMore} />
         </section>
       )}
     </>

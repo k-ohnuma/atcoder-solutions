@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT c.code\n            FROM contests c\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE s.code = $1\n            ORDER BY c.code DESC\n            LIMIT $2 OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "233c8ae42dee0c64276667bde5a1837735e702815b335ed5a197ab56d6f16cc3"
+}

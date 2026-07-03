@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH matched_contests AS (\n                SELECT c.code\n                FROM contests c\n                JOIN contest_series s ON s.code = c.series_code\n                WHERE s.code = $1\n                  AND position($2 in LOWER(c.code)) > 0\n            )\n            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty\n            FROM problems p\n            JOIN contests c ON c.code = p.contest_code\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE s.code = $1\n              AND (\n                  p.contest_code IN (SELECT code FROM matched_contests)\n                  OR position($2 in LOWER(p.id)) > 0\n                  OR position($2 in LOWER(p.problem_index)) > 0\n                  OR position($2 in LOWER(p.title)) > 0\n              )\n            ORDER BY p.contest_code DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "contest_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_index",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "difficulty",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "a53bee3c14dd2d92711de4b88ad6ecec451d656f1a2a7a4d0d464e5ff7a28057"
+}

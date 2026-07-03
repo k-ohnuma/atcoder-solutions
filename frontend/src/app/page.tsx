@@ -6,13 +6,17 @@ import { Problem } from "@/shared/model/problem";
 const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
 type ContestGroupCollection = Map<string, Problem[]>;
+type ContestGroupPage = {
+  items: ContestGroupCollection;
+  hasMore: boolean;
+  totalContestCount: number;
+};
 
 const INITIAL_RENDER_LIMIT = 50;
 
 type HomePageProps = {
   searchParams: Promise<{
     series?: string;
-    showAll?: string;
     q?: string;
   }>;
 };
@@ -24,9 +28,15 @@ function normalizeSeries(value?: string): SupportedSeries {
   return "ABC";
 }
 
-async function getContestGroupBySeries(series: SupportedSeries): Promise<ContestGroupCollection> {
+async function getContestGroupBySeries(series: SupportedSeries, query: string): Promise<ContestGroupPage> {
   const url = new URL("/api/problems/contest-group", serverConfig.appConfig.appOrigin);
   url.searchParams.set("series", series);
+  if (query) {
+    url.searchParams.set("q", query);
+  } else {
+    url.searchParams.set("limit", String(INITIAL_RENDER_LIMIT));
+    url.searchParams.set("offset", "0");
+  }
 
   const res = await fetch(url, {
     method: "GET",
@@ -36,46 +46,29 @@ async function getContestGroupBySeries(series: SupportedSeries): Promise<Contest
   });
   const json = (await res.json()) as {
     ok?: boolean;
-    data?: Record<string, Problem[]>;
+    data?: {
+      items: Record<string, Problem[]>;
+      hasMore: boolean;
+      totalContestCount: number;
+    };
     error?: string;
   };
   if (!res.ok || !json.ok || !json.data) {
     throw new Error(`failed to fetch contest groups: status=${res.status}, error=${json.error ?? "unknown error"}`);
   }
 
-  return new Map<string, Problem[]>(Object.entries(json.data));
+  return {
+    ...json.data,
+    items: new Map<string, Problem[]>(Object.entries(json.data.items)),
+  };
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
-  const { series, showAll, q } = await searchParams;
+  const { series, q } = await searchParams;
   const selectedSeries = normalizeSeries(series);
-  const contestGroupCollection = await getContestGroupBySeries(selectedSeries);
   const query = q?.trim() ?? "";
-  const normalizedQuery = query.toLowerCase();
-  const list = [...contestGroupCollection.entries()]
-    .map(([contestId, problems]) => {
-      if (!normalizedQuery) {
-        return [contestId, problems] as const;
-      }
-      const filteredProblems = problems.filter((problem) => {
-        const problemTitle = problem.title.toLowerCase();
-        const problemIndex = problem.problemIndex.toLowerCase();
-        const problemId = problem.id.toLowerCase();
-        const contestCode = contestId.toLowerCase();
-        return (
-          problemTitle.includes(normalizedQuery) ||
-          problemIndex.includes(normalizedQuery) ||
-          problemId.includes(normalizedQuery) ||
-          contestCode.includes(normalizedQuery)
-        );
-      });
-      return [contestId, filteredProblems] as const;
-    })
-    .filter(([, problems]) => problems.length > 0);
-
-  const shouldShowAll = showAll === "1" || normalizedQuery.length > 0;
-  const visibleList = shouldShowAll ? list : list.slice(0, INITIAL_RENDER_LIMIT);
-  const remainingContestCount = Math.max(0, list.length - visibleList.length);
+  const contestGroupPage = await getContestGroupBySeries(selectedSeries, query);
+  const visibleList = [...contestGroupPage.items.entries()];
   const totalMatchedProblems = visibleList.reduce((acc, [, problems]) => acc + problems.length, 0);
 
   return (
@@ -85,8 +78,8 @@ export default async function Home({ searchParams }: HomePageProps) {
         query={query}
         totalMatchedProblems={totalMatchedProblems}
         visibleContests={visibleList}
-        shouldShowAll={shouldShowAll}
-        remainingContestCount={remainingContestCount}
+        hasMore={contestGroupPage.hasMore}
+        pageSize={INITIAL_RENDER_LIMIT}
       />
     </PageContainer>
   );

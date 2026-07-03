@@ -87,6 +87,96 @@ impl ProblemRepository for ProblemRepositoryImpl {
         Ok(problems)
     }
 
+    async fn get_contest_codes_by_series(
+        &self,
+        series: ContestSeries,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<String>, RepositoryError> {
+        let contest_codes = sqlx::query_scalar!(
+            r#"
+            SELECT c.code
+            FROM contests c
+            JOIN contest_series s ON s.code = c.series_code
+            WHERE s.code = $1
+            ORDER BY c.code DESC
+            LIMIT $2 OFFSET $3
+            "#,
+            series.to_string(),
+            limit,
+            offset,
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(contest_codes)
+    }
+
+    async fn get_problems_by_contest_codes(
+        &self,
+        contest_codes: &[String],
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        if contest_codes.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let problems = sqlx::query_as!(
+            Problem,
+            r#"
+            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
+            FROM problems p
+            WHERE p.contest_code = ANY($1)
+            ORDER BY p.contest_code DESC
+            "#,
+            contest_codes
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(problems)
+    }
+
+    async fn search_problems_by_contest_series(
+        &self,
+        series: ContestSeries,
+        query: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        let query = query.to_lowercase();
+        let problems = sqlx::query_as!(
+            Problem,
+            r#"
+            WITH matched_contests AS (
+                SELECT c.code
+                FROM contests c
+                JOIN contest_series s ON s.code = c.series_code
+                WHERE s.code = $1
+                  AND position($2 in LOWER(c.code)) > 0
+            )
+            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
+            FROM problems p
+            JOIN contests c ON c.code = p.contest_code
+            JOIN contest_series s ON s.code = c.series_code
+            WHERE s.code = $1
+              AND (
+                  p.contest_code IN (SELECT code FROM matched_contests)
+                  OR position($2 in LOWER(p.id)) > 0
+                  OR position($2 in LOWER(p.problem_index)) > 0
+                  OR position($2 in LOWER(p.title)) > 0
+              )
+            ORDER BY p.contest_code DESC
+            "#,
+            series.to_string(),
+            query,
+        )
+        .fetch_all(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(problems)
+    }
+
     async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
         let problem = sqlx::query_as!(
             Problem,

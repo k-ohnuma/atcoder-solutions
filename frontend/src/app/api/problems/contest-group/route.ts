@@ -9,12 +9,16 @@ export async function GET(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
   }
-  const series = parsed.data.series;
+  const { series, q, limit, offset } = parsed.data;
 
   const repo = new ProblemRepositoryImpl();
-  const problems = await repo.getContestGroupByContestSeries(series);
+  const problems = await repo.getContestGroupByContestSeries({ series, q, limit, offset });
   if (!problems.ok) {
     return NextResponse.json({ ok: false, error: problems.error }, { status: problems.status });
   }
-  return NextResponse.json({ ok: true, data: problems.data }, { status: 200, headers: publicCacheHeaders(3600, 300) });
+  const headers = q?.trim() ? { "Cache-Control": "no-store" } : publicCacheHeaders(3600, 300);
+  return NextResponse.json(
+    { ok: true, data: { ...problems.data, items: Object.fromEntries(problems.data.items) } },
+    { status: 200, headers },
+  );
 }
