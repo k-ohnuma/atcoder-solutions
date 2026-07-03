@@ -74,6 +74,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   return (
     <PageContainer>
       <ProblemsTemplate
+        key={`${selectedSeries}:${query}`}
         selectedSeries={selectedSeries}
         query={query}
         totalMatchedProblems={totalMatchedProblems}

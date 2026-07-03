@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Problem } from "@/shared/model/problem";
@@ -10,6 +10,21 @@ import { ContestProblemSections } from "../organisms/ContestProblemSections";
 
 const supportedSeries = ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] as const;
 type SupportedSeries = (typeof supportedSeries)[number];
+type ContestEntry = readonly [string, Problem[]];
+
+function appendUniqueContestEntries(current: ContestEntry[], incoming: ContestEntry[]): ContestEntry[] {
+  const existingContestIds = new Set(current.map(([contestId]) => contestId));
+  const next = [...current];
+  for (const entry of incoming) {
+    const [contestId] = entry;
+    if (existingContestIds.has(contestId)) {
+      continue;
+    }
+    existingContestIds.add(contestId);
+    next.push(entry);
+  }
+  return next;
+}
 
 export function ProblemsTemplate({
   selectedSeries,
@@ -22,20 +37,30 @@ export function ProblemsTemplate({
   selectedSeries: SupportedSeries;
   query: string;
   totalMatchedProblems: number;
-  visibleContests: Array<readonly [string, Problem[]]>;
+  visibleContests: ContestEntry[];
   hasMore: boolean;
   pageSize: number;
 }) {
-  const [contests, setContests] = useState<Array<readonly [string, Problem[]]>>(visibleContests);
+  const [contests, setContests] = useState<ContestEntry[]>(visibleContests);
   const [canLoadMore, setCanLoadMore] = useState(hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const requestVersionRef = useRef(0);
+  const isLoadingMoreRef = useRef(false);
 
   useEffect(() => {
+    requestVersionRef.current += 1;
+    isLoadingMoreRef.current = false;
     setContests(visibleContests);
     setCanLoadMore(hasMore);
+    setIsLoadingMore(false);
   }, [visibleContests, hasMore]);
 
   const loadMore = async () => {
+    if (isLoadingMoreRef.current) {
+      return;
+    }
+    isLoadingMoreRef.current = true;
+    const requestVersion = requestVersionRef.current;
     setIsLoadingMore(true);
     try {
       const url = new URL("/api/problems/contest-group", window.location.origin);
@@ -58,12 +83,19 @@ export function ProblemsTemplate({
       if (!res.ok || !json.ok || !json.data) {
         return;
       }
+      if (requestVersion !== requestVersionRef.current) {
+        return;
+      }
       const data = json.data;
+      const incomingContests = Object.entries(data.items);
 
-      setContests((current) => [...current, ...Object.entries(data.items)]);
+      setContests((current) => appendUniqueContestEntries(current, incomingContests));
       setCanLoadMore(data.hasMore);
     } finally {
-      setIsLoadingMore(false);
+      if (requestVersion === requestVersionRef.current) {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      }
     }
   };
 
