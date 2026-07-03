@@ -145,6 +145,30 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
+    async fn get_contest_codes_by_series(
+        &self,
+        _series: domain::model::problem::ContestSeries,
+        _limit: i64,
+        _offset: i64,
+    ) -> Result<Vec<String>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_problems_by_contest_codes(
+        &self,
+        _contest_codes: &[String],
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn search_problems_by_contest_series(
+        &self,
+        _series: domain::model::problem::ContestSeries,
+        _query: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
     async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
         Err(RepositoryError::NotFound(problem_id.to_string()))
     }

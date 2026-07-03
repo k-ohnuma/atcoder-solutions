@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH matched_contests AS (\n                SELECT c.code\n                FROM contests c\n                JOIN contest_series s ON s.code = c.series_code\n                WHERE s.code = $1\n                  AND LOWER(c.code) LIKE $2\n            )\n            SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty\n            FROM problems p\n            JOIN contests c ON c.code = p.contest_code\n            JOIN contest_series s ON s.code = c.series_code\n            WHERE s.code = $1\n              AND (\n                  p.contest_code IN (SELECT code FROM matched_contests)\n                  OR LOWER(p.id) LIKE $2\n                  OR LOWER(p.problem_index) LIKE $2\n                  OR LOWER(p.title) LIKE $2\n              )\n            ORDER BY p.contest_code DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "contest_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_index",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "difficulty",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "4bbf1174ca88aed3d0f6410f2aeb748c1567c4d9a00ad25f6c75916423678f0a"
+}

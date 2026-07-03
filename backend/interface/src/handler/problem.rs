@@ -1,5 +1,3 @@
-use std::{cmp::Reverse, collections::BTreeMap};
-
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -18,7 +16,9 @@ use crate::error::ToHttpError;
 use crate::http::ApiQuery;
 use crate::model::problem::{
     ProblemResponse,
-    get_contest_group_by_contest_series::GetContestGroupByContestSeriesRequestParams,
+    get_contest_group_by_contest_series::{
+        ContestGroupPageResponse, GetContestGroupByContestSeriesRequestParams,
+    },
     get_problems_by_contest::GetProblemsByContestRequestParams,
 };
 
@@ -82,14 +82,18 @@ pub async fn get_problem_by_id_handler(
 pub async fn get_contest_group_by_contest_series_handler(
     State(reg): State<Registry>,
     ApiQuery(query): ApiQuery<GetContestGroupByContestSeriesRequestParams>,
-) -> Result<ApiResponse<BTreeMap<Reverse<String>, Vec<ProblemResponse>>>, HttpError> {
+) -> Result<ApiResponse<ContestGroupPageResponse>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
     let series =
         ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
 
-    let problem_map = usecase.run(series).await.map_err(|e| e.to_http_error())?;
-    let resp = problem_map
+    let page = usecase
+        .run(series, query.q, query.limit, query.offset)
+        .await
+        .map_err(|e| e.to_http_error())?;
+    let items = page
+        .items
         .0
         .into_iter()
         .map(|(contest_id, problems)| {
@@ -101,7 +105,11 @@ pub async fn get_contest_group_by_contest_series_handler(
                     .collect::<Vec<_>>(),
             )
         })
-        .collect::<BTreeMap<Reverse<String>, Vec<ProblemResponse>>>();
+        .collect();
 
-    Ok(ApiResponse::ok(resp))
+    Ok(ApiResponse::ok(ContestGroupPageResponse {
+        items,
+        has_more: page.has_more,
+        total_contest_count: page.total_contest_count,
+    }))
 }
