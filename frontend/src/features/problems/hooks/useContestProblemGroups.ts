@@ -25,6 +25,7 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
   const [groups, setGroups] = useState<ContestProblemGroup[]>(initialPage.groups);
   const [canLoadMore, setCanLoadMore] = useState(initialPage.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const requestVersionRef = useRef(0);
   const isLoadingMoreRef = useRef(false);
 
@@ -34,6 +35,7 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
     setGroups(initialPage.groups);
     setCanLoadMore(initialPage.hasMore);
     setIsLoadingMore(false);
+    setLoadMoreError(null);
   }, [initialPage]);
 
   const loadMore = async () => {
@@ -43,6 +45,7 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
     isLoadingMoreRef.current = true;
     const requestVersion = requestVersionRef.current;
     setIsLoadingMore(true);
+    setLoadMoreError(null);
 
     try {
       const page = await fetchMoreContestProblemGroups({
@@ -56,6 +59,10 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
 
       setGroups((current) => appendUniqueGroups(current, page.groups));
       setCanLoadMore(page.hasMore);
+    } catch {
+      if (requestVersion === requestVersionRef.current) {
+        setLoadMoreError("追加読み込みに失敗しました");
+      }
     } finally {
       if (requestVersion === requestVersionRef.current) {
         isLoadingMoreRef.current = false;
@@ -68,6 +75,7 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
     groups,
     canLoadMore,
     isLoadingMore,
+    loadMoreError,
     totalMatchedProblems: groups.reduce((acc, group) => acc + group.problems.length, 0),
     loadMore,
   };

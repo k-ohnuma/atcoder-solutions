@@ -1,5 +1,5 @@
 import { ContestProblemGroup, SupportedSeries } from "@/features/problems/model/contestProblemGroup";
-import { ShowAllButton } from "../molecules/ShowAllButton";
+import { ShowMoreButton } from "../molecules/ShowMoreButton";
 import { ContestProblemSections } from "../organisms/ContestProblemSections";
 import { ProblemSearchForm } from "../organisms/ProblemSearchForm";
 import { SeriesTabs } from "../organisms/SeriesTabs";
@@ -12,6 +12,7 @@ type ProblemsTemplateProps = {
   groups: ContestProblemGroup[];
   canLoadMore: boolean;
   isLoadingMore: boolean;
+  loadMoreError: string | null;
   onLoadMore: () => void;
 };
 
@@ -23,6 +24,7 @@ export function ProblemsTemplate({
   groups,
   canLoadMore,
   isLoadingMore,
+  loadMoreError,
   onLoadMore,
 }: ProblemsTemplateProps) {
   return (
@@ -41,8 +43,9 @@ export function ProblemsTemplate({
       <ContestProblemSections groups={groups} />
 
       {!query && canLoadMore && (
-        <div className="mt-6 flex justify-center">
-          <ShowAllButton isLoading={isLoadingMore} onClick={onLoadMore} />
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <ShowMoreButton isLoading={isLoadingMore} onClickAction={onLoadMore} />
+          {loadMoreError && <p className="text-sm text-destructive">{loadMoreError}</p>}
         </div>
       )}
     </>

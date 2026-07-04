@@ -19,7 +19,7 @@ export function ContestProblemGroupsContainer({
   errorMessage,
   pageSize,
 }: ContestProblemGroupsContainerProps) {
-  const { groups, canLoadMore, isLoadingMore, totalMatchedProblems, loadMore } = useContestProblemGroups({
+  const { groups, canLoadMore, isLoadingMore, loadMoreError, totalMatchedProblems, loadMore } = useContestProblemGroups({
     selectedSeries,
     initialPage,
     pageSize,
@@ -34,6 +34,7 @@ export function ContestProblemGroupsContainer({
       groups={groups}
       canLoadMore={canLoadMore}
       isLoadingMore={isLoadingMore}
+      loadMoreError={loadMoreError}
       onLoadMore={loadMore}
     />
   );
