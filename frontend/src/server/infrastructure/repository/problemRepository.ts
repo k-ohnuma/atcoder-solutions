@@ -15,8 +15,18 @@ export class ProblemRepositoryImpl implements ProblemRepository {
   private getProblemsByContestSeriesPath = () => {
     return "problems";
   };
+  private getProblemByIdPath = (problemId: string) => {
+    return `problems/${encodeURIComponent(problemId)}`;
+  };
   private getContestGroupByContestSeriesPath = () => {
     return "problems/contest-group";
+  };
+
+  getProblemById = async (problemId: string): Promise<Resp<Problem>> => {
+    const path = this.getProblemByIdPath(problemId);
+    return await this.client.get<Problem>(path, undefined, {
+      kind: "no-store",
+    });
   };
 
   getProblemsByContest = async (contest: string): Promise<Resp<Problem[]>> => {

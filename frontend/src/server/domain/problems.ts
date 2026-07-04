@@ -19,6 +19,7 @@ export interface ContestGroupPage {
 }
 
 export interface ProblemRepository {
+  getProblemById(problemId: string): Promise<Resp<Problem>>;
   getProblemsByContest(contest: string): Promise<Resp<Problem[]>>;
   getContestGroupByContestSeries(params: {
     series: ContestSeries;

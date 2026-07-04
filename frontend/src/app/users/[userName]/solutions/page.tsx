@@ -3,11 +3,10 @@ import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
-import { ApiClient } from "@/lib/server/apiClient";
-import { serverConfig } from "@/shared/config/backend";
+import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 import { SolutionListSortBy } from "@/shared/model/solution";
 
-const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
+const solutionRepository = new SolutionRepositoryImpl();
 
 type PageProps = {
   params: Promise<{
@@ -22,7 +21,7 @@ export default async function UserSolutionsPage({ params, searchParams }: PagePr
   const { userName } = await params;
   const { sortBy } = await searchParams;
   const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
-  const solutionsResp = await apiClient.getSolutionsByUserName(userName, selectedSort);
+  const solutionsResp = await solutionRepository.getByUserName(userName, selectedSort);
 
   const h1Title = `@${userName} の解説一覧`;
 

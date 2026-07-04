@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
 import { buildAtcoderProblemUrl } from "@/lib/atcoder";
-import { ApiClient } from "@/lib/server/apiClient";
-import { serverConfig } from "@/shared/config/backend";
+import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
+import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 import { SolutionListSortBy } from "@/shared/model/solution";
 
-const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
+const problemRepository = new ProblemRepositoryImpl();
+const solutionRepository = new SolutionRepositoryImpl();
 
 type PageProps = {
   params: Promise<{
@@ -37,9 +38,9 @@ function difficultyBadgeClass(difficulty?: number | null): string {
 export default async function ProblemSolutionsPage({ params, searchParams }: PageProps) {
   const { problemId } = await params;
   const { sortBy } = await searchParams;
-  const problemResp = await apiClient.getProblemById(problemId);
+  const problemResp = await problemRepository.getProblemById(problemId);
   const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
-  const solutionsResp = await apiClient.getSolutionsByProblemId(problemId, selectedSort);
+  const solutionsResp = await solutionRepository.getByProblemId(problemId, selectedSort);
 
   if (!problemResp.ok) {
     if (problemResp.status === 404) {

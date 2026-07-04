@@ -11,6 +11,7 @@ import {
   SolutionListItem,
   SolutionListSortBy,
   SolutionVotesCount,
+  UserSolutionListItem,
 } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 
@@ -28,6 +29,9 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   };
   private getSolutionsByProblemIdPath = () => {
     return "solutions/problems";
+  };
+  private getSolutionsByUserNamePath = () => {
+    return "solutions/users";
   };
   private getLatestSolutionsPath = () => {
     return "solutions/latest";
@@ -83,6 +87,15 @@ export class SolutionRepositoryImpl implements SolutionRepository {
       params.sortBy = sortBy;
     }
     return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
+  };
+
+  getByUserName = async (userName: string, sortBy?: SolutionListSortBy): Promise<Resp<UserSolutionListItem[]>> => {
+    const path = this.getSolutionsByUserNamePath();
+    const params: Record<string, string> = { userName };
+    if (sortBy) {
+      params.sortBy = sortBy;
+    }
+    return await this.client.get<UserSolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getCommentsBySolutionId = async (solutionId: string): Promise<Resp<SolutionComment[]>> => {
