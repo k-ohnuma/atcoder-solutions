@@ -9,6 +9,7 @@ type ContestProblemGroupsContainerProps = {
   selectedSeries: SupportedSeries;
   query: string;
   initialPage: ContestProblemGroupPage;
+  errorMessage: string | null;
   pageSize: number;
 };
 
@@ -29,6 +30,7 @@ export function ContestProblemGroupsContainer({
   selectedSeries,
   query,
   initialPage,
+  errorMessage,
   pageSize,
 }: ContestProblemGroupsContainerProps) {
   const [groups, setGroups] = useState<ContestProblemGroup[]>(initialPage.groups);
@@ -80,6 +82,7 @@ export function ContestProblemGroupsContainer({
       selectedSeries={selectedSeries}
       query={query}
       totalMatchedProblems={totalMatchedProblems}
+      errorMessage={errorMessage}
       groups={groups}
       canLoadMore={canLoadMore}
       isLoadingMore={isLoadingMore}

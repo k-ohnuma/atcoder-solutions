@@ -8,6 +8,7 @@ type ProblemsTemplateProps = {
   selectedSeries: SupportedSeries;
   query: string;
   totalMatchedProblems: number;
+  errorMessage: string | null;
   groups: ContestProblemGroup[];
   canLoadMore: boolean;
   isLoadingMore: boolean;
@@ -18,6 +19,7 @@ export function ProblemsTemplate({
   selectedSeries,
   query,
   totalMatchedProblems,
+  errorMessage,
   groups,
   canLoadMore,
   isLoadingMore,
@@ -28,7 +30,8 @@ export function ProblemsTemplate({
       <div className="mb-6 flex flex-col gap-3">
         <SeriesTabs selectedSeries={selectedSeries} />
         <ProblemSearchForm selectedSeries={selectedSeries} query={query} />
-        {query && (
+        {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+        {query && !errorMessage && (
           <p className="text-sm text-muted-foreground">
             「{query}」の検索: {totalMatchedProblems} 件
           </p>
