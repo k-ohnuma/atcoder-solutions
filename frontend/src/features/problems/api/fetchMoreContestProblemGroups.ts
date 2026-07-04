@@ -1,4 +1,8 @@
-import { ContestProblemGroupPage, SupportedSeries } from "@/features/problems/model/contestProblemGroup";
+import {
+  ContestProblemGroupPage,
+  SupportedSeries,
+  toContestProblemGroupPage,
+} from "@/features/problems/model/contestProblemGroup";
 import { Problem } from "@/shared/model/problem";
 
 type FetchContestProblemGroupsParams = {
@@ -42,12 +46,9 @@ export async function fetchMoreContestProblemGroups({
     throw new Error(`failed to fetch contest groups: status=${res.status}, error=${json.error ?? "unknown error"}`);
   }
 
-  return {
-    groups: Object.entries(json.data.items).map(([contestId, problems]) => ({
-      contestId,
-      problems,
-    })),
+  return toContestProblemGroupPage({
+    items: Object.entries(json.data.items),
     hasMore: json.data.hasMore,
     totalContestCount: json.data.totalContestCount,
-  };
+  });
 }

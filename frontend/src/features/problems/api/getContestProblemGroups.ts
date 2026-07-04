@@ -1,6 +1,10 @@
 import "server-only";
 
-import { ContestProblemGroupPage, SupportedSeries } from "@/features/problems/model/contestProblemGroup";
+import {
+  ContestProblemGroupPage,
+  SupportedSeries,
+  toContestProblemGroupPage,
+} from "@/features/problems/model/contestProblemGroup";
 import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
 
 type GetContestProblemGroupsParams = {
@@ -27,12 +31,9 @@ export async function getContestProblemGroups({
     throw new Error(`failed to fetch contest groups: status=${resp.status}, error=${resp.error}`);
   }
 
-  return {
-    groups: [...resp.data.items.entries()].map(([contestId, problems]) => ({
-      contestId,
-      problems,
-    })),
+  return toContestProblemGroupPage({
+    items: resp.data.items.entries(),
     hasMore: resp.data.hasMore,
     totalContestCount: resp.data.totalContestCount,
-  };
+  });
 }
