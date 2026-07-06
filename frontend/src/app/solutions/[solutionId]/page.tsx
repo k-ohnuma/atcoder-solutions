@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { SolutionDetail } from "@/features/solutions/ui/organisms/SolutionDetail";
-import { ApiClient } from "@/lib/server/apiClient";
-import { serverConfig } from "@/shared/config/backend";
+import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 
-const apiClient = new ApiClient(serverConfig.appConfig.apiBaseEndpoint);
+const solutionRepository = new SolutionRepositoryImpl();
 
 type PageProps = {
   params: Promise<{
@@ -13,9 +12,9 @@ type PageProps = {
 
 export default async function SolutionPage({ params }: PageProps) {
   const { solutionId } = await params;
-  const solutionResp = await apiClient.getSolutionById(solutionId);
-  const votesCount = await apiClient.getSolutionVotesCount(solutionId);
-  const comments = await apiClient.getCommentsBySolutionId(solutionId);
+  const solutionResp = await solutionRepository.getBySolutionId(solutionId);
+  const votesCountResp = await solutionRepository.getVotesCount(solutionId);
+  const commentsResp = await solutionRepository.getCommentsBySolutionId(solutionId);
 
   if (!solutionResp.ok) {
     if (solutionResp.status === 404) {
@@ -25,6 +24,8 @@ export default async function SolutionPage({ params }: PageProps) {
   }
 
   const solution = solutionResp.data;
+  const votesCount = votesCountResp.ok ? votesCountResp.data.votesCount : 0;
+  const comments = commentsResp.ok ? commentsResp.data : [];
 
   return (
     <SolutionDetail

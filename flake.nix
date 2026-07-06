@@ -73,12 +73,12 @@
         ];
 
         frontendTools = with pkgs; [
-          nodejs_22
+          nodejs_24
           pnpm
         ];
 
         infraTools = with pkgs; [
-          nodejs_22
+          nodejs_24
           pnpm
           google-cloud-sdk
           cdktn-cli

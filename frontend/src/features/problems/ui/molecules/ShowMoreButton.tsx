@@ -3,14 +3,14 @@
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type ShowAllButtonProps = {
+type ShowMoreButtonProps = {
   isLoading: boolean;
-  onClick: () => void;
+  onClickAction: () => void;
 };
 
-export function ShowAllButton({ isLoading, onClick }: ShowAllButtonProps) {
+export function ShowMoreButton({ isLoading, onClickAction }: ShowMoreButtonProps) {
   return (
-    <Button variant="outline" disabled={isLoading} onClick={onClick}>
+    <Button variant="outline" disabled={isLoading} onClick={onClickAction}>
       {isLoading ? (
         <>
           <Loader2 className="size-4 animate-spin" />

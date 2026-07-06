@@ -5,6 +5,7 @@ import {
   SolutionListItem,
   SolutionListSortBy,
   SolutionVotesCount,
+  UserSolutionListItem,
 } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 import { Resp } from "../response";
@@ -19,6 +20,7 @@ export interface SolutionRepository {
   getBySolutionId(solutionId: string): Promise<Resp<SolutionDetail>>;
   getLatest(size?: number): Promise<Resp<SolutionListItem[]>>;
   getByProblemId(problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>>;
+  getByUserName(userName: string, sortBy?: SolutionListSortBy): Promise<Resp<UserSolutionListItem[]>>;
   getCommentsBySolutionId(solutionId: string): Promise<Resp<SolutionComment[]>>;
   createComment(solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>>;
   updateComment(commentId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>>;
