@@ -7,6 +7,7 @@ import {
   type UserCredential,
   updatePassword,
 } from "firebase/auth";
+import { userApi } from "@/features/auth/api/userApi";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignInSchema, SignUpSchema, UpdatePasswordSchema } from "../model/schema";
 
@@ -65,17 +66,9 @@ export const onSubmitSignUp = async (values: SignUpSchema) => {
   // firebaseが成功して、DBへの格納がこけたらfirebaseもロールバックしなきゃ
   try {
     const idToken = await cred.user.getIdToken();
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ userName: values.userName }),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(toCreateUserApiErrorMessage(res.status, json?.error));
+    const created = await userApi.create(values.userName, idToken);
+    if (!created.ok) {
+      throw new Error(toCreateUserApiErrorMessage(created.status, created.error));
     }
   } catch (e) {
     try {
@@ -112,16 +105,9 @@ export const onSubmitSignout = async () => {
   if (user) {
     try {
       const idToken = await user.getIdToken();
-      const res = await fetch("/api/users/me", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        const message = typeof json?.error === "string" ? json.error : "unknown error";
-        console.error(`token revoke failed before signout: status=${res.status}, error=${message}`);
+      const revoked = await userApi.revokeMe(idToken);
+      if (!revoked.ok) {
+        console.error(`token revoke failed before signout: status=${revoked.status}, error=${revoked.error}`);
       }
     } catch (e) {
       console.warn("token revoke failed before signout", e);
@@ -146,16 +132,12 @@ export const onSubmitDeleteAccount = async () => {
   }
 
   try {
-    const res = await fetch("/api/users/me", {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) {
+    const deleted = await userApi.deleteMe(idToken);
+    if (!deleted.ok) {
       const message =
-        typeof json?.error === "string" && json.error.length > 0 ? json.error : "サーバー上のデータ削除に失敗しました。";
+        typeof deleted.error === "string" && deleted.error.length > 0
+          ? deleted.error
+          : "サーバー上のデータ削除に失敗しました。";
       throw new Error(message);
     }
   } catch (e) {
