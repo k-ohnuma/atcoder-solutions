@@ -8,8 +8,7 @@ export const problemApi = {
     if (resp.ok) {
       return resp.data;
     }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return [];
+    throw new Error(`failed to fetch problems by contest: status=${resp.status}, error=${resp.error}`);
   },
 
   getContestProblemGroupPage: async ({
