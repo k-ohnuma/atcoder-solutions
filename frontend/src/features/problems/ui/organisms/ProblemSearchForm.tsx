@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SupportedSeries } from "@/features/problems/model/contestProblemGroup";
+import { ButtonLink } from "@/shared/ui/ButtonLink";
 
 type ProblemSearchFormProps = {
   selectedSeries: SupportedSeries;
@@ -17,9 +17,9 @@ export function ProblemSearchForm({ selectedSeries, query }: ProblemSearchFormPr
         検索
       </Button>
       {query && (
-        <Button asChild type="button" variant="ghost">
-          <Link href={`/?series=${selectedSeries}`}>クリア</Link>
-        </Button>
+        <ButtonLink href={`/?series=${selectedSeries}`} variant="ghost">
+          クリア
+        </ButtonLink>
       )}
     </form>
   );

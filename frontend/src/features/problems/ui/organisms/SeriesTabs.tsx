@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { SupportedSeries, supportedSeries } from "@/features/problems/model/contestProblemGroup";
+import { ButtonLink } from "@/shared/ui/ButtonLink";
 
 type SeriesTabsProps = {
   selectedSeries: SupportedSeries;
@@ -12,9 +11,9 @@ export function SeriesTabs({ selectedSeries }: SeriesTabsProps) {
       {supportedSeries.map((code) => {
         const active = code === selectedSeries;
         return (
-          <Button key={code} asChild size="sm" variant={active ? "default" : "outline"}>
-            <Link href={`/?series=${code}`}>{code}</Link>
-          </Button>
+          <ButtonLink key={code} href={`/?series=${code}`} size="sm" variant={active ? "default" : "outline"}>
+            {code}
+          </ButtonLink>
         );
       })}
     </div>
