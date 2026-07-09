@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Contest } from "@/server/domain/contests";
+import { Contest } from "@/shared/model/contest";
 
 type Props = {
   items: Contest[];

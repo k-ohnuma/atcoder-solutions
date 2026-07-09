@@ -5,11 +5,9 @@ import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ApiClient } from "@/lib/client/apiClient";
+import { solutionApi } from "@/features/solutions/api/solutionApi";
 import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
 import { getFirebaseAuth } from "@/shared/firebase/client";
-
-const apiClient = new ApiClient();
 
 type LikeButtonProps = {
   solutionId: string;
@@ -34,7 +32,7 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
       }
 
       const token = await user.getIdToken();
-      const isLiked = await apiClient.getMySolutionLikeStatus(solutionId, token);
+      const isLiked = await solutionApi.getMyLikeStatus(solutionId, token);
       setLiked(isLiked);
       setIsLikeStatusReady(true);
     });
@@ -58,7 +56,7 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
     setIsSubmitting(true);
     try {
       if (liked) {
-        const unliked = await apiClient.unvoteSolution(solutionId, token);
+        const unliked = await solutionApi.unvote(solutionId, token);
         if (unliked === false) {
           setLiked(false);
           setVotesCount((prev) => Math.max(0, prev - 1));
@@ -66,7 +64,7 @@ export function LikeButton({ solutionId, initialVotesCount }: LikeButtonProps) {
         return;
       }
 
-      const nextLiked = await apiClient.voteSolution(solutionId, token);
+      const nextLiked = await solutionApi.vote(solutionId, token);
       if (nextLiked) {
         setLiked(true);
         setVotesCount((prev) => prev + 1);

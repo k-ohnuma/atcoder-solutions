@@ -1,5 +1,5 @@
 import { httpClient, Resp } from "@/lib/client/httpClient";
-import { User, UserMe } from "@/server/domain/user";
+import { User, UserMe } from "@/shared/model/user";
 
 export const userApi = {
   create: (userName: string, token: string): Promise<Resp<User>> =>

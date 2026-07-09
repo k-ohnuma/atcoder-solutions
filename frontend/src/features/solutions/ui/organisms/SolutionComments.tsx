@@ -11,14 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
-import { ApiClient } from "@/lib/client/apiClient";
+import { solutionApi } from "@/features/solutions/api/solutionApi";
 import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SolutionComment } from "@/shared/model/solution";
 import { MarkdownRenderer } from "../atoms";
 import { MarkdownEditor } from "../molecules";
-
-const apiClient = new ApiClient();
 
 const commentEditSchema = z.object({
   bodyMd: z.string().trim().min(1, "コメントを入力してください").max(2000, "コメントは2000文字以内で入力してください"),
@@ -102,7 +100,7 @@ export function SolutionComments({ solutionId, initialComments }: SolutionCommen
     setIsSubmitting(true);
     setError(null);
     try {
-      const created = await apiClient.createComment(solutionId, normalized, token);
+      const created = await solutionApi.createComment(solutionId, normalized, token);
       if (!created) {
         setError("コメントの投稿に失敗しました");
         toast({ title: "コメントの投稿に失敗しました", variant: "error" });
@@ -138,7 +136,7 @@ export function SolutionComments({ solutionId, initialComments }: SolutionCommen
     setIsSubmitting(true);
     setError(null);
     try {
-      const updated = await apiClient.updateComment(commentId, normalized, token);
+      const updated = await solutionApi.updateComment(commentId, normalized, token);
       if (!updated) {
         setError("コメントの更新に失敗しました");
         toast({ title: "コメントの更新に失敗しました", variant: "error" });
@@ -169,7 +167,7 @@ export function SolutionComments({ solutionId, initialComments }: SolutionCommen
     setIsSubmitting(true);
     setError(null);
     try {
-      const ok = await apiClient.deleteComment(commentId, token);
+      const ok = await solutionApi.deleteComment(commentId, token);
       if (!ok) {
         setError("コメントの削除に失敗しました");
         toast({ title: "コメントの削除に失敗しました", variant: "error" });

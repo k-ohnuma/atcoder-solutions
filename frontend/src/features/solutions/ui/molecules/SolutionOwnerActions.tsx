@@ -10,14 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
-import { ApiClient } from "@/lib/client/apiClient";
+import { solutionApi } from "@/features/solutions/api/solutionApi";
 import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { MarkdownRenderer } from "../atoms";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { TagsInputField } from "./TagInput";
-
-const apiClient = new ApiClient();
 
 const updateSolutionFormSchema = z.object({
   title: z.string().trim().min(1, "タイトルを入力してください").max(120, "タイトルは120文字以内にしてください"),
@@ -115,14 +113,7 @@ export function SolutionOwnerActions({
     setError(null);
     try {
       const normalizedTags = values.tags.map((v) => v.trim()).filter((v) => v.length > 0);
-      const ok = await apiClient.updateSolution(
-        solutionId,
-        values.title,
-        values.bodyMd,
-        values.submitUrl,
-        normalizedTags,
-        token,
-      );
+      const ok = await solutionApi.update(solutionId, values.title, values.bodyMd, values.submitUrl, normalizedTags, token);
       if (!ok) {
         setError("解説の更新に失敗しました。");
         toast({ title: "解説の更新に失敗しました", variant: "error" });
@@ -148,7 +139,7 @@ export function SolutionOwnerActions({
     setIsSubmitting(true);
     setError(null);
     try {
-      const ok = await apiClient.deleteSolution(solutionId, token);
+      const ok = await solutionApi.delete(solutionId, token);
       if (!ok) {
         setError("解説の削除に失敗しました。");
         toast({ title: "解説の削除に失敗しました", variant: "error" });
