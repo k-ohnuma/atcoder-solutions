@@ -1,6 +1,6 @@
+import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
 import { SolutionListItem, SolutionListSortBy } from "@/shared/model/solution";
 import { ButtonLink } from "@/shared/ui/ButtonLink";
-import { SolutionSummaryCard } from "../molecules";
 
 type ProblemSolutionListProps = {
   problemId: string;

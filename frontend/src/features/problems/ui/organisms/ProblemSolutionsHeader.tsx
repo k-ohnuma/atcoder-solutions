@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { buildAtcoderProblemUrl } from "@/lib/atcoder";
 import { Problem } from "@/shared/model/problem";
 import { ButtonLink } from "@/shared/ui/ButtonLink";
@@ -14,9 +15,10 @@ export function ProblemSolutionsHeader({ problem }: ProblemSolutionsHeaderProps)
 
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <div className="mb-1 flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{problem.id} の解説一覧</h1>
+      <div className="min-w-0 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">{problem.id}</Badge>
+          <h1 className="text-lg font-semibold md:text-xl">{problem.title} の解説一覧</h1>
           <DifficultyBadge problemIndex={problem.problemIndex} difficulty={difficulty} label={difficulty ?? "N/A"} />
         </div>
       </div>

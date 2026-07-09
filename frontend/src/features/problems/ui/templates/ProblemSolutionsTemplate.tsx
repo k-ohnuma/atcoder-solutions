@@ -1,7 +1,7 @@
 import { PageContainer } from "@/components/layout/PageContainer";
-import { ProblemSolutionList } from "@/features/solutions/ui/organisms/ProblemSolutionList";
 import { Problem } from "@/shared/model/problem";
 import { SolutionListItem, SolutionListSortBy } from "@/shared/model/solution";
+import { ProblemSolutionList } from "../organisms/ProblemSolutionList";
 import { ProblemSolutionsHeader } from "../organisms/ProblemSolutionsHeader";
 
 type ProblemSolutionsTemplateProps = {

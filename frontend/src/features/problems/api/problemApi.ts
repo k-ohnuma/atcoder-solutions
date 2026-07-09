@@ -1,6 +1,6 @@
-import { httpClient, Resp } from "@/lib/client/httpClient";
+import { httpClient } from "@/lib/client/httpClient";
 import { Problem } from "@/shared/model/problem";
-import { SupportedSeries } from "../model/contestProblemGroup";
+import { ContestProblemGroupPage, SupportedSeries, toContestProblemGroupPage } from "../model/contestProblemGroup";
 
 export const problemApi = {
   getByContest: async (contest: string): Promise<Problem[]> => {
@@ -12,7 +12,7 @@ export const problemApi = {
     return [];
   },
 
-  getContestProblemGroupPage: ({
+  getContestProblemGroupPage: async ({
     series,
     limit,
     offset,
@@ -20,23 +20,27 @@ export const problemApi = {
     series: SupportedSeries;
     limit?: number;
     offset?: number;
-  }): Promise<
-    Resp<{
-      items: Record<string, Problem[]>;
-      hasMore: boolean;
-      totalContestCount: number;
-    }>
-  > => {
+  }): Promise<ContestProblemGroupPage> => {
     const params = {
       series,
       ...(limit !== undefined ? { limit: String(limit) } : {}),
       ...(offset !== undefined ? { offset: String(offset) } : {}),
     };
 
-    return httpClient.get<{
+    const resp = await httpClient.get<{
       items: Record<string, Problem[]>;
       hasMore: boolean;
       totalContestCount: number;
     }>("api/problems/contest-group", params);
+
+    if (!resp.ok) {
+      throw new Error(`failed to fetch contest groups: status=${resp.status}, error=${resp.error}`);
+    }
+
+    return toContestProblemGroupPage({
+      items: Object.entries(resp.data.items),
+      hasMore: resp.data.hasMore,
+      totalContestCount: resp.data.totalContestCount,
+    });
   },
 };
