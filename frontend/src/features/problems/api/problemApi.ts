@@ -1,5 +1,6 @@
 import { httpClient, Resp } from "@/lib/client/httpClient";
-import { ContestSeries, Problem } from "@/server/domain/problems";
+import { Problem } from "@/shared/model/problem";
+import { SupportedSeries } from "../model/contestProblemGroup";
 
 export const problemApi = {
   getByContest: async (contest: string): Promise<Problem[]> => {
@@ -16,7 +17,7 @@ export const problemApi = {
     limit,
     offset,
   }: {
-    series: ContestSeries;
+    series: SupportedSeries;
     limit?: number;
     offset?: number;
   }): Promise<
