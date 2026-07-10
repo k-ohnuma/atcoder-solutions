@@ -1,4 +1,4 @@
-import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
+import { SolutionSummaryCard } from "@/features/solutions/ui/molecules/SolutionSummaryCard";
 import { SolutionListItem, SolutionListSortBy } from "@/shared/model/solution";
 import { ButtonLink } from "@/shared/ui/ButtonLink";
 

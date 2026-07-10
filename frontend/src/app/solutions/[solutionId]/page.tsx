@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { SolutionDetail } from "@/features/solutions/ui/organisms/SolutionDetail";
+import { SolutionDetailTemplate } from "@/features/solutions/ui/templates/SolutionDetailTemplate";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 
 const solutionRepository = new SolutionRepositoryImpl();
@@ -28,7 +28,7 @@ export default async function SolutionPage({ params }: PageProps) {
   const comments = commentsResp.ok ? commentsResp.data : [];
 
   return (
-    <SolutionDetail
+    <SolutionDetailTemplate
       solutionId={solution.id}
       title={solution.title}
       problemId={solution.problemId}

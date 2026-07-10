@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { onSubmitSignUp } from "../../lib/submit";
 import { SignUpSchema, signUpSchema } from "../../model/schema";
-import { ConfirmPasswordField, EmailField, PasswordField, UserNameField } from "../molecules";
+import { ConfirmPasswordField } from "../molecules/ConfirmPasswordField";
+import { EmailField } from "../molecules/EmailField";
+import { PasswordField } from "../molecules/PasswordField";
+import { UserNameField } from "../molecules/UserNameField";
 
 export function SignUpForm() {
   const form = useForm<SignUpSchema>({

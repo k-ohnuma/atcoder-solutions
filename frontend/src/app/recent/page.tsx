@@ -4,20 +4,10 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { serverConfig } from "@/shared/config/backend";
+import { formatDateTime } from "@/shared/lib/date";
 import { SolutionListItem } from "@/shared/model/solution";
 
 export const dynamic = "force-dynamic";
-
-const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
-  timeZone: "Asia/Tokyo",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
 
 async function getLatestSolutions(): Promise<SolutionListItem[]> {
   const url = new URL("/api/solutions/latest", serverConfig.appConfig.appOrigin);
@@ -74,7 +64,7 @@ export default async function RecentSolutionsPage() {
                     <span>投稿者: {solution.userName}</span>
                   </div>
 
-                  <div className="text-xs text-muted-foreground">{dateTimeFormatter.format(new Date(solution.createdAt))}</div>
+                  <div className="text-xs text-muted-foreground">{formatDateTime(solution.createdAt)}</div>
                 </CardContent>
               </Card>
             </Link>

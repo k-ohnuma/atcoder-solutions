@@ -7,7 +7,8 @@ import { Form } from "@/components/ui/form";
 import { useToast } from "@/components/ui/toast";
 import { onSubmitUpdatePassword } from "../../lib/submit";
 import { UpdatePasswordSchema, updatePasswordSchema } from "../../model/schema";
-import { ConfirmPasswordField, PasswordField } from "../molecules";
+import { ConfirmPasswordField } from "../molecules/ConfirmPasswordField";
+import { PasswordField } from "../molecules/PasswordField";
 
 export function UpdatePasswordForm() {
   const { toast } = useToast();

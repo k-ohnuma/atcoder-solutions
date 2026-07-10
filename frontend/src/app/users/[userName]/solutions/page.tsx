@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
-import { SolutionSummaryCard } from "@/features/solutions/ui/molecules";
+import { SolutionSummaryCard } from "@/features/solutions/ui/molecules/SolutionSummaryCard";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 import { SolutionListSortBy } from "@/shared/model/solution";
 

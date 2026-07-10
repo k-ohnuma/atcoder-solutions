@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { onSubmitSignIn } from "../../lib/submit";
 import { SignInSchema, signInSchema } from "../../model/schema";
-import { EmailField, PasswordField } from "../molecules";
+import { EmailField } from "../molecules/EmailField";
+import { PasswordField } from "../molecules/PasswordField";
 
 export function SignInForm() {
   const form = useForm<SignInSchema>({

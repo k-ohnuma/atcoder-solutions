@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SignUpForm } from "@/features/auth/ui/organisms";
-import { AuthTemplate } from "@/features/auth/ui/templates";
+import { SignUpForm } from "@/features/auth/ui/organisms/SignUpForm";
+import { AuthTemplate } from "@/features/auth/ui/templates/AuthTemplate";
 import { SignUpGate } from "./SignUpGate";
 
 export const metadata: Metadata = { title: "新規登録" };

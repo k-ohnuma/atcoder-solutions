@@ -3,8 +3,8 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { UpdatePasswordForm } from "@/features/auth/ui/organisms";
-import { AuthTemplate } from "@/features/auth/ui/templates";
+import { UpdatePasswordForm } from "@/features/auth/ui/organisms/UpdatePasswordForm";
+import { AuthTemplate } from "@/features/auth/ui/templates/AuthTemplate";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
 export default function PasswordSettingsPage() {
