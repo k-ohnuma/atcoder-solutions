@@ -156,7 +156,7 @@ export class BackendStack extends TerraformStack {
                 valueSource: {
                   secretKeyRef: {
                     secret: appDatabaseUrlSecret.secretId,
-                    version: "latest",
+                    version: "2",
                   },
                 },
               },
@@ -211,7 +211,7 @@ export class BackendStack extends TerraformStack {
                   valueSource: {
                     secretKeyRef: {
                       secret: appDatabaseUrlSecret.secretId,
-                      version: "latest",
+                      version: "2",
                     },
                   },
                 },
