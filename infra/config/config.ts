@@ -15,6 +15,7 @@ export interface BackendStackVariableDefinitions {
   apiServiceName: StringVariableDefinition;
   dailyJobName: StringVariableDefinition;
   apiContainerImage: StringVariableDefinition;
+  appDatabaseUrlSecretVersion: StringVariableDefinition;
   firebaseProjectId: StringVariableDefinition;
   atcoderProblemsBaseEndpoint: StringVariableDefinition;
   atcoderDifficultyBaseEndpoint: StringVariableDefinition;
@@ -51,6 +52,11 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
   apiContainerImage: {
     tfName: "api_container_image",
     type: "string",
+  },
+  appDatabaseUrlSecretVersion: {
+    tfName: "app_database_url_secret_version",
+    type: "string",
+    defaultValue: "2",
   },
   firebaseProjectId: {
     tfName: "firebase_project_id",
