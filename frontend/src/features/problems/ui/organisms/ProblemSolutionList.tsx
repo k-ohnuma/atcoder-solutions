@@ -1,6 +1,6 @@
+import { SolutionSortLinks } from "@/features/solutions/ui/molecules/SolutionSortLinks";
 import { SolutionSummaryCard } from "@/features/solutions/ui/molecules/SolutionSummaryCard";
 import { SolutionListItem, SolutionListSortBy } from "@/shared/model/solution";
-import { ButtonLink } from "@/shared/ui/ButtonLink";
 
 type ProblemSolutionListProps = {
   problemId: string;
@@ -11,22 +11,11 @@ type ProblemSolutionListProps = {
 export function ProblemSolutionList({ problemId, selectedSort, solutions }: ProblemSolutionListProps) {
   return (
     <>
-      <div className="mb-6 flex items-center gap-2 text-sm">
-        <ButtonLink
-          href={`/problems/${problemId}?sortBy=latest`}
-          size="sm"
-          variant={selectedSort === "latest" ? "default" : "outline"}
-        >
-          新着順
-        </ButtonLink>
-        <ButtonLink
-          href={`/problems/${problemId}?sortBy=votes`}
-          size="sm"
-          variant={selectedSort === "votes" ? "default" : "outline"}
-        >
-          いいね順
-        </ButtonLink>
-      </div>
+      <SolutionSortLinks
+        selectedSort={selectedSort}
+        latestHref={`/problems/${problemId}?sortBy=latest`}
+        votesHref={`/problems/${problemId}?sortBy=votes`}
+      />
 
       {solutions.length === 0 ? (
         <p className="text-sm text-muted-foreground">この問題の解説はまだありません。</p>
