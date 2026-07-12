@@ -1,11 +1,10 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { solutionApi } from "@/features/solutions/api/solutionApi";
-import { getFirebaseIdToken } from "@/lib/client/firebaseToken";
+import { useAuthenticatedSolutionMutation } from "@/features/solutions/hooks/useAuthenticatedSolutionMutation";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
 type UseSolutionLikeParams = {
@@ -14,12 +13,11 @@ type UseSolutionLikeParams = {
 };
 
 export function useSolutionLike({ solutionId, initialVotesCount }: UseSolutionLikeParams) {
-  const router = useRouter();
   const { toast } = useToast();
+  const { isSubmitting, runMutation } = useAuthenticatedSolutionMutation();
   const auth = getFirebaseAuth();
   const [liked, setLiked] = useState(false);
   const [votesCount, setVotesCount] = useState(initialVotesCount);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLikeStatusReady, setIsLikeStatusReady] = useState(false);
 
   useEffect(() => {
@@ -54,37 +52,22 @@ export function useSolutionLike({ solutionId, initialVotesCount }: UseSolutionLi
   }, [auth, solutionId, toast]);
 
   const toggleLike = async () => {
-    if (isSubmitting) {
+    const nextLiked = await runMutation({
+      action: (token) => (liked ? solutionApi.unvote(solutionId, token) : solutionApi.vote(solutionId, token)),
+      fallbackErrorMessage: "いいねの更新に失敗しました。",
+      errorToastTitle: "いいねの更新に失敗しました",
+    });
+    if (nextLiked === null) {
       return;
     }
 
-    const token = await getFirebaseIdToken();
-    if (!token) {
-      router.push("/signin");
+    setLiked(nextLiked);
+    if (liked && !nextLiked) {
+      setVotesCount((prev) => Math.max(0, prev - 1));
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      if (liked) {
-        const nextLiked = await solutionApi.unvote(solutionId, token);
-        setLiked(nextLiked);
-        if (!nextLiked) {
-          setVotesCount((prev) => Math.max(0, prev - 1));
-        }
-        return;
-      }
-
-      const nextLiked = await solutionApi.vote(solutionId, token);
-      setLiked(nextLiked);
-      if (nextLiked) {
-        setVotesCount((prev) => prev + 1);
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "いいねの更新に失敗しました。";
-      toast({ title: "いいねの更新に失敗しました", description: message, variant: "error" });
-    } finally {
-      setIsSubmitting(false);
+    if (!liked && nextLiked) {
+      setVotesCount((prev) => prev + 1);
     }
   };
 
