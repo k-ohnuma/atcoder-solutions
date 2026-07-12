@@ -2,11 +2,19 @@
 
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
-export function SignUpGate({ children }: { children: React.ReactNode }) {
+type RequireAuthProps = {
+  children: ReactNode;
+  redirectTo?: string;
+  message?: string;
+};
+
+export function RequireAuth({ children, redirectTo = "/signin", message }: RequireAuthProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [canShow, setCanShow] = useState(false);
   const auth = getFirebaseAuth();
 
@@ -17,16 +25,20 @@ export function SignUpGate({ children }: { children: React.ReactNode }) {
         return;
       }
       didResolveInitialAuth = true;
-      if (user) {
-        router.replace("/");
+
+      if (!user) {
+        router.replace(redirectTo);
+        if (message) {
+          toast({ title: message });
+        }
         return;
       }
+
       setCanShow(true);
     });
-    return () => {
-      unsub();
-    };
-  }, [auth, router]);
+
+    return () => unsub();
+  }, [auth, message, redirectTo, router, toast]);
 
   if (!canShow) {
     return null;

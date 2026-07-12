@@ -2,10 +2,15 @@
 
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
-export function SignInGate({ children }: { children: React.ReactNode }) {
+type RedirectIfAuthenticatedProps = {
+  children: ReactNode;
+  redirectTo?: string;
+};
+
+export function RedirectIfAuthenticated({ children, redirectTo = "/" }: RedirectIfAuthenticatedProps) {
   const router = useRouter();
   const [canShow, setCanShow] = useState(false);
   const auth = getFirebaseAuth();
@@ -17,16 +22,17 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
         return;
       }
       didResolveInitialAuth = true;
+
       if (user) {
-        router.replace("/");
+        router.replace(redirectTo);
         return;
       }
+
       setCanShow(true);
     });
-    return () => {
-      unsub();
-    };
-  }, [auth, router]);
+
+    return () => unsub();
+  }, [auth, redirectTo, router]);
 
   if (!canShow) {
     return null;
