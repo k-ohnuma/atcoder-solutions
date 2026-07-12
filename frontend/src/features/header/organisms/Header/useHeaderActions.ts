@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/submit";
+import { onSubmitDeleteAccount, onSubmitSignout } from "@/features/auth/lib/session";
 
 export function useHeaderActions() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

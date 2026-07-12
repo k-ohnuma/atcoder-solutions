@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { getAuthFormErrorMessage } from "@/features/auth/lib/error";
-import { onSubmitSignUp } from "@/features/auth/lib/submit";
+import { onSubmitSignUp } from "@/features/auth/lib/signup";
 import { SignUpSchema, signUpSchema } from "@/features/auth/model/schema";
 
 export function useSignUpForm() {

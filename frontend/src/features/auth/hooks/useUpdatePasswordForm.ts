@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/toast";
 import { getAuthFormErrorMessage } from "@/features/auth/lib/error";
-import { onSubmitUpdatePassword } from "@/features/auth/lib/submit";
+import { onSubmitUpdatePassword } from "@/features/auth/lib/password";
 import { UpdatePasswordSchema, updatePasswordSchema } from "@/features/auth/model/schema";
 
 export function useUpdatePasswordForm() {
