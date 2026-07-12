@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMoreContestProblemGroups } from "@/features/problems/api/fetchMoreContestProblemGroups";
+import { problemApi } from "@/features/problems/api/problemApi";
 import { ContestProblemGroup, ContestProblemGroupPage, SupportedSeries } from "@/features/problems/model/contestProblemGroup";
 
 type UseContestProblemGroupsParams = {
@@ -48,7 +48,7 @@ export function useContestProblemGroups({ selectedSeries, initialPage, pageSize 
     setLoadMoreError(null);
 
     try {
-      const page = await fetchMoreContestProblemGroups({
+      const page = await problemApi.getContestProblemGroupPage({
         series: selectedSeries,
         limit: pageSize,
         offset: groups.length,

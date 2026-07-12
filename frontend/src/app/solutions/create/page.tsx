@@ -1,33 +1,10 @@
-"use client";
+import { RequireAuth } from "@/features/auth/ui/templates/RequireAuth";
+import { CreateSolutionTemplate } from "@/features/solutions/ui/templates/CreateSolutionTemplate";
 
-import { onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { MarkdownPlayground } from "@/features/solutions/ui/organisms";
-import { getFirebaseAuth } from "@/shared/firebase/client";
-
-export default function MarkdownPage() {
-  const router = useRouter();
-  const [isAllowed, setIsAllowed] = useState(false);
-  const auth = getFirebaseAuth();
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.replace("/signin");
-        return;
-      }
-      setIsAllowed(true);
-    });
-
-    return () => {
-      unsub();
-    };
-  }, [auth, router]);
-
-  if (!isAllowed) {
-    return null;
-  }
-
-  return <MarkdownPlayground />;
+export default function CreateSolutionPage() {
+  return (
+    <RequireAuth message="ログインしてください">
+      <CreateSolutionTemplate />
+    </RequireAuth>
+  );
 }

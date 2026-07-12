@@ -1,6 +1,6 @@
 "use client";
 
-import { MarkdownRenderer } from "../atoms";
+import { MarkdownRenderer } from "../atoms/MarkdownRenderer";
 
 type MarkdownPreviewPanelProps = {
   title: string;

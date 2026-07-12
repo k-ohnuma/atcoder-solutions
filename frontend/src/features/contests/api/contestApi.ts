@@ -1,5 +1,5 @@
 import { httpClient } from "@/lib/client/httpClient";
-import { Contest } from "@/server/domain/contests";
+import { Contest } from "@/shared/model/contest";
 
 export const contestApi = {
   getBySeries: async (series: string): Promise<Contest[]> => {

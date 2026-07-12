@@ -4,10 +4,12 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { authenticatedHeaderNavItems, getMyPageNavItems, guestHeaderNavItems, publicHeaderNavItems } from "./headerNavItems";
 
 type HeaderMobileMenuProps = {
   isOpen: boolean;
   onOpenChangeAction: (open: boolean) => void;
+  isAuthResolved: boolean;
   isLoggedIn: boolean;
   myUserName: string | null;
   onOpenDeleteDialogAction: () => void;
@@ -17,6 +19,7 @@ type HeaderMobileMenuProps = {
 export function HeaderMobileMenu({
   isOpen,
   onOpenChangeAction,
+  isAuthResolved,
   isLoggedIn,
   myUserName,
   onOpenDeleteDialogAction,
@@ -34,32 +37,31 @@ export function HeaderMobileMenu({
           <SheetTitle>メニュー</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-2 p-4">
-          <Button asChild variant="ghost" className="justify-start">
-            <Link href="/recent" onClick={() => onOpenChangeAction(false)}>
-              最近の記事
-            </Link>
-          </Button>
-          {isLoggedIn ? (
+          {publicHeaderNavItems.map((item) => (
+            <Button key={item.href} asChild variant="ghost" className="justify-start">
+              <Link href={item.href} onClick={() => onOpenChangeAction(false)}>
+                {item.label}
+              </Link>
+            </Button>
+          ))}
+          {!isAuthResolved ? null : isLoggedIn ? (
             <>
-              <Button asChild variant="ghost" className="justify-start">
-                <Link href="/solutions/create" onClick={() => onOpenChangeAction(false)}>
-                  記事を書く
-                </Link>
-              </Button>
-              {myUserName ? (
-                <>
-                  <Button asChild variant="ghost" className="justify-start">
-                    <Link href={`/users/${encodeURIComponent(myUserName)}/solutions`} onClick={() => onOpenChangeAction(false)}>
-                      解説一覧
-                    </Link>
-                  </Button>
-                  <Button asChild variant="ghost" className="justify-start">
-                    <Link href="/settings/password" onClick={() => onOpenChangeAction(false)}>
-                      パスワード変更
-                    </Link>
-                  </Button>
-                </>
-              ) : null}
+              {authenticatedHeaderNavItems.map((item) => (
+                <Button key={item.href} asChild variant="ghost" className="justify-start">
+                  <Link href={item.href} onClick={() => onOpenChangeAction(false)}>
+                    {item.label}
+                  </Link>
+                </Button>
+              ))}
+              {myUserName
+                ? getMyPageNavItems(myUserName).map((item) => (
+                    <Button key={item.href} asChild variant="ghost" className="justify-start">
+                      <Link href={item.href} onClick={() => onOpenChangeAction(false)}>
+                        {item.label}
+                      </Link>
+                    </Button>
+                  ))
+                : null}
               <Button
                 type="button"
                 variant="ghost"
@@ -76,18 +78,13 @@ export function HeaderMobileMenu({
               </Button>
             </>
           ) : (
-            <>
-              <Button asChild variant="ghost" className="justify-start">
-                <Link href="/signin" onClick={() => onOpenChangeAction(false)}>
-                  ログイン
+            guestHeaderNavItems.map((item) => (
+              <Button key={item.href} asChild variant="ghost" className="justify-start">
+                <Link href={item.href} onClick={() => onOpenChangeAction(false)}>
+                  {item.label}
                 </Link>
               </Button>
-              <Button asChild variant="ghost" className="justify-start">
-                <Link href="/signup" onClick={() => onOpenChangeAction(false)}>
-                  新規登録
-                </Link>
-              </Button>
-            </>
+            ))
           )}
         </div>
       </SheetContent>

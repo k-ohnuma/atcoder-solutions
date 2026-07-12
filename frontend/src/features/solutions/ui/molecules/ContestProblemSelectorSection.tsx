@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Contest } from "@/server/domain/contests";
+import type { Contest } from "@/shared/model/contest";
 import type { Problem } from "@/shared/model/problem";
 import { ContestCombobox } from "./ContestCombobox";
 import { ProblemButtonSelect } from "./ProblemButtonSelect";

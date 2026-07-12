@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { authenticatedHeaderNavItems, getMyPageNavItems, guestHeaderNavItems, publicHeaderNavItems } from "./headerNavItems";
 
 type HeaderDesktopNavProps = {
+  isAuthResolved: boolean;
   isLoggedIn: boolean;
   myUserName: string | null;
   isMyPageMenuOpen: boolean;
@@ -14,6 +16,7 @@ type HeaderDesktopNavProps = {
 };
 
 export function HeaderDesktopNav({
+  isAuthResolved,
   isLoggedIn,
   myUserName,
   isMyPageMenuOpen,
@@ -24,15 +27,19 @@ export function HeaderDesktopNav({
   return (
     <>
       <nav className="hidden items-center gap-1 md:flex">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/recent">最近の記事</Link>
-        </Button>
-      </nav>
-      {isLoggedIn ? (
-        <nav className="hidden items-center gap-1 md:flex">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/solutions/create">記事を書く</Link>
+        {publicHeaderNavItems.map((item) => (
+          <Button key={item.href} asChild variant="ghost" size="sm">
+            <Link href={item.href}>{item.label}</Link>
           </Button>
+        ))}
+      </nav>
+      {!isAuthResolved ? null : isLoggedIn ? (
+        <nav className="hidden items-center gap-1 md:flex">
+          {authenticatedHeaderNavItems.map((item) => (
+            <Button key={item.href} asChild variant="ghost" size="sm">
+              <Link href={item.href}>{item.label}</Link>
+            </Button>
+          ))}
           {myUserName ? (
             <DropdownMenu open={isMyPageMenuOpen} modal={false}>
               <DropdownMenuTrigger asChild>
@@ -53,19 +60,13 @@ export function HeaderDesktopNav({
                 onEscapeKeyDown={() => setIsMyPageMenuOpenAction(false)}
                 onInteractOutside={() => setIsMyPageMenuOpenAction(false)}
               >
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/users/${encodeURIComponent(myUserName)}/solutions`}
-                    onClick={() => setIsMyPageMenuOpenAction(false)}
-                  >
-                    解説一覧
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/password" onClick={() => setIsMyPageMenuOpenAction(false)}>
-                    パスワード変更
-                  </Link>
-                </DropdownMenuItem>
+                {getMyPageNavItems(myUserName).map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} onClick={() => setIsMyPageMenuOpenAction(false)}>
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onSelect={async () => {
@@ -84,12 +85,11 @@ export function HeaderDesktopNav({
         </nav>
       ) : (
         <nav className="hidden items-center gap-1 md:flex">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/signin">ログイン</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/signup">新規登録</Link>
-          </Button>
+          {guestHeaderNavItems.map((item) => (
+            <Button key={item.href} asChild variant="ghost" size="sm">
+              <Link href={item.href}>{item.label}</Link>
+            </Button>
+          ))}
         </nav>
       )}
     </>

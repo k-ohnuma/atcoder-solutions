@@ -55,6 +55,9 @@ export class BackendStack extends TerraformStack {
     const apiContainerImage = defineStringVariable(
       backendStackVariableDefinitions.apiContainerImage,
     );
+    const appDatabaseUrlSecretVersion = defineStringVariable(
+      backendStackVariableDefinitions.appDatabaseUrlSecretVersion,
+    );
     const firebaseProjectId = defineStringVariable(
       backendStackVariableDefinitions.firebaseProjectId,
     );
@@ -156,7 +159,7 @@ export class BackendStack extends TerraformStack {
                 valueSource: {
                   secretKeyRef: {
                     secret: appDatabaseUrlSecret.secretId,
-                    version: "latest",
+                    version: appDatabaseUrlSecretVersion.value,
                   },
                 },
               },
@@ -211,7 +214,7 @@ export class BackendStack extends TerraformStack {
                   valueSource: {
                     secretKeyRef: {
                       secret: appDatabaseUrlSecret.secretId,
-                      version: "latest",
+                      version: appDatabaseUrlSecretVersion.value,
                     },
                   },
                 },

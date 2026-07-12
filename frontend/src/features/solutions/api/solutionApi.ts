@@ -1,6 +1,21 @@
-import { httpClient } from "@/lib/client/httpClient";
+import { httpClient, Resp } from "@/lib/client/httpClient";
 import { SolutionComment, SolutionLikeStatus, SolutionVotesCount } from "@/shared/model/solution";
 import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
+
+function getApiErrorMessage<T>(resp: Resp<T>, fallbackMessage: string) {
+  if (resp.ok) {
+    return null;
+  }
+  const message = typeof resp.error === "string" && resp.error.length > 0 ? resp.error : fallbackMessage;
+  return `${message} (status: ${resp.status})`;
+}
+
+function throwIfFailed<T>(resp: Resp<T>, fallbackMessage: string): asserts resp is { ok: true; data: T; status: 200 } {
+  const message = getApiErrorMessage(resp, fallbackMessage);
+  if (message) {
+    throw new Error(message);
+  }
+}
 
 export const solutionApi = {
   create: async (solution: Solution, token: string): Promise<SolutionResponse> => {
@@ -9,11 +24,8 @@ export const solutionApi = {
     }
 
     const resp = await httpClient.postWithToken<SolutionResponse>("api/solutions", token, JSON.stringify(solution));
-    if (resp.ok) {
-      return resp.data;
-    }
-    const message = typeof resp.error === "string" && resp.error.length > 0 ? resp.error : "投稿に失敗しました。";
-    throw new Error(`${message} (status: ${resp.status})`);
+    throwIfFailed(resp, "投稿に失敗しました。");
+    return resp.data;
   },
 
   getVotesCount: async (solutionId: string): Promise<number> => {
@@ -27,11 +39,8 @@ export const solutionApi = {
 
   getMyLikeStatus: async (solutionId: string, token: string): Promise<boolean> => {
     const resp = await httpClient.getWithToken<SolutionLikeStatus>("api/solutions/votes/me", token, { solutionId });
-    if (resp.ok) {
-      return resp.data.liked;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return false;
+    throwIfFailed(resp, "いいね状態の取得に失敗しました。");
+    return resp.data.liked;
   },
 
   vote: async (solutionId: string, token: string): Promise<boolean> => {
@@ -40,20 +49,14 @@ export const solutionApi = {
       token,
       JSON.stringify({ solutionId }),
     );
-    if (resp.ok) {
-      return resp.data.liked;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return false;
+    throwIfFailed(resp, "いいねに失敗しました。");
+    return resp.data.liked;
   },
 
   unvote: async (solutionId: string, token: string): Promise<boolean> => {
     const resp = await httpClient.deleteWithToken<SolutionLikeStatus>("api/solutions/votes", token, { solutionId });
-    if (resp.ok) {
-      return resp.data.liked;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return true;
+    throwIfFailed(resp, "いいねの解除に失敗しました。");
+    return resp.data.liked;
   },
 
   getCommentsBySolutionId: async (solutionId: string): Promise<SolutionComment[]> => {
@@ -65,39 +68,29 @@ export const solutionApi = {
     return [];
   },
 
-  createComment: async (solutionId: string, bodyMd: string, token: string): Promise<SolutionComment | null> => {
+  createComment: async (solutionId: string, bodyMd: string, token: string): Promise<SolutionComment> => {
     const resp = await httpClient.postWithToken<SolutionComment>(
       "api/solutions/comments",
       token,
       JSON.stringify({ solutionId, bodyMd }),
     );
-    if (resp.ok) {
-      return resp.data;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return null;
+    throwIfFailed(resp, "コメントの投稿に失敗しました。");
+    return resp.data;
   },
 
-  updateComment: async (commentId: string, bodyMd: string, token: string): Promise<SolutionComment | null> => {
+  updateComment: async (commentId: string, bodyMd: string, token: string): Promise<SolutionComment> => {
     const resp = await httpClient.patchWithToken<SolutionComment>(
       "api/solutions/comments",
       token,
       JSON.stringify({ commentId, bodyMd }),
     );
-    if (resp.ok) {
-      return resp.data;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return null;
+    throwIfFailed(resp, "コメントの更新に失敗しました。");
+    return resp.data;
   },
 
-  deleteComment: async (commentId: string, token: string): Promise<boolean> => {
+  deleteComment: async (commentId: string, token: string): Promise<void> => {
     const resp = await httpClient.deleteWithToken<{ commentId: string }>("api/solutions/comments", token, { commentId });
-    if (resp.ok) {
-      return true;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return false;
+    throwIfFailed(resp, "コメントの削除に失敗しました。");
   },
 
   update: async (
@@ -107,25 +100,17 @@ export const solutionApi = {
     submitUrl: string,
     tags: string[],
     token: string,
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     const resp = await httpClient.patchWithToken<SolutionResponse>(
       "api/solutions",
       token,
       JSON.stringify({ solutionId, title, bodyMd, submitUrl, tags }),
     );
-    if (resp.ok) {
-      return true;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return false;
+    throwIfFailed(resp, "解説の更新に失敗しました。");
   },
 
-  delete: async (solutionId: string, token: string): Promise<boolean> => {
+  delete: async (solutionId: string, token: string): Promise<void> => {
     const resp = await httpClient.deleteWithToken<{ solutionId: string }>("api/solutions", token, { solutionId });
-    if (resp.ok) {
-      return true;
-    }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return false;
+    throwIfFailed(resp, "解説の削除に失敗しました。");
   },
 };

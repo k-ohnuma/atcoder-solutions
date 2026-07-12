@@ -18,7 +18,6 @@ import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 export class SolutionRepositoryImpl implements SolutionRepository {
   private client: BackendApiClient;
   private static readonly NO_STORE = { kind: "no-store" } as const;
-  private static readonly SHORT_REVALIDATE = { kind: "revalidate", seconds: 60 } as const;
   constructor() {
     const baseEndpoint = serverConfig.appConfig.apiBaseEndpoint;
     this.client = new BackendApiClient(baseEndpoint);
@@ -77,7 +76,7 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     if (size !== undefined) {
       params.size = size.toString();
     }
-    return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.SHORT_REVALIDATE);
+    return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getByProblemId = async (problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>> => {

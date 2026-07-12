@@ -2,17 +2,7 @@ import { Heart } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-
-const dateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
-  timeZone: "Asia/Tokyo",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
+import { formatDateTime } from "@/shared/lib/date";
 
 type SolutionSummaryCardProps = {
   href: string;
@@ -55,7 +45,7 @@ export function SolutionSummaryCard({
             </div>
           )}
 
-          <div className="text-xs text-muted-foreground">{dateTimeFormatter.format(new Date(createdAt))}</div>
+          <div className="text-xs text-muted-foreground">{formatDateTime(createdAt)}</div>
 
           {footerLabel && <p className="mt-4 text-sm font-medium">{footerLabel}</p>}
         </CardContent>
