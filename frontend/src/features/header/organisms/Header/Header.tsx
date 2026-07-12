@@ -9,7 +9,8 @@ import { HeaderMobileMenu } from "./HeaderMobileMenu";
 import { useHeaderActions } from "./useHeaderActions";
 
 export function Header({ appName }: { appName: string }) {
-  const { isLoggedIn, myUserName } = useCurrentUser();
+  const { status, isLoggedIn, myUserName } = useCurrentUser();
+  const isAuthResolved = status !== "loading";
   const {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
@@ -37,12 +38,14 @@ export function Header({ appName }: { appName: string }) {
           <HeaderMobileMenu
             isOpen={isMobileMenuOpen}
             onOpenChangeAction={setIsMobileMenuOpen}
+            isAuthResolved={isAuthResolved}
             isLoggedIn={isLoggedIn}
             myUserName={myUserName}
             onOpenDeleteDialogAction={() => setIsDeleteDialogOpen(true)}
             onSignOutAction={handleSignOut}
           />
           <HeaderDesktopNav
+            isAuthResolved={isAuthResolved}
             isLoggedIn={isLoggedIn}
             myUserName={myUserName}
             isMyPageMenuOpen={isMyPageMenuOpen}

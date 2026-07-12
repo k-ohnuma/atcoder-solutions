@@ -6,12 +6,14 @@ import { userApi } from "@/features/auth/api/userApi";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 
 type CurrentUser = {
+  status: "loading" | "guest" | "authenticated";
   isLoggedIn: boolean;
   myUserName: string | null;
 };
 
 export function useCurrentUser(): CurrentUser {
   const [currentUser, setCurrentUser] = useState<CurrentUser>({
+    status: "loading",
     isLoggedIn: false,
     myUserName: null,
   });
@@ -20,7 +22,7 @@ export function useCurrentUser(): CurrentUser {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        setCurrentUser({ isLoggedIn: false, myUserName: null });
+        setCurrentUser({ status: "guest", isLoggedIn: false, myUserName: null });
         return;
       }
 
@@ -28,11 +30,12 @@ export function useCurrentUser(): CurrentUser {
         const token = await user.getIdToken();
         const me = await userApi.getMe(token);
         setCurrentUser({
+          status: "authenticated",
           isLoggedIn: true,
           myUserName: me.ok ? me.data.userName : null,
         });
       } catch {
-        setCurrentUser({ isLoggedIn: true, myUserName: null });
+        setCurrentUser({ status: "authenticated", isLoggedIn: true, myUserName: null });
       }
     });
 

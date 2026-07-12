@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { authenticatedHeaderNavItems, getMyPageNavItems, guestHeaderNavItems, publicHeaderNavItems } from "./headerNavItems";
 
 type HeaderDesktopNavProps = {
+  isAuthResolved: boolean;
   isLoggedIn: boolean;
   myUserName: string | null;
   isMyPageMenuOpen: boolean;
@@ -15,6 +16,7 @@ type HeaderDesktopNavProps = {
 };
 
 export function HeaderDesktopNav({
+  isAuthResolved,
   isLoggedIn,
   myUserName,
   isMyPageMenuOpen,
@@ -31,7 +33,7 @@ export function HeaderDesktopNav({
           </Button>
         ))}
       </nav>
-      {isLoggedIn ? (
+      {!isAuthResolved ? null : isLoggedIn ? (
         <nav className="hidden items-center gap-1 md:flex">
           {authenticatedHeaderNavItems.map((item) => (
             <Button key={item.href} asChild variant="ghost" size="sm">

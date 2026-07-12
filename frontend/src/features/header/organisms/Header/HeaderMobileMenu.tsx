@@ -9,6 +9,7 @@ import { authenticatedHeaderNavItems, getMyPageNavItems, guestHeaderNavItems, pu
 type HeaderMobileMenuProps = {
   isOpen: boolean;
   onOpenChangeAction: (open: boolean) => void;
+  isAuthResolved: boolean;
   isLoggedIn: boolean;
   myUserName: string | null;
   onOpenDeleteDialogAction: () => void;
@@ -18,6 +19,7 @@ type HeaderMobileMenuProps = {
 export function HeaderMobileMenu({
   isOpen,
   onOpenChangeAction,
+  isAuthResolved,
   isLoggedIn,
   myUserName,
   onOpenDeleteDialogAction,
@@ -42,7 +44,7 @@ export function HeaderMobileMenu({
               </Link>
             </Button>
           ))}
-          {isLoggedIn ? (
+          {!isAuthResolved ? null : isLoggedIn ? (
             <>
               {authenticatedHeaderNavItems.map((item) => (
                 <Button key={item.href} asChild variant="ghost" className="justify-start">
