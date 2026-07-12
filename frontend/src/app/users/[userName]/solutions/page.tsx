@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
+import { normalizeSolutionListSort } from "@/features/solutions/model/solutionList";
 import { UserSolutionsTemplate } from "@/features/solutions/ui/templates/UserSolutionsTemplate";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
-import { SolutionListSortBy } from "@/shared/model/solution";
 
 const solutionRepository = new SolutionRepositoryImpl();
 
@@ -17,7 +17,7 @@ type PageProps = {
 export default async function UserSolutionsPage({ params, searchParams }: PageProps) {
   const { userName } = await params;
   const { sortBy } = await searchParams;
-  const selectedSort: SolutionListSortBy = sortBy === "votes" ? "votes" : "latest";
+  const selectedSort = normalizeSolutionListSort(sortBy);
   const solutionsResp = await solutionRepository.getByUserName(userName, selectedSort);
 
   if (!solutionsResp.ok) {

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { ProblemSolutionsTemplate } from "@/features/problems/ui/templates/ProblemSolutionsTemplate";
+import { normalizeSolutionListSort } from "@/features/solutions/model/solutionList";
 import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
-import { SolutionListSortBy } from "@/shared/model/solution";
 
 const problemRepository = new ProblemRepositoryImpl();
 const solutionRepository = new SolutionRepositoryImpl();
@@ -16,14 +16,10 @@ type PageProps = {
   }>;
 };
 
-function normalizeSort(sortBy?: string): SolutionListSortBy {
-  return sortBy === "votes" ? "votes" : "latest";
-}
-
 export default async function ProblemSolutionsPage({ params, searchParams }: PageProps) {
   const { problemId } = await params;
   const { sortBy } = await searchParams;
-  const selectedSort = normalizeSort(sortBy);
+  const selectedSort = normalizeSolutionListSort(sortBy);
   const [problemResp, solutionsResp] = await Promise.all([
     problemRepository.getProblemById(problemId),
     solutionRepository.getByProblemId(problemId, selectedSort),

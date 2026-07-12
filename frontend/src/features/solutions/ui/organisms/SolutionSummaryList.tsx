@@ -1,23 +1,13 @@
-import { SolutionListItem, UserSolutionListItem } from "@/shared/model/solution";
+import { SolutionSummaryListItem } from "@/features/solutions/model/solutionList";
 import { SolutionSummaryCard } from "../molecules/SolutionSummaryCard";
 
-type SummarySolution = SolutionListItem | UserSolutionListItem;
-
 type SolutionSummaryListProps = {
-  solutions: SummarySolution[];
+  solutions: SolutionSummaryListItem[];
   emptyMessage: string;
-  showUserName?: boolean;
-  showProblem?: boolean;
   footerLabel?: string;
 };
 
-export function SolutionSummaryList({
-  solutions,
-  emptyMessage,
-  showUserName = false,
-  showProblem = false,
-  footerLabel,
-}: SolutionSummaryListProps) {
+export function SolutionSummaryList({ solutions, emptyMessage, footerLabel }: SolutionSummaryListProps) {
   if (solutions.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
   }
@@ -31,9 +21,9 @@ export function SolutionSummaryList({
           title={solution.title}
           votesCount={solution.votesCount}
           createdAt={solution.createdAt}
-          problemId={showProblem ? solution.problemId : undefined}
-          problemTitle={showProblem && "problemTitle" in solution ? solution.problemTitle : undefined}
-          userName={showUserName && "userName" in solution ? solution.userName : undefined}
+          problemId={solution.problemId}
+          problemTitle={solution.problemTitle}
+          userName={solution.userName}
           footerLabel={footerLabel}
         />
       ))}
