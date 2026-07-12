@@ -26,15 +26,22 @@ export function useCurrentUser(): CurrentUser {
         return;
       }
 
+      const userId = user.uid;
       try {
         const token = await user.getIdToken();
         const me = await userApi.getMe(token);
+        if (auth.currentUser?.uid !== userId) {
+          return;
+        }
         setCurrentUser({
           status: "authenticated",
           isLoggedIn: true,
           myUserName: me.ok ? me.data.userName : null,
         });
       } catch {
+        if (auth.currentUser?.uid !== userId) {
+          return;
+        }
         setCurrentUser({ status: "authenticated", isLoggedIn: true, myUserName: null });
       }
     });
