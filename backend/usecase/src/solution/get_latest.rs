@@ -13,8 +13,11 @@ pub struct GetLatestSolutionsUsecase {
 }
 
 impl GetLatestSolutionsUsecase {
-    pub async fn run(&self, size: Option<i32>) -> Result<Vec<SolutionListItemView>, SolutionError> {
-        let items = self.service.get_latest_solutions(size).await?;
+    pub async fn run(
+        &self,
+        limit: Option<i32>,
+    ) -> Result<Vec<SolutionListItemView>, SolutionError> {
+        let items = self.service.get_latest_solutions(limit).await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }
 }

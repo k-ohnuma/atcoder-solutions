@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub struct GetLatestSolutionsRequest {
     pub sort_by: Option<String>,
-    pub size: Option<i32>,
+    pub limit: Option<i32>,
 }
 
 #[derive(Serialize)]
@@ -59,13 +59,13 @@ mod tests {
     fn deserialize_latest_solutions_query_from_camel_case() {
         let raw = json!({
             "sortBy": "latest",
-            "size": 50
+            "limit": 50
         });
 
         let req: GetLatestSolutionsRequest = serde_json::from_value(raw).expect("valid json");
 
         assert_eq!(req.sort_by.as_deref(), Some("latest"));
-        assert_eq!(req.size, Some(50));
+        assert_eq!(req.limit, Some(50));
     }
 
     #[test]
@@ -75,6 +75,6 @@ mod tests {
         let req: GetLatestSolutionsRequest = serde_json::from_value(raw).expect("valid json");
 
         assert_eq!(req.sort_by, None);
-        assert_eq!(req.size, None);
+        assert_eq!(req.limit, None);
     }
 }

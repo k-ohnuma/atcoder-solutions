@@ -26,7 +26,7 @@ pub struct SolutionServiceImpl {
 impl SolutionService for SolutionServiceImpl {
     async fn get_latest_solutions(
         &self,
-        size: Option<i32>,
+        limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         let solutions = sqlx::query_as!(
             SolutionListItemViewRaw,
@@ -41,7 +41,7 @@ impl SolutionService for SolutionServiceImpl {
                 ORDER BY s.created_at DESC
                 LIMIT COALESCE($1, 2147483647)
             "#,
-            size
+            limit
         )
         .fetch_all(self.db.inner_ref())
         .await
@@ -54,7 +54,7 @@ impl SolutionService for SolutionServiceImpl {
         &self,
         problem_id: String,
         sort: SolutionListSort,
-        size: Option<i32>,
+        limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         let problem_id_ref = problem_id.as_str();
         let solutions = match sort {
@@ -74,7 +74,7 @@ impl SolutionService for SolutionServiceImpl {
                         LIMIT COALESCE($2, 2147483647)
                     "#,
                     problem_id_ref,
-                    size
+                    limit
                 )
                 .fetch_all(self.db.inner_ref())
                 .await
@@ -96,7 +96,7 @@ impl SolutionService for SolutionServiceImpl {
                         LIMIT COALESCE($2, 2147483647)
                     "#,
                     problem_id_ref,
-                    size
+                    limit
                 )
                 .fetch_all(self.db.inner_ref())
                 .await

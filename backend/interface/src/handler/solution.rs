@@ -50,12 +50,12 @@ use crate::{
 };
 use uuid::Uuid;
 
-fn validate_size(size: Option<i32>) -> Result<Option<i32>, HttpError> {
-    match size {
+fn validate_limit(limit: Option<i32>) -> Result<Option<i32>, HttpError> {
+    match limit {
         Some(value) if value <= 0 => Err(HttpError::BadRequest(
-            "size must be greater than 0".to_string(),
+            "limit must be greater than 0".to_string(),
         )),
-        _ => Ok(size),
+        _ => Ok(limit),
     }
 }
 
@@ -111,10 +111,11 @@ pub async fn delete_solution_handler(
 }
 pub async fn get_solutions_by_problems_id_handler(
     State(registry): State<Registry>,
+    Path(problem_id): Path<String>,
     ApiQuery(req): ApiQuery<GetSolutionsByProblemIdRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByProblemIdResponse>>>, HttpError> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
-    let problem_id = req.problem_id.trim();
+    let problem_id = problem_id.trim();
     if problem_id.is_empty() {
         return Err(HttpError::BadRequest(
             "problem_id cannot be empty".to_string(),
@@ -129,9 +130,9 @@ pub async fn get_solutions_by_problems_id_handler(
             ));
         }
     };
-    let size = validate_size(req.size)?;
+    let limit = validate_limit(req.limit)?;
     let solutions = uc
-        .run(problem_id.to_string(), sort, size)
+        .run(problem_id.to_string(), sort, limit)
         .await
         .map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
@@ -148,8 +149,8 @@ pub async fn get_latest_solutions_handler(
     validate_latest_solutions_sort(req.sort_by.as_deref())?;
 
     let uc = GetLatestSolutionsUsecase::new(registry.solution_service());
-    let size = validate_size(req.size)?;
-    let solutions = uc.run(size).await.map_err(|e| e.to_http_error())?;
+    let limit = validate_limit(req.limit)?;
+    let solutions = uc.run(limit).await.map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetLatestSolutionsResponse::from)
@@ -159,10 +160,11 @@ pub async fn get_latest_solutions_handler(
 
 pub async fn get_solutions_by_user_name_handler(
     State(registry): State<Registry>,
+    Path(user_name): Path<String>,
     ApiQuery(req): ApiQuery<GetSolutionsByUserNameRequest>,
 ) -> Result<Json<ApiResponse<Vec<GetSolutionsByUserNameResponse>>>, HttpError> {
     let uc = GetSolutionsByUserNameUsecase::new(registry.solution_service());
-    let user_name = req.user_name.trim();
+    let user_name = user_name.trim();
     if user_name.is_empty() {
         return Err(HttpError::BadRequest(
             "user_name cannot be empty".to_string(),
@@ -310,23 +312,23 @@ pub async fn get_comments_by_solution_id_handler(
 mod tests {
     use shared::error::http::HttpError;
 
-    use super::{validate_latest_solutions_sort, validate_size};
+    use super::{validate_latest_solutions_sort, validate_limit};
 
     #[test]
-    fn validate_size_accepts_empty_and_positive_values() {
-        assert_eq!(validate_size(None).expect("valid"), None);
-        assert_eq!(validate_size(Some(50)).expect("valid"), Some(50));
+    fn validate_limit_accepts_empty_and_positive_values() {
+        assert_eq!(validate_limit(None).expect("valid"), None);
+        assert_eq!(validate_limit(Some(50)).expect("valid"), Some(50));
     }
 
     #[test]
-    fn validate_size_rejects_zero_or_negative_values() {
+    fn validate_limit_rejects_zero_or_negative_values() {
         assert!(matches!(
-            validate_size(Some(0)),
-            Err(HttpError::BadRequest(message)) if message == "size must be greater than 0"
+            validate_limit(Some(0)),
+            Err(HttpError::BadRequest(message)) if message == "limit must be greater than 0"
         ));
         assert!(matches!(
-            validate_size(Some(-1)),
-            Err(HttpError::BadRequest(message)) if message == "size must be greater than 0"
+            validate_limit(Some(-1)),
+            Err(HttpError::BadRequest(message)) if message == "limit must be greater than 0"
         ));
     }
 

@@ -18,7 +18,7 @@ impl GetSolutionsByProblemIdUsecase {
         &self,
         problem_id: String,
         sort: SolutionListSort,
-        size: Option<i32>,
+        limit: Option<i32>,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
         if problem_id.trim().is_empty() {
             return Err(SolutionError::BadRequest(
@@ -33,7 +33,7 @@ impl GetSolutionsByProblemIdUsecase {
 
         let items = self
             .service
-            .get_solutions_by_problem_id(problem_id, sort, size)
+            .get_solutions_by_problem_id(problem_id, sort, limit)
             .await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }

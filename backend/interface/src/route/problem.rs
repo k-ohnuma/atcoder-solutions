@@ -1,9 +1,12 @@
 use axum::{Router, routing::get};
 use registry::Registry;
 
-use crate::handler::problem::{
-    get_contest_group_by_contest_series_handler, get_problem_by_id_handler,
-    get_problems_by_contest_handler,
+use crate::handler::{
+    problem::{
+        get_contest_group_by_contest_series_handler, get_problem_by_id_handler,
+        get_problems_by_contest_handler,
+    },
+    solution::get_solutions_by_problems_id_handler,
 };
 
 pub fn build_problem_routers() -> Router<Registry> {
@@ -12,6 +15,10 @@ pub fn build_problem_routers() -> Router<Registry> {
         .route(
             "/contest-group",
             get(get_contest_group_by_contest_series_handler),
+        )
+        .route(
+            "/{problem_id}/solutions",
+            get(get_solutions_by_problems_id_handler),
         )
         .route("/{problem_id}", get(get_problem_by_id_handler));
     Router::new().nest("/problems", routers)

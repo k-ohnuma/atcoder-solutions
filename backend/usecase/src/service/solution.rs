@@ -10,13 +10,13 @@ use crate::model::solution::{
 pub trait SolutionService: Send + Sync {
     async fn get_latest_solutions(
         &self,
-        size: Option<i32>,
+        limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError>;
     async fn get_solutions_by_problem_id(
         &self,
         problem_id: String,
         sort: SolutionListSort,
-        size: Option<i32>,
+        limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError>;
     async fn get_solution_by_solution_id(
         &self,
