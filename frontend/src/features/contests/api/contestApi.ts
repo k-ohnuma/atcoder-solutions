@@ -7,7 +7,6 @@ export const contestApi = {
     if (resp.ok) {
       return resp.data;
     }
-    console.log(`error: ${resp.error}, status: ${resp.status}`);
-    return [];
+    throw new Error(`failed to fetch contests by series: status=${resp.status}, error=${resp.error}`);
   },
 };
