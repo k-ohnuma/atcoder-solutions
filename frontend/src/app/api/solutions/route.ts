@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   }
 
   const repo = new SolutionRepositoryImpl();
-  const solutions = await repo.getLatest(parsed.data.size);
+  const solutions = await repo.getLatest(parsed.data.limit);
   if (!solutions.ok) {
     return NextResponse.json({ ok: false, error: solutions.error }, { status: solutions.status });
   }

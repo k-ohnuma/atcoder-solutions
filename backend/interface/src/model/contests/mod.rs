@@ -1,8 +1,6 @@
 use serde::Serialize;
 use usecase::dto::contests::ContestListItemView;
 
-pub mod get_contests_by_series;
-
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContestResponse {

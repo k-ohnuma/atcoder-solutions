@@ -12,14 +12,14 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     this.client = new BackendApiClient(baseEndpoint);
   }
 
-  private getProblemsByContestSeriesPath = () => {
-    return "problems";
+  private getProblemsByContestPath = (contestCode: string) => {
+    return `contests/${encodeURIComponent(contestCode)}/problems`;
   };
   private getProblemByIdPath = (problemId: string) => {
     return `problems/${encodeURIComponent(problemId)}`;
   };
   private getContestGroupByContestSeriesPath = () => {
-    return "problems/contest-group";
+    return "series";
   };
 
   getProblemById = async (problemId: string): Promise<Resp<Problem>> => {
@@ -29,10 +29,9 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     });
   };
 
-  getProblemsByContest = async (contest: string): Promise<Resp<Problem[]>> => {
-    const params = { contest };
-    const path = this.getProblemsByContestSeriesPath();
-    return await this.client.get<Problem[]>(path, params, {
+  getProblemsByContest = async (contestCode: string): Promise<Resp<Problem[]>> => {
+    const path = this.getProblemsByContestPath(contestCode);
+    return await this.client.get<Problem[]>(path, undefined, {
       kind: "revalidate",
       seconds: ProblemRepositoryImpl.READ_CACHE_SECONDS,
     });
@@ -49,31 +48,14 @@ export class ProblemRepositoryImpl implements ProblemRepository {
     offset?: number;
   }): Promise<Resp<ContestGroupPage>> => {
     const params = {
-      series,
       ...(q ? { q } : {}),
       ...(limit !== undefined ? { limit: String(limit) } : {}),
       ...(offset !== undefined ? { offset: String(offset) } : {}),
     };
-    const path = this.getContestGroupByContestSeriesPath();
-    const resp = await this.client.get<{
-      items: Record<string, Problem[]>;
-      hasMore: boolean;
-      totalContestCount: number;
-    }>(path, params, {
+    const path = `${this.getContestGroupByContestSeriesPath()}/${encodeURIComponent(series)}/problem-groups`;
+    return await this.client.get<ContestGroupPage>(path, params, {
       kind: "revalidate",
       seconds: ProblemRepositoryImpl.READ_CACHE_SECONDS,
     });
-    if (!resp.ok) {
-      return resp;
-    }
-
-    return {
-      ok: true,
-      status: resp.status,
-      data: {
-        ...resp.data,
-        items: new Map<string, Problem[]>(Object.entries(resp.data.items)),
-      },
-    };
   };
 }

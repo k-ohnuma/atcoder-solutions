@@ -30,10 +30,10 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return `solutions/${encodeURIComponent(solutionId)}`;
   };
   private getSolutionsByProblemIdPath = () => {
-    return "solutions/problems";
+    return "problems";
   };
   private getSolutionsByUserNamePath = () => {
-    return "solutions/users";
+    return "users";
   };
   private getLatestSolutionsPath = () => {
     return "solutions";
@@ -75,27 +75,34 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return await this.client.get<SolutionDetail>(path, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 
-  getLatest = async (size?: number): Promise<Resp<SolutionListItem[]>> => {
+  getLatest = async (limit?: number): Promise<Resp<SolutionListItem[]>> => {
     const path = this.getLatestSolutionsPath();
     const params: Record<string, string> = { sortBy: "latest" };
-    if (size !== undefined) {
-      params.size = size.toString();
+    if (limit !== undefined) {
+      params.limit = limit.toString();
     }
     return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
-  getByProblemId = async (problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>> => {
-    const path = this.getSolutionsByProblemIdPath();
-    const params: Record<string, string> = { problemId };
+  getByProblemId = async (
+    problemId: string,
+    sortBy?: SolutionListSortBy,
+    limit?: number,
+  ): Promise<Resp<SolutionListItem[]>> => {
+    const path = `${this.getSolutionsByProblemIdPath()}/${encodeURIComponent(problemId)}/solutions`;
+    const params: Record<string, string> = {};
     if (sortBy) {
       params.sortBy = sortBy;
+    }
+    if (limit !== undefined) {
+      params.limit = limit.toString();
     }
     return await this.client.get<SolutionListItem[]>(path, params, SolutionRepositoryImpl.NO_STORE);
   };
 
   getByUserName = async (userName: string, sortBy?: SolutionListSortBy): Promise<Resp<UserSolutionListItem[]>> => {
-    const path = this.getSolutionsByUserNamePath();
-    const params: Record<string, string> = { userName };
+    const path = `${this.getSolutionsByUserNamePath()}/${encodeURIComponent(userName)}/solutions`;
+    const params: Record<string, string> = {};
     if (sortBy) {
       params.sortBy = sortBy;
     }

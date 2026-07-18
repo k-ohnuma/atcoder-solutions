@@ -13,14 +13,13 @@ export class ContestRepositoryImpl implements ContestRepository {
     this.client = new BackendApiClient(baseEndpoint);
   }
 
-  private getContestsByContestSeriesPath = () => {
-    return "contests";
+  private getContestsByContestSeriesPath = (series: ContestSeries) => {
+    return `series/${encodeURIComponent(series)}/contests`;
   };
 
   getContestsBySeries = async (series: ContestSeries): Promise<Resp<Contest[]>> => {
-    const params = { series };
-    const path = this.getContestsByContestSeriesPath();
-    return await this.client.get<Contest[]>(path, params, {
+    const path = this.getContestsByContestSeriesPath(series);
+    return await this.client.get<Contest[]>(path, undefined, {
       kind: "revalidate",
       seconds: ContestRepositoryImpl.READ_CACHE_SECONDS,
     });

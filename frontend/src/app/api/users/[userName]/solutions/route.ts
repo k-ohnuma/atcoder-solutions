@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
-import { getSolutionsByProblemIdQueryParams } from "@/server/interface/solution/get";
+import { getSolutionsByUserNameQueryParams } from "@/server/interface/solution/get";
 
-export async function GET(req: NextRequest) {
+type RouteContext = {
+  params: Promise<{
+    userName: string;
+  }>;
+};
+
+export async function GET(req: NextRequest, { params }: RouteContext) {
   const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-  const parsed = getSolutionsByProblemIdQueryParams.safeParse(rawParams);
+  const parsed = getSolutionsByUserNameQueryParams.safeParse(rawParams);
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
   }
 
+  const { userName } = await params;
   const repo = new SolutionRepositoryImpl();
-  const solutions = await repo.getByProblemId(parsed.data.problemId, parsed.data.sortBy);
+  const solutions = await repo.getByUserName(userName, parsed.data.sortBy);
   if (!solutions.ok) {
     return NextResponse.json({ ok: false, error: solutions.error }, { status: solutions.status });
   }

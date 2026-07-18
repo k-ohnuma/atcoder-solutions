@@ -11,9 +11,12 @@ export interface Problem {
   title: string;
   difficulty?: number | null;
 }
-export type ContestGroupCollection = Map<string, Problem[]>;
+export interface ContestProblemGroup {
+  contestId: string;
+  problems: Problem[];
+}
 export interface ContestGroupPage {
-  items: ContestGroupCollection;
+  groups: ContestProblemGroup[];
   hasMore: boolean;
   totalContestCount: number;
 }

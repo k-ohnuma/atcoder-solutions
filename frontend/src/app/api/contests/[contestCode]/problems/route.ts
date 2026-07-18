@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { publicCacheHeaders } from "@/server/http/cache";
 import { ProblemRepositoryImpl } from "@/server/infrastructure/repository/problemRepository";
-import { getProblemsByContestQueryParams } from "@/server/interface/problem/get";
 
-export async function GET(req: NextRequest) {
-  const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-  const parsed = getProblemsByContestQueryParams.safeParse(rawParams);
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "invalid format" }, { status: 400 });
+type RouteContext = {
+  params: Promise<{
+    contestCode: string;
+  }>;
+};
+
+export async function GET(_req: NextRequest, { params }: RouteContext) {
+  const { contestCode } = await params;
+  const normalizedContestCode = contestCode.trim();
+  if (!normalizedContestCode) {
+    return NextResponse.json({ ok: false, error: "contestCode cannot be empty" }, { status: 400 });
   }
-  const contest = parsed.data.contest;
 
   const repo = new ProblemRepositoryImpl();
-  const problems = await repo.getProblemsByContest(contest);
+  const problems = await repo.getProblemsByContest(normalizedContestCode);
   if (!problems.ok) {
     return NextResponse.json({ ok: false, error: problems.error }, { status: problems.status });
   }
+
   return NextResponse.json({ ok: true, data: problems.data }, { status: 200, headers: publicCacheHeaders(3600, 300) });
 }

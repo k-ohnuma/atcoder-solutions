@@ -3,7 +3,7 @@ import { Contest } from "@/shared/model/contest";
 
 export const contestApi = {
   getBySeries: async (series: string): Promise<Contest[]> => {
-    const resp = await httpClient.get<Contest[]>("api/contests", { series });
+    const resp = await httpClient.get<Contest[]>(`api/series/${encodeURIComponent(series)}/contests`);
     if (resp.ok) {
       return resp.data;
     }
