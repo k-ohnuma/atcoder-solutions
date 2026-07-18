@@ -13,7 +13,8 @@ import { Resp } from "../response";
 export interface SolutionRepository {
   create(solution: Solution, token: string): Promise<Resp<SolutionResponse>>;
   update(
-    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags"> & { solutionId: string },
+    solutionId: string,
+    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags">,
     token: string,
   ): Promise<Resp<SolutionResponse>>;
   delete(solutionId: string, token: string): Promise<Resp<{ solutionId: string }>>;

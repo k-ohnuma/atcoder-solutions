@@ -26,6 +26,9 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   private createSolutionPath = () => {
     return "solutions";
   };
+  private solutionPath = (solutionId: string) => {
+    return `solutions/${encodeURIComponent(solutionId)}`;
+  };
   private getSolutionsByProblemIdPath = () => {
     return "solutions/problems";
   };
@@ -33,16 +36,19 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return "solutions/users";
   };
   private getLatestSolutionsPath = () => {
-    return "solutions/latest";
+    return "solutions";
   };
-  private votesPath = () => {
-    return "solutions/votes";
+  private votesPath = (solutionId: string) => {
+    return `solutions/${encodeURIComponent(solutionId)}/votes`;
   };
-  private myVotesPath = () => {
-    return "solutions/votes/me";
+  private myVotesPath = (solutionId: string) => {
+    return `solutions/${encodeURIComponent(solutionId)}/votes/me`;
   };
-  private commentsPath = () => {
-    return "solutions/comments";
+  private commentsPath = (solutionId: string) => {
+    return `solutions/${encodeURIComponent(solutionId)}/comments`;
+  };
+  private commentPath = (commentId: string) => {
+    return `comments/${encodeURIComponent(commentId)}`;
   };
 
   create = async (solution: Solution, token: string): Promise<Resp<SolutionResponse>> => {
@@ -51,28 +57,27 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   };
 
   update = async (
-    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags"> & { solutionId: string },
+    solutionId: string,
+    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags">,
     token: string,
   ): Promise<Resp<SolutionResponse>> => {
-    const path = this.createSolutionPath();
+    const path = this.solutionPath(solutionId);
     return await this.client.patchWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
   };
 
   delete = async (solutionId: string, token: string): Promise<Resp<{ solutionId: string }>> => {
-    const path = this.createSolutionPath();
-    const params = { solutionId };
-    return await this.client.deleteWithToken<{ solutionId: string }>(path, token, params);
+    const path = this.solutionPath(solutionId);
+    return await this.client.deleteWithToken<{ solutionId: string }>(path, token);
   };
 
   getBySolutionId = async (solutionId: string): Promise<Resp<SolutionDetail>> => {
-    const path = this.createSolutionPath();
-    const params = { solutionId };
-    return await this.client.get<SolutionDetail>(path, params, SolutionRepositoryImpl.NO_STORE);
+    const path = this.solutionPath(solutionId);
+    return await this.client.get<SolutionDetail>(path, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 
   getLatest = async (size?: number): Promise<Resp<SolutionListItem[]>> => {
     const path = this.getLatestSolutionsPath();
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = { sortBy: "latest" };
     if (size !== undefined) {
       params.size = size.toString();
     }
@@ -98,47 +103,42 @@ export class SolutionRepositoryImpl implements SolutionRepository {
   };
 
   getCommentsBySolutionId = async (solutionId: string): Promise<Resp<SolutionComment[]>> => {
-    const path = this.commentsPath();
-    const params = { solutionId };
-    return await this.client.get<SolutionComment[]>(path, params, SolutionRepositoryImpl.NO_STORE);
+    const path = this.commentsPath(solutionId);
+    return await this.client.get<SolutionComment[]>(path, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 
   createComment = async (solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
-    const path = this.commentsPath();
-    return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ solutionId, bodyMd }));
+    const path = this.commentsPath(solutionId);
+    return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ bodyMd }));
   };
 
   updateComment = async (commentId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
-    const path = this.commentsPath();
-    return await this.client.patchWithToken<SolutionComment>(path, token, JSON.stringify({ commentId, bodyMd }));
+    const path = this.commentPath(commentId);
+    return await this.client.patchWithToken<SolutionComment>(path, token, JSON.stringify({ bodyMd }));
   };
 
   deleteComment = async (commentId: string, token: string): Promise<Resp<{ commentId: string }>> => {
-    const path = this.commentsPath();
-    const params = { commentId };
-    return await this.client.deleteWithToken<{ commentId: string }>(path, token, params);
+    const path = this.commentPath(commentId);
+    return await this.client.deleteWithToken<{ commentId: string }>(path, token);
   };
 
   vote = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {
-    const path = this.votesPath();
-    return await this.client.postWithToken<SolutionLikeStatus>(path, token, JSON.stringify({ solutionId }));
+    const path = this.myVotesPath(solutionId);
+    return await this.client.putWithToken<SolutionLikeStatus>(path, token);
   };
 
   unvote = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {
-    const path = this.votesPath();
-    const params = { solutionId };
-    return await this.client.deleteWithToken<SolutionLikeStatus>(path, token, params);
+    const path = this.myVotesPath(solutionId);
+    return await this.client.deleteWithToken<SolutionLikeStatus>(path, token);
   };
 
   getVotesCount = async (solutionId: string): Promise<Resp<SolutionVotesCount>> => {
-    const path = this.votesPath();
-    const params = { solutionId };
-    return await this.client.get<SolutionVotesCount>(path, params, SolutionRepositoryImpl.NO_STORE);
+    const path = this.votesPath(solutionId);
+    return await this.client.get<SolutionVotesCount>(path, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 
   getMyVoteStatus = async (solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>> => {
-    const path = this.myVotesPath();
-    const params = { solutionId };
-    return await this.client.getWithToken<SolutionLikeStatus>(path, token, params, SolutionRepositoryImpl.NO_STORE);
+    const path = this.myVotesPath(solutionId);
+    return await this.client.getWithToken<SolutionLikeStatus>(path, token, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 }
