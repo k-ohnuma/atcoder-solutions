@@ -1,13 +1,7 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use usecase::dto::solution::SolutionView;
 use uuid::Uuid;
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GetSolutionBySolutionIdRequest {
-    pub solution_id: Uuid,
-}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
