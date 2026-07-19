@@ -14,7 +14,7 @@ async function request<T = unknown>({
   body,
   params,
 }: {
-  method: "GET" | "POST" | "PATCH" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   token?: string;
   body?: JsonValue;
@@ -63,6 +63,8 @@ export const httpClient = {
     request({ method: "GET", path, token, params }),
   postWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
     request({ method: "POST", path, token, body }),
+  putWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
+    request({ method: "PUT", path, token, body }),
   patchWithToken: <T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> =>
     request({ method: "PATCH", path, token, body }),
   deleteWithToken: <T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> =>

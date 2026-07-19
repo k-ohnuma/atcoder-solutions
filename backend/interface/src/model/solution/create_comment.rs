@@ -6,7 +6,6 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateCommentRequest {
-    pub solution_id: Uuid,
     pub body_md: String,
 }
 
@@ -48,14 +47,20 @@ mod tests {
 
     #[test]
     fn deserialize_create_comment_request_from_camel_case() {
-        let solution_id = Uuid::now_v7();
         let raw = json!({
-            "solutionId": solution_id,
             "bodyMd": "hello"
         });
         let req: CreateCommentRequest = serde_json::from_value(raw).expect("valid json");
-        assert_eq!(req.solution_id, solution_id);
         assert_eq!(req.body_md, "hello");
+    }
+
+    #[test]
+    fn deserialize_create_comment_request_requires_body_md() {
+        let raw = json!({});
+
+        let result = serde_json::from_value::<CreateCommentRequest>(raw);
+
+        assert!(result.is_err());
     }
 
     #[test]

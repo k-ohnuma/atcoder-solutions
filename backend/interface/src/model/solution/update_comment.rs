@@ -7,14 +7,17 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateCommentRequest {
-    pub comment_id: Uuid,
     pub body_md: String,
 }
 
-pub fn from_req_for_input(user_id: String, req: UpdateCommentRequest) -> UpdateCommentInput {
+pub fn from_req_for_input(
+    user_id: String,
+    comment_id: Uuid,
+    req: UpdateCommentRequest,
+) -> UpdateCommentInput {
     UpdateCommentInput {
         user_id,
-        comment_id: req.comment_id,
+        comment_id,
         body_md: req.body_md,
     }
 }
@@ -58,14 +61,22 @@ mod tests {
     fn deserialize_update_comment_request_from_camel_case() {
         let comment_id = Uuid::now_v7();
         let raw = json!({
-            "commentId": comment_id,
             "bodyMd": "updated"
         });
         let req: UpdateCommentRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), req);
+        let input = from_req_for_input("uid".to_string(), comment_id, req);
         assert_eq!(input.user_id, "uid");
         assert_eq!(input.comment_id, comment_id);
         assert_eq!(input.body_md, "updated");
+    }
+
+    #[test]
+    fn deserialize_update_comment_request_requires_body_md() {
+        let raw = json!({});
+
+        let result = serde_json::from_value::<UpdateCommentRequest>(raw);
+
+        assert!(result.is_err());
     }
 
     #[test]

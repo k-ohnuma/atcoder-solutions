@@ -24,7 +24,7 @@ export class BackendApiClient {
     params,
     cacheStrategy,
   }: {
-    method: "GET" | "POST" | "PATCH" | "DELETE";
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
     path: string;
     token?: string;
     body?: JsonValue;
@@ -91,6 +91,10 @@ export class BackendApiClient {
 
   async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
     return this.request({ path, method: "POST", body, token });
+  }
+
+  async putWithToken<T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> {
+    return this.request({ path, method: "PUT", body, token });
   }
 
   async patchWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {

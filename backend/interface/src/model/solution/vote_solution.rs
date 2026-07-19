@@ -1,11 +1,5 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VoteSolutionRequest {
-    pub solution_id: Uuid,
-}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]

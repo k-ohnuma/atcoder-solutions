@@ -46,7 +46,7 @@ struct GateService {
 impl SolutionService for GateService {
     async fn get_latest_solutions(
         &self,
-        _size: Option<i32>,
+        _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![])
     }
@@ -55,7 +55,7 @@ impl SolutionService for GateService {
         &self,
         _problem_id: String,
         _sort: SolutionListSort,
-        _size: Option<i32>,
+        _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![])
     }

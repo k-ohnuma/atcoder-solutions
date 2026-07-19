@@ -6,7 +6,8 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetLatestSolutionsRequest {
-    pub size: Option<i32>,
+    pub sort_by: Option<String>,
+    pub limit: Option<i32>,
 }
 
 #[derive(Serialize)]
@@ -45,5 +46,35 @@ impl From<SolutionListItemView> for GetLatestSolutionsResponse {
             created_at,
             updated_at,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::GetLatestSolutionsRequest;
+
+    #[test]
+    fn deserialize_latest_solutions_query_from_camel_case() {
+        let raw = json!({
+            "sortBy": "latest",
+            "limit": 50
+        });
+
+        let req: GetLatestSolutionsRequest = serde_json::from_value(raw).expect("valid json");
+
+        assert_eq!(req.sort_by.as_deref(), Some("latest"));
+        assert_eq!(req.limit, Some(50));
+    }
+
+    #[test]
+    fn deserialize_latest_solutions_query_allows_empty_conditions() {
+        let raw = json!({});
+
+        let req: GetLatestSolutionsRequest = serde_json::from_value(raw).expect("valid json");
+
+        assert_eq!(req.sort_by, None);
+        assert_eq!(req.limit, None);
     }
 }

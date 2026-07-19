@@ -7,9 +7,8 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSolutionsByProblemIdRequest {
-    pub problem_id: String,
     pub sort_by: Option<String>,
-    pub size: Option<i32>,
+    pub limit: Option<i32>,
 }
 
 impl GetSolutionsByProblemIdRequest {
@@ -72,9 +71,8 @@ mod tests {
     #[test]
     fn list_sort_defaults_to_latest() {
         let req = GetSolutionsByProblemIdRequest {
-            problem_id: "abc100_a".to_string(),
             sort_by: None,
-            size: None,
+            limit: None,
         };
         assert!(matches!(req.list_sort(), SolutionListSort::Latest));
     }
@@ -82,9 +80,8 @@ mod tests {
     #[test]
     fn list_sort_votes_is_mapped() {
         let req = GetSolutionsByProblemIdRequest {
-            problem_id: "abc100_a".to_string(),
             sort_by: Some("votes".to_string()),
-            size: None,
+            limit: None,
         };
         assert!(matches!(req.list_sort(), SolutionListSort::Votes));
     }
@@ -92,13 +89,12 @@ mod tests {
     #[test]
     fn deserialize_camel_case_sort_by() {
         let raw = json!({
-            "problemId": "abc100_a",
-            "sortBy": "votes"
+            "sortBy": "votes",
+            "limit": 50
         });
         let req: GetSolutionsByProblemIdRequest = serde_json::from_value(raw).expect("valid json");
-        assert_eq!(req.problem_id, "abc100_a");
         assert_eq!(req.sort_by.as_deref(), Some("votes"));
-        assert_eq!(req.size, None);
+        assert_eq!(req.limit, Some(50));
     }
 
     #[test]

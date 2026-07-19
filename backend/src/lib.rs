@@ -9,8 +9,8 @@ use interface::{
     handler::problem::import_problem,
     route::{
         contest::build_contests_routers, health::build_health_check_routers,
-        problem::build_problem_routers, solution::build_solution_routers, user::build_user_routers,
-        version::build_version_routers,
+        problem::build_problem_routers, series::build_series_routers,
+        solution::build_solution_routers, user::build_user_routers, version::build_version_routers,
     },
 };
 use registry::Registry;
@@ -52,6 +52,7 @@ pub async fn run(app_config: AppConfig) -> Result<()> {
         .merge(build_version_routers())
         .merge(build_user_routers())
         .merge(build_problem_routers())
+        .merge(build_series_routers())
         .merge(build_solution_routers())
         .merge(build_contests_routers())
         .with_state(registry.to_owned())

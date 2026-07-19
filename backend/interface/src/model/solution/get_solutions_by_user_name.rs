@@ -6,7 +6,6 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSolutionsByUserNameRequest {
-    pub user_name: String,
     pub sort_by: Option<String>,
 }
 
@@ -72,17 +71,13 @@ mod tests {
 
     #[test]
     fn list_sort_defaults_to_latest() {
-        let req = GetSolutionsByUserNameRequest {
-            user_name: "alice".to_string(),
-            sort_by: None,
-        };
+        let req = GetSolutionsByUserNameRequest { sort_by: None };
         assert!(matches!(req.list_sort(), SolutionListSort::Latest));
     }
 
     #[test]
     fn list_sort_votes_is_mapped() {
         let req = GetSolutionsByUserNameRequest {
-            user_name: "alice".to_string(),
             sort_by: Some("votes".to_string()),
         };
         assert!(matches!(req.list_sort(), SolutionListSort::Votes));
@@ -91,11 +86,9 @@ mod tests {
     #[test]
     fn deserialize_camel_case_sort_by() {
         let raw = json!({
-            "userName": "alice",
             "sortBy": "votes"
         });
         let req: GetSolutionsByUserNameRequest = serde_json::from_value(raw).expect("valid json");
-        assert_eq!(req.user_name, "alice");
         assert_eq!(req.sort_by.as_deref(), Some("votes"));
     }
 

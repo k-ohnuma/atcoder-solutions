@@ -39,7 +39,7 @@ impl DummySolutionService {
 impl SolutionService for DummySolutionService {
     async fn get_latest_solutions(
         &self,
-        _size: Option<i32>,
+        _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![SolutionListItem {
             id: Uuid::now_v7(),
@@ -57,7 +57,7 @@ impl SolutionService for DummySolutionService {
         &self,
         _problem_id: String,
         sort: SolutionListSort,
-        _size: Option<i32>,
+        _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {

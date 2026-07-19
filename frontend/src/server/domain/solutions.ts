@@ -13,13 +13,14 @@ import { Resp } from "../response";
 export interface SolutionRepository {
   create(solution: Solution, token: string): Promise<Resp<SolutionResponse>>;
   update(
-    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags"> & { solutionId: string },
+    solutionId: string,
+    solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags">,
     token: string,
   ): Promise<Resp<SolutionResponse>>;
   delete(solutionId: string, token: string): Promise<Resp<{ solutionId: string }>>;
   getBySolutionId(solutionId: string): Promise<Resp<SolutionDetail>>;
-  getLatest(size?: number): Promise<Resp<SolutionListItem[]>>;
-  getByProblemId(problemId: string, sortBy?: SolutionListSortBy): Promise<Resp<SolutionListItem[]>>;
+  getLatest(limit?: number): Promise<Resp<SolutionListItem[]>>;
+  getByProblemId(problemId: string, sortBy?: SolutionListSortBy, limit?: number): Promise<Resp<SolutionListItem[]>>;
   getByUserName(userName: string, sortBy?: SolutionListSortBy): Promise<Resp<UserSolutionListItem[]>>;
   getCommentsBySolutionId(solutionId: string): Promise<Resp<SolutionComment[]>>;
   createComment(solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>>;

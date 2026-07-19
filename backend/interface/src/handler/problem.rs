@@ -17,9 +17,9 @@ use crate::http::ApiQuery;
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::{
-        ContestGroupPageResponse, GetContestGroupByContestSeriesRequestParams,
+        ContestGroupPageResponse, ContestProblemGroupResponse,
+        GetContestGroupByContestSeriesRequestParams,
     },
-    get_problems_by_contest::GetProblemsByContestRequestParams,
 };
 
 const MAX_CONTEST_GROUP_QUERY_LENGTH: usize = 100;
@@ -46,11 +46,13 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
 
 pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
-    ApiQuery(query): ApiQuery<GetProblemsByContestRequestParams>,
+    Path(contest_code): Path<String>,
 ) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
-    let contest = query.contest.trim();
+    let contest = contest_code.trim();
     if contest.is_empty() {
-        return Err(HttpError::BadRequest("contest cannot be empty".to_string()));
+        return Err(HttpError::BadRequest(
+            "contestCode cannot be empty".to_string(),
+        ));
     }
 
     let problems_repository = reg.problem_repository();
@@ -84,12 +86,12 @@ pub async fn get_problem_by_id_handler(
 
 pub async fn get_contest_group_by_contest_series_handler(
     State(reg): State<Registry>,
+    Path(series): Path<String>,
     ApiQuery(query): ApiQuery<GetContestGroupByContestSeriesRequestParams>,
 ) -> Result<ApiResponse<ContestGroupPageResponse>, HttpError> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
-    let series =
-        ContestSeries::try_from(query.series).map_err(|e| HttpError::BadRequest(e.msg()))?;
+    let series = ContestSeries::try_from(series).map_err(|e| HttpError::BadRequest(e.msg()))?;
     if query
         .q
         .as_ref()
@@ -112,23 +114,21 @@ pub async fn get_contest_group_by_contest_series_handler(
         .run(series, query.q, query.limit, query.offset)
         .await
         .map_err(|e| e.to_http_error())?;
-    let items = page
+    let groups = page
         .items
         .0
         .into_iter()
-        .map(|(contest_id, problems)| {
-            (
-                contest_id,
-                problems
-                    .into_iter()
-                    .map(ProblemResponse::from)
-                    .collect::<Vec<_>>(),
-            )
+        .map(|(contest_id, problems)| ContestProblemGroupResponse {
+            contest_id: contest_id.0,
+            problems: problems
+                .into_iter()
+                .map(ProblemResponse::from)
+                .collect::<Vec<_>>(),
         })
         .collect();
 
     Ok(ApiResponse::ok(ContestGroupPageResponse {
-        items,
+        groups,
         has_more: page.has_more,
         total_contest_count: page.total_contest_count,
     }))

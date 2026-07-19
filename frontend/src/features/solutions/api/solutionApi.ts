@@ -29,7 +29,7 @@ export const solutionApi = {
   },
 
   getVotesCount: async (solutionId: string): Promise<number> => {
-    const resp = await httpClient.get<SolutionVotesCount>("api/solutions/votes", { solutionId });
+    const resp = await httpClient.get<SolutionVotesCount>(`api/solutions/${encodeURIComponent(solutionId)}/votes`);
     if (resp.ok) {
       return resp.data.votesCount;
     }
@@ -38,29 +38,34 @@ export const solutionApi = {
   },
 
   getMyLikeStatus: async (solutionId: string, token: string): Promise<boolean> => {
-    const resp = await httpClient.getWithToken<SolutionLikeStatus>("api/solutions/votes/me", token, { solutionId });
+    const resp = await httpClient.getWithToken<SolutionLikeStatus>(
+      `api/solutions/${encodeURIComponent(solutionId)}/votes/me`,
+      token,
+    );
     throwIfFailed(resp, "いいね状態の取得に失敗しました。");
     return resp.data.liked;
   },
 
   vote: async (solutionId: string, token: string): Promise<boolean> => {
-    const resp = await httpClient.postWithToken<SolutionLikeStatus>(
-      "api/solutions/votes",
+    const resp = await httpClient.putWithToken<SolutionLikeStatus>(
+      `api/solutions/${encodeURIComponent(solutionId)}/votes/me`,
       token,
-      JSON.stringify({ solutionId }),
     );
     throwIfFailed(resp, "いいねに失敗しました。");
     return resp.data.liked;
   },
 
   unvote: async (solutionId: string, token: string): Promise<boolean> => {
-    const resp = await httpClient.deleteWithToken<SolutionLikeStatus>("api/solutions/votes", token, { solutionId });
+    const resp = await httpClient.deleteWithToken<SolutionLikeStatus>(
+      `api/solutions/${encodeURIComponent(solutionId)}/votes/me`,
+      token,
+    );
     throwIfFailed(resp, "いいねの解除に失敗しました。");
     return resp.data.liked;
   },
 
   getCommentsBySolutionId: async (solutionId: string): Promise<SolutionComment[]> => {
-    const resp = await httpClient.get<SolutionComment[]>("api/solutions/comments", { solutionId });
+    const resp = await httpClient.get<SolutionComment[]>(`api/solutions/${encodeURIComponent(solutionId)}/comments`);
     if (resp.ok) {
       return resp.data;
     }
@@ -70,9 +75,9 @@ export const solutionApi = {
 
   createComment: async (solutionId: string, bodyMd: string, token: string): Promise<SolutionComment> => {
     const resp = await httpClient.postWithToken<SolutionComment>(
-      "api/solutions/comments",
+      `api/solutions/${encodeURIComponent(solutionId)}/comments`,
       token,
-      JSON.stringify({ solutionId, bodyMd }),
+      JSON.stringify({ bodyMd }),
     );
     throwIfFailed(resp, "コメントの投稿に失敗しました。");
     return resp.data;
@@ -80,16 +85,19 @@ export const solutionApi = {
 
   updateComment: async (commentId: string, bodyMd: string, token: string): Promise<SolutionComment> => {
     const resp = await httpClient.patchWithToken<SolutionComment>(
-      "api/solutions/comments",
+      `api/comments/${encodeURIComponent(commentId)}`,
       token,
-      JSON.stringify({ commentId, bodyMd }),
+      JSON.stringify({ bodyMd }),
     );
     throwIfFailed(resp, "コメントの更新に失敗しました。");
     return resp.data;
   },
 
   deleteComment: async (commentId: string, token: string): Promise<void> => {
-    const resp = await httpClient.deleteWithToken<{ commentId: string }>("api/solutions/comments", token, { commentId });
+    const resp = await httpClient.deleteWithToken<{ commentId: string }>(
+      `api/comments/${encodeURIComponent(commentId)}`,
+      token,
+    );
     throwIfFailed(resp, "コメントの削除に失敗しました。");
   },
 
@@ -102,15 +110,18 @@ export const solutionApi = {
     token: string,
   ): Promise<void> => {
     const resp = await httpClient.patchWithToken<SolutionResponse>(
-      "api/solutions",
+      `api/solutions/${encodeURIComponent(solutionId)}`,
       token,
-      JSON.stringify({ solutionId, title, bodyMd, submitUrl, tags }),
+      JSON.stringify({ title, bodyMd, submitUrl, tags }),
     );
     throwIfFailed(resp, "解説の更新に失敗しました。");
   },
 
   delete: async (solutionId: string, token: string): Promise<void> => {
-    const resp = await httpClient.deleteWithToken<{ solutionId: string }>("api/solutions", token, { solutionId });
+    const resp = await httpClient.deleteWithToken<{ solutionId: string }>(
+      `api/solutions/${encodeURIComponent(solutionId)}`,
+      token,
+    );
     throwIfFailed(resp, "解説の削除に失敗しました。");
   },
 };
