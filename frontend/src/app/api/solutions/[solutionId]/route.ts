@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 import { updateSolutionBodySchema } from "@/server/interface/solution/post";
-import { authenticateRequest } from "@/server/utils/authRequest";
+import { requireBearerToken } from "@/server/utils/bearerToken";
 
 type RouteContext = {
   params: Promise<{
@@ -20,9 +20,9 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteContext) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const body = await req.json();
@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const updated = await repo.update(solutionId, parsed.data, authUser.data);
+  const updated = await repo.update(solutionId, parsed.data, bearerToken.data);
   if (!updated.ok) {
     return NextResponse.json({ ok: false, error: updated.error }, { status: updated.status });
   }
@@ -41,14 +41,14 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteContext) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const deleted = await repo.delete(solutionId, authUser.data);
+  const deleted = await repo.delete(solutionId, bearerToken.data);
   if (!deleted.ok) {
     return NextResponse.json({ ok: false, error: deleted.error }, { status: deleted.status });
   }

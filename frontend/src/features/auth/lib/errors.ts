@@ -25,11 +25,17 @@ export function toFirebaseAuthErrorMessage(error: unknown): string {
   }
 }
 
-export function toCreateUserApiErrorMessage(status: number, error: unknown): string {
+export function toCreateUserApiErrorMessage(status: number, error: unknown, errorCode?: string): string {
   if (status === 401) {
     return "認証に失敗しました。再度ログインしてからお試しください。";
   }
   if (status === 409) {
+    if (errorCode === "EMAIL_ALREADY_EXISTS") {
+      return "このメールアドレスは既に登録されています。";
+    }
+    if (errorCode === "USER_NAME_ALREADY_EXISTS") {
+      return "このユーザー名は既に使われています。別のユーザー名を入力してください。";
+    }
     return "このユーザー名は既に使われています。別のユーザー名を入力してください。";
   }
   if (status >= 500) {
@@ -39,4 +45,8 @@ export function toCreateUserApiErrorMessage(status: number, error: unknown): str
     return error;
   }
   return "ユーザー登録に失敗しました。入力内容を確認してください。";
+}
+
+export function getAuthFormErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "認証処理でエラーが発生しました。時間をおいて再度お試しください。";
 }

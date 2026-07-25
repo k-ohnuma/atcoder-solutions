@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
 import { getLatestSolutionsQueryParams } from "@/server/interface/solution/get";
 import { createSolutionBodySchema } from "@/server/interface/solution/post";
-import { authenticateRequest } from "@/server/utils/authRequest";
+import { requireBearerToken } from "@/server/utils/bearerToken";
 
 export async function POST(req: NextRequest) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const body = await req.json();
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const solution = parsed.data;
   const repo = new SolutionRepositoryImpl();
-  const id = await repo.create(solution, authUser.data);
+  const id = await repo.create(solution, bearerToken.data);
   if (!id.ok) {
     return NextResponse.json({ ok: false, error: id.error }, { status: id.status });
   }

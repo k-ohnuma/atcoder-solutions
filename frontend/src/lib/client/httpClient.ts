@@ -1,4 +1,4 @@
-export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; status: number };
+export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: string; errorCode?: string; status: number };
 
 type JsonValue = string;
 type QueryParams = Record<string, string>;
@@ -61,6 +61,7 @@ export const httpClient = {
   get: <T>(path: string, params?: QueryParams): Promise<Resp<T>> => request({ method: "GET", path, params }),
   getWithToken: <T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> =>
     request({ method: "GET", path, token, params }),
+  post: <T>(path: string, body?: JsonValue): Promise<Resp<T>> => request({ method: "POST", path, body }),
   postWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
     request({ method: "POST", path, token, body }),
   putWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>

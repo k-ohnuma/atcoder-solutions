@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/toast";
-import { getAuthFormErrorMessage } from "@/features/auth/lib/error";
+import { getAuthFormErrorMessage } from "@/features/auth/lib/errors";
 import { onSubmitUpdatePassword } from "@/features/auth/lib/password";
 import { UpdatePasswordSchema, updatePasswordSchema } from "@/features/auth/model/schema";
 

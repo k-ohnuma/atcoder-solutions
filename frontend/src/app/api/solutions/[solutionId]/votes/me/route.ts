@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SolutionRepositoryImpl } from "@/server/infrastructure/repository/solutionRepository";
-import { authenticateRequest } from "@/server/utils/authRequest";
+import { requireBearerToken } from "@/server/utils/bearerToken";
 
 type RouteContext = {
   params: Promise<{
@@ -9,14 +9,14 @@ type RouteContext = {
 };
 
 export async function GET(req: NextRequest, { params }: RouteContext) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const status = await repo.getMyVoteStatus(solutionId, authUser.data);
+  const status = await repo.getMyVoteStatus(solutionId, bearerToken.data);
   if (!status.ok) {
     return NextResponse.json({ ok: false, error: status.error }, { status: status.status });
   }
@@ -25,14 +25,14 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 }
 
 export async function PUT(req: NextRequest, { params }: RouteContext) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const voted = await repo.vote(solutionId, authUser.data);
+  const voted = await repo.vote(solutionId, bearerToken.data);
   if (!voted.ok) {
     return NextResponse.json({ ok: false, error: voted.error }, { status: voted.status });
   }
@@ -41,14 +41,14 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteContext) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const unvoted = await repo.unvote(solutionId, authUser.data);
+  const unvoted = await repo.unvote(solutionId, bearerToken.data);
   if (!unvoted.ok) {
     return NextResponse.json({ ok: false, error: unvoted.error }, { status: unvoted.status });
   }

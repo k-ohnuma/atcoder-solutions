@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserRepositoryImpl } from "@/server/infrastructure/repository/userRepository";
-import { authenticateRequest } from "@/server/utils/authRequest";
+import { requireBearerToken } from "@/server/utils/bearerToken";
 
 export async function GET(req: NextRequest) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const repo = new UserRepositoryImpl();
-  const me = await repo.getMe(authUser.data);
+  const me = await repo.getMe(bearerToken.data);
   if (!me.ok) {
     return NextResponse.json({ ok: false, error: me.error }, { status: me.status });
   }
@@ -17,13 +17,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const repo = new UserRepositoryImpl();
-  const deleted = await repo.deleteMe(authUser.data);
+  const deleted = await repo.deleteMe(bearerToken.data);
   if (!deleted.ok) {
     return NextResponse.json({ ok: false, error: deleted.error }, { status: deleted.status });
   }
@@ -31,13 +31,13 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const authUser = await authenticateRequest(req);
-  if (!authUser.ok) {
-    return NextResponse.json({ ok: false, error: authUser.error }, { status: authUser.status });
+  const bearerToken = await requireBearerToken(req);
+  if (!bearerToken.ok) {
+    return NextResponse.json({ ok: false, error: bearerToken.error }, { status: bearerToken.status });
   }
 
   const repo = new UserRepositoryImpl();
-  const revoked = await repo.revokeMe(authUser.data);
+  const revoked = await repo.revokeMe(bearerToken.data);
   if (!revoked.ok) {
     return NextResponse.json({ ok: false, error: revoked.error }, { status: revoked.status });
   }
