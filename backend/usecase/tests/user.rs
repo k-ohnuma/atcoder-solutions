@@ -5,7 +5,10 @@ use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
     model::user::{Role, User},
-    ports::repository::user::UserRepository,
+    ports::{
+        external::auth::{AuthError, CreatedIdentity, IdentityProviderPort},
+        repository::user::UserRepository,
+    },
 };
 use usecase::{
     model::user::{UserError, create::CreateUserInput},
@@ -14,6 +17,39 @@ use usecase::{
 
 struct DummyUserRepository {
     calls: Mutex<Vec<User>>,
+}
+
+struct DummyIdentityProvider {
+    deleted_uids: Mutex<Vec<String>>,
+}
+
+#[async_trait]
+impl IdentityProviderPort for DummyIdentityProvider {
+    async fn create_user(
+        &self,
+        email: &str,
+        _password: &str,
+    ) -> Result<CreatedIdentity, AuthError> {
+        if email == "conflict@example.com" {
+            return Ok(CreatedIdentity {
+                uid: "conflict".into(),
+            });
+        }
+        Ok(CreatedIdentity {
+            uid: "valid".into(),
+        })
+    }
+
+    async fn delete_user(&self, uid: &str) -> Result<(), AuthError> {
+        self.deleted_uids.lock().unwrap().push(uid.to_string());
+        Ok(())
+    }
+}
+
+fn dummy_identity_provider() -> Arc<DummyIdentityProvider> {
+    Arc::new(DummyIdentityProvider {
+        deleted_uids: Mutex::new(vec![]),
+    })
 }
 
 #[async_trait]
@@ -55,11 +91,13 @@ async fn usecase_create_user_ok() -> Result<()> {
     let repo = Arc::new(DummyUserRepository {
         calls: Mutex::new(vec![]),
     });
-    let uc = CreateUserUsecase::new(repo.to_owned());
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo.to_owned(), identity_provider);
 
     let input = CreateUserInput {
-        uid: "valid".into(),
         user_name: "user_name".into(),
+        email: "user@example.com".into(),
+        password: "Password1".into(),
     };
 
     let t = uc.run(input).await;
@@ -85,16 +123,22 @@ async fn usecase_create_user_conflict() -> Result<()> {
     let repo = Arc::new(DummyUserRepository {
         calls: Mutex::new(vec![]),
     });
-    let uc = CreateUserUsecase::new(repo.to_owned());
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo.to_owned(), identity_provider.to_owned());
 
     let input = CreateUserInput {
-        uid: "conflict".into(),
         user_name: "user_name".into(),
+        email: "conflict@example.com".into(),
+        password: "Password1".into(),
     };
 
     let t = uc.run(input).await.expect_err("conf");
 
     matches!(t, UserError::Conflict(_));
+    assert_eq!(
+        identity_provider.deleted_uids.lock().unwrap().as_slice(),
+        ["conflict"]
+    );
     //
     Ok(())
 }
@@ -104,11 +148,13 @@ async fn usecase_create_user_bad_request_when_user_name_blank() -> Result<()> {
     let repo = Arc::new(DummyUserRepository {
         calls: Mutex::new(vec![]),
     });
-    let uc = CreateUserUsecase::new(repo);
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo, identity_provider);
 
     let input = CreateUserInput {
-        uid: "valid".into(),
         user_name: "   ".into(),
+        email: "user@example.com".into(),
+        password: "Password1".into(),
     };
 
     let err = uc.run(input).await.expect_err("should be bad request");
@@ -122,11 +168,33 @@ async fn usecase_create_user_bad_request_when_user_name_contains_non_ascii() -> 
     let repo = Arc::new(DummyUserRepository {
         calls: Mutex::new(vec![]),
     });
-    let uc = CreateUserUsecase::new(repo);
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo, identity_provider);
 
     let input = CreateUserInput {
-        uid: "valid".into(),
         user_name: "日本語name".into(),
+        email: "user@example.com".into(),
+        password: "Password1".into(),
+    };
+
+    let err = uc.run(input).await.expect_err("should be bad request");
+    assert!(matches!(err, UserError::BadRequest(_)));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn usecase_create_user_bad_request_when_password_is_weak() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+    });
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo, identity_provider);
+
+    let input = CreateUserInput {
+        user_name: "user_name".into(),
+        email: "user@example.com".into(),
+        password: "password".into(),
     };
 
     let err = uc.run(input).await.expect_err("should be bad request");

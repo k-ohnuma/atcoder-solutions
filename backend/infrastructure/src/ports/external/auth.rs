@@ -1,91 +1,34 @@
-use std::{
-    collections::HashSet,
-    sync::Arc,
-    time::{Duration, SystemTime},
-};
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use base64::Engine;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use domain::ports::external::auth::{AuthError, AuthenticatorPort, Principal};
-use jsonwebtoken::{
-    Algorithm, DecodingKey, Validation, decode, decode_header,
-    jwk::{AlgorithmParameters, JwkSet},
+use domain::ports::external::auth::{
+    AuthError, AuthenticatorPort, CreatedIdentity, IdentityProviderPort, Principal,
 };
-use tokio::sync::RwLock;
+use rs_firebase_admin_sdk::{
+    App,
+    auth::{FirebaseAuth, FirebaseAuthService, NewUser},
+    client::{ReqwestApiClient, error::ApiClientError},
+    jwt::{LiveValidator, TokenValidator, TokenVerificationError},
+};
+use serde_json::Value;
 use tracing::error;
 
-#[derive(Clone)]
-pub struct FirebaseAuthConfig {
-    pub project_id: String,
-    pub jwks_url: String,
-}
-
-#[derive(Clone)]
-pub struct JwksCache {
-    url: Arc<String>,
-    inner: Arc<RwLock<Option<(JwkSet, SystemTime, Duration)>>>,
-}
-impl JwksCache {
-    pub fn new(url: &str) -> Self {
-        Self {
-            url: Arc::new(url.into()),
-            inner: Arc::new(RwLock::new(None)),
-        }
-    }
-    pub async fn get(&self) -> Result<JwkSet, AuthError> {
-        if let Some((set, at, ttl)) = self.inner.read().await.clone()
-            && at.elapsed().unwrap_or_default() < ttl
-        {
-            return Ok(set);
-        }
-        let resp = reqwest::get(self.url.as_str())
-            .await
-            .map_err(|_| AuthError::TemporarilyUnavailable)?;
-        let ttl = resp
-            .headers()
-            .get(reqwest::header::CACHE_CONTROL)
-            .and_then(|v| v.to_str().ok())
-            .and_then(|cc| {
-                cc.split(',').find_map(|p| {
-                    p.trim()
-                        .strip_prefix("max-age=")
-                        .and_then(|s| s.parse::<u64>().ok())
-                })
-            })
-            .map(Duration::from_secs)
-            .unwrap_or(Duration::from_secs(300));
-        let set: JwkSet = resp
-            .json()
-            .await
-            .map_err(|_| AuthError::TemporarilyUnavailable)?;
-        *self.inner.write().await = Some((set.clone(), SystemTime::now(), ttl));
-        Ok(set)
-    }
-}
-
-#[derive(serde::Deserialize, Clone, Debug)]
-struct FirebaseClaims {
-    sub: String,
-    email: Option<String>,
-    iat: Option<i64>,
-}
-
-#[derive(Clone)]
 pub struct FirebaseAuthenticator {
-    config: FirebaseAuthConfig,
-    jwks: JwksCache,
+    auth: FirebaseAuth<ReqwestApiClient>,
+    token_validator: Arc<LiveValidator>,
 }
 
 impl FirebaseAuthenticator {
     pub fn new(project_id: &str) -> Self {
-        let jwks_url = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+        let app = App::live_with_project_id(project_id.to_string())
+            .expect("failed to initialize Firebase Admin SDK");
+        let token_validator = Arc::new(
+            LiveValidator::new_jwt_validator(project_id.to_string())
+                .expect("failed to initialize Firebase token validator"),
+        );
         Self {
-            config: FirebaseAuthConfig {
-                project_id: project_id.into(),
-                jwks_url: jwks_url.into(),
-            },
-            jwks: JwksCache::new(jwks_url),
+            auth: app.auth(),
+            token_validator,
         }
     }
 }
@@ -93,45 +36,94 @@ impl FirebaseAuthenticator {
 #[async_trait]
 impl AuthenticatorPort for FirebaseAuthenticator {
     async fn verify_id_token(&self, token: &str) -> Result<Principal, AuthError> {
-        let header = decode_header(token).map_err(|_| AuthError::Unauthorized)?;
-        let kid = header.kid.ok_or(AuthError::Unauthorized)?;
-
-        let jwks = self.jwks.get().await?;
-        let jwk = jwks.find(&kid).ok_or(AuthError::Unauthorized)?.to_owned();
-
-        let (n, e) = match &jwk.algorithm {
-            AlgorithmParameters::RSA(rsa) => (rsa.n.to_owned(), rsa.e.to_owned()),
-            _ => return Err(AuthError::Unauthorized),
-        };
-
-        let n_bytes = URL_SAFE_NO_PAD
-            .decode(n)
-            .map_err(|_| AuthError::Unauthorized)?;
-        let e_bytes = URL_SAFE_NO_PAD
-            .decode(e)
-            .map_err(|_| AuthError::Unauthorized)?;
-
-        let key = DecodingKey::from_rsa_raw_components(&n_bytes, &e_bytes);
-
-        let mut val = Validation::new(Algorithm::RS256);
-        val.set_audience(&[self.config.project_id.as_str()]);
-        val.iss = {
-            let mut s = HashSet::new();
-            s.insert(format!(
-                "https://securetoken.google.com/{}",
-                self.config.project_id
-            ));
-            Some(s)
-        };
-        let data = decode::<FirebaseClaims>(token, &key, &val).map_err(|e| {
-            error!(error = ?e);
-            AuthError::Unauthorized
-        })?;
+        let claims = self
+            .token_validator
+            .clone()
+            .validate(token.to_string())
+            .await
+            .map_err(map_token_error)?;
 
         Ok(Principal {
-            uid: data.claims.sub,
-            email: data.claims.email.ok_or(AuthError::Unauthorized)?,
-            issued_at: data.claims.iat.ok_or(AuthError::Unauthorized)?,
+            uid: get_string_claim(&claims, "sub")?,
+            email: get_string_claim(&claims, "email")?,
+            issued_at: get_i64_claim(&claims, "iat")?,
         })
+    }
+}
+
+#[async_trait]
+impl IdentityProviderPort for FirebaseAuthenticator {
+    async fn create_user(&self, email: &str, password: &str) -> Result<CreatedIdentity, AuthError> {
+        let user = self
+            .auth
+            .create_user(NewUser::email_and_password(
+                email.to_string(),
+                password.to_string(),
+            ))
+            .await
+            .map_err(map_api_error)?;
+
+        Ok(CreatedIdentity { uid: user.uid })
+    }
+
+    async fn delete_user(&self, uid: &str) -> Result<(), AuthError> {
+        self.auth
+            .delete_user(uid.to_string())
+            .await
+            .map_err(map_api_error)
+    }
+}
+
+fn get_string_claim(
+    claims: &std::collections::HashMap<String, Value>,
+    key: &str,
+) -> Result<String, AuthError> {
+    claims
+        .get(key)
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or(AuthError::Unauthorized)
+}
+
+fn get_i64_claim(
+    claims: &std::collections::HashMap<String, Value>,
+    key: &str,
+) -> Result<i64, AuthError> {
+    claims
+        .get(key)
+        .and_then(|value| {
+            value
+                .as_i64()
+                .or_else(|| value.as_u64().and_then(|v| i64::try_from(v).ok()))
+        })
+        .ok_or(AuthError::Unauthorized)
+}
+
+fn map_token_error(error: error_stack::Report<TokenVerificationError>) -> AuthError {
+    error!(error = ?error, "failed to verify Firebase ID token");
+    match error.current_context() {
+        TokenVerificationError::Invalid | TokenVerificationError::MissingKey => {
+            AuthError::Unauthorized
+        }
+        TokenVerificationError::Internal => AuthError::TemporarilyUnavailable,
+    }
+}
+
+fn map_api_error(error: error_stack::Report<ApiClientError>) -> AuthError {
+    error!(error = ?error, "Firebase Auth API request failed");
+    match error.current_context() {
+        ApiClientError::ServerError(api_error) => match api_error.message.as_str() {
+            "EMAIL_EXISTS" => AuthError::Conflict("email already exists".to_string()),
+            "INVALID_EMAIL" => AuthError::BadRequest("invalid email".to_string()),
+            "WEAK_PASSWORD" => AuthError::BadRequest("weak password".to_string()),
+            _ if api_error.code >= 500 => AuthError::TemporarilyUnavailable,
+            message => AuthError::Unexpected(format!("Firebase Auth error: {message}")),
+        },
+        ApiClientError::FailedToSendRequest | ApiClientError::FailedToReceiveResponse => {
+            AuthError::TemporarilyUnavailable
+        }
+        ApiClientError::FailedToSerializeRequest | ApiClientError::FailedToDeserializeResponse => {
+            AuthError::Unexpected("failed to handle Firebase Auth response".to_string())
+        }
     }
 }

@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use domain::ports::{
     external::{
-        atcoder_problems::AtcoderProblemsPort, auth::AuthenticatorPort, id::IdProviderPort,
+        atcoder_problems::AtcoderProblemsPort,
+        auth::{AuthenticatorPort, IdentityProviderPort},
+        id::IdProviderPort,
     },
     repository::{
         health::HealthCheckRepository, problem::ProblemRepository, problem::tx::ProblemTxManager,
@@ -28,6 +30,7 @@ use usecase::service::{contest::ContestService, solution::SolutionService};
 #[derive(Clone)]
 pub struct Registry {
     auth_port: Arc<dyn AuthenticatorPort>,
+    identity_provider: Arc<dyn IdentityProviderPort>,
     atcoder_problems_port: Arc<dyn AtcoderProblemsPort>,
     health_check_repository: Arc<dyn HealthCheckRepository>,
     problem_repository: Arc<dyn ProblemRepository>,
@@ -49,7 +52,7 @@ impl Registry {
         let problem_tx_manager = Arc::new(ProblemTransactionManager::new(pool.to_owned()));
         let user_repository = Arc::new(UserRepositoryImpl::new(pool.to_owned()));
 
-        let authenticator = Arc::new(FirebaseAuthenticator::new(&config.auth.project_id));
+        let firebase_auth = Arc::new(FirebaseAuthenticator::new(&config.auth.project_id));
 
         let id_provider = Arc::new(UuidProvider::new());
         let solution_tx_manager = Arc::new(SolutionTransactionManager::new(pool.to_owned()));
@@ -62,7 +65,8 @@ impl Registry {
             health_check_repository,
             problem_repository,
             problem_tx_manager,
-            auth_port: authenticator,
+            auth_port: firebase_auth.clone(),
+            identity_provider: firebase_auth,
             user_repository,
             id_provider,
             solution_tx_manager,
@@ -85,6 +89,9 @@ impl Registry {
     }
     pub fn auth_port(&self) -> Arc<dyn AuthenticatorPort> {
         self.auth_port.to_owned()
+    }
+    pub fn identity_provider_port(&self) -> Arc<dyn IdentityProviderPort> {
+        self.identity_provider.to_owned()
     }
     pub fn user_repository(&self) -> Arc<dyn UserRepository> {
         self.user_repository.to_owned()

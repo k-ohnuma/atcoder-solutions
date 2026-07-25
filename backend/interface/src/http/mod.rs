@@ -70,7 +70,11 @@ impl FromRequestParts<Registry> for AuthUser {
                 Ok(AuthUser(p))
             }
             Err(AuthError::Unauthorized) => Err(AuthRejection::Unauthorized),
+            Err(AuthError::BadRequest(_)) | Err(AuthError::Conflict(_)) => {
+                Err(AuthRejection::Unauthorized)
+            }
             Err(AuthError::TemporarilyUnavailable) => Err(AuthRejection::Unavailable),
+            Err(AuthError::Unexpected(_)) => Err(AuthRejection::Unavailable),
         }
     }
 }
@@ -93,7 +97,11 @@ impl FromRequestParts<Registry> for VerifiedUser {
         match state.auth_port().verify_id_token(token).await {
             Ok(p) => Ok(VerifiedUser(p)),
             Err(AuthError::Unauthorized) => Err(AuthRejection::Unauthorized),
+            Err(AuthError::BadRequest(_)) | Err(AuthError::Conflict(_)) => {
+                Err(AuthRejection::Unauthorized)
+            }
             Err(AuthError::TemporarilyUnavailable) => Err(AuthRejection::Unavailable),
+            Err(AuthError::Unexpected(_)) => Err(AuthRejection::Unavailable),
         }
     }
 }

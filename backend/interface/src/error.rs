@@ -41,6 +41,14 @@ impl ToHttpError for UserError {
             UserError::BadRequest(reason) => HttpError::BadRequest(reason),
             UserError::NotFound(reason) => HttpError::NotFound(reason),
             UserError::Conflict(reason) => HttpError::Conflict(reason),
+            UserError::EmailAlreadyExists(reason) => HttpError::ConflictWithCode {
+                message: reason,
+                error_code: "EMAIL_ALREADY_EXISTS",
+            },
+            UserError::UserNameAlreadyExists(reason) => HttpError::ConflictWithCode {
+                message: reason,
+                error_code: "USER_NAME_ALREADY_EXISTS",
+            },
             UserError::DBError(reason) => {
                 tracing::error!(domain = "user", error.message = %reason, "internal error");
                 HttpError::Internal(reason)

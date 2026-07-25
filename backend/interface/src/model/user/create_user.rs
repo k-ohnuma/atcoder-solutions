@@ -8,15 +8,17 @@ use usecase::model::user::{
 #[serde(rename_all = "camelCase")]
 pub struct CreateUserRequest {
     pub user_name: String,
+    pub email: String,
+    pub password: String,
 }
 
 pub fn try_from_create_user_request_for_create_user_input(
     req: CreateUserRequest,
-    uid: String,
 ) -> Result<CreateUserInput, UserError> {
     Ok(CreateUserInput {
-        uid,
         user_name: req.user_name,
+        email: req.email,
+        password: req.password,
     })
 }
 
@@ -42,8 +44,10 @@ mod tests {
     fn test_try_from_create_user_request_for_create_user_input() {
         let req = CreateUserRequest {
             user_name: "user_name".into(),
+            email: "user@example.com".into(),
+            password: "Password1".into(),
         };
-        let con = try_from_create_user_request_for_create_user_input(req.to_owned(), "uid".into());
+        let con = try_from_create_user_request_for_create_user_input(req.to_owned());
         assert!(con.is_ok());
     }
 }

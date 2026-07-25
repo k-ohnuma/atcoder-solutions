@@ -21,6 +21,12 @@ pub enum HttpError {
     #[error("Conflict: {0}")]
     Conflict(String),
 
+    #[error("Conflict: {message}")]
+    ConflictWithCode {
+        message: String,
+        error_code: &'static str,
+    },
+
     #[error("Internal Server Error: {0}")]
     Internal(String),
 }
@@ -32,7 +38,7 @@ impl HttpError {
             HttpError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             HttpError::Forbidden(_) => StatusCode::FORBIDDEN,
             HttpError::NotFound(_) => StatusCode::NOT_FOUND,
-            HttpError::Conflict(_) => StatusCode::CONFLICT,
+            HttpError::Conflict(_) | HttpError::ConflictWithCode { .. } => StatusCode::CONFLICT,
             HttpError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -44,6 +50,7 @@ impl HttpError {
             HttpError::Forbidden(_) => "FORBIDDEN",
             HttpError::NotFound(_) => "NOT_FOUND",
             HttpError::Conflict(_) => "CONFLICT",
+            HttpError::ConflictWithCode { error_code, .. } => error_code,
             HttpError::Internal(_) => "INTERNAL",
         }
     }

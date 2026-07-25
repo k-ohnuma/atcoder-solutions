@@ -8,7 +8,7 @@ use usecase::user::{
 
 use crate::{
     error::ToHttpError,
-    http::{ApiJson, AuthUser, VerifiedUser},
+    http::{ApiJson, AuthUser},
     model::user::create_user::{
         CreateUserRequest, CreateUserResponse, try_from_create_user_request_for_create_user_input,
     },
@@ -19,13 +19,14 @@ use crate::{
 
 pub async fn create_user_handler(
     State(registry): State<Registry>,
-    VerifiedUser(user): VerifiedUser,
     ApiJson(req): ApiJson<CreateUserRequest>,
 ) -> Result<Json<ApiResponse<CreateUserResponse>>, HttpError> {
-    let uid = user.uid;
-    let create_user_input = try_from_create_user_request_for_create_user_input(req, uid)
-        .map_err(|e| e.to_http_error())?;
-    let repo = CreateUserUsecase::new(registry.user_repository());
+    let create_user_input =
+        try_from_create_user_request_for_create_user_input(req).map_err(|e| e.to_http_error())?;
+    let repo = CreateUserUsecase::new(
+        registry.user_repository(),
+        registry.identity_provider_port(),
+    );
     let res = repo
         .run(create_user_input)
         .await
