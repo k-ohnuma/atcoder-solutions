@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::ports::{external::auth::IdentityProviderPort, repository::user::UserRepository};
+use tracing::error;
 
 use crate::model::user::{UserError, delete_me::DeleteMeOutput};
 
@@ -31,10 +32,14 @@ impl DeleteMeUsecase {
             .await
             .map_err(UserError::from)?;
 
-        self.user_repository
-            .delete_by_uid(&uid)
-            .await
-            .map_err(UserError::from)?;
+        if let Err(repository_error) = self.user_repository.delete_by_uid(&uid).await {
+            error!(
+                uid = %uid,
+                repository_error = ?repository_error,
+                "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
+            );
+            return Err(UserError::from(repository_error));
+        }
         Ok(DeleteMeOutput::new(uid))
     }
 }
