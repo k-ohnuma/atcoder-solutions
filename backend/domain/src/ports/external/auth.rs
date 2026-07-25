@@ -5,6 +5,7 @@ pub struct Principal {
     pub uid: String,
     pub email: String,
     pub issued_at: i64,
+    pub auth_time: i64,
 }
 
 pub struct CreatedIdentity {

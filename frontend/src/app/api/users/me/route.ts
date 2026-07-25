@@ -25,7 +25,10 @@ export async function DELETE(req: NextRequest) {
   const repo = new UserRepositoryImpl();
   const deleted = await repo.deleteMe(bearerToken.data);
   if (!deleted.ok) {
-    return NextResponse.json({ ok: false, error: deleted.error }, { status: deleted.status });
+    return NextResponse.json(
+      { ok: false, status: deleted.status, error: deleted.error, errorCode: deleted.errorCode },
+      { status: deleted.status },
+    );
   }
   return NextResponse.json({ ok: true, data: deleted.data }, { status: 200 });
 }

@@ -1,5 +1,12 @@
 import { FirebaseError } from "firebase/app";
 
+export class RequiresRecentLoginError extends Error {
+  constructor() {
+    super("安全のため、再ログイン後にもう一度お試しください。");
+    this.name = "RequiresRecentLoginError";
+  }
+}
+
 export function toFirebaseAuthErrorMessage(error: unknown): string {
   if (!(error instanceof FirebaseError)) {
     return "認証処理でエラーが発生しました。時間をおいて再度お試しください。";
@@ -45,6 +52,19 @@ export function toCreateUserApiErrorMessage(status: number, error: unknown, erro
     return error;
   }
   return "ユーザー登録に失敗しました。入力内容を確認してください。";
+}
+
+export function toDeleteAccountApiErrorMessage(status: number, error: unknown, errorCode?: string): string {
+  if (status === 401 && errorCode === "REQUIRES_RECENT_LOGIN") {
+    return new RequiresRecentLoginError().message;
+  }
+  if (status >= 500) {
+    return "アカウント削除に失敗しました。時間をおいて再度お試しください。";
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  return "アカウント削除に失敗しました。時間をおいて再度お試しください。";
 }
 
 export function getAuthFormErrorMessage(error: unknown) {

@@ -49,6 +49,10 @@ impl ToHttpError for UserError {
                 message: reason,
                 error_code: "USER_NAME_ALREADY_EXISTS",
             },
+            UserError::RequiresRecentLogin(reason) => HttpError::UnauthorizedWithCode {
+                message: reason,
+                error_code: "REQUIRES_RECENT_LOGIN",
+            },
             UserError::DBError(reason) => {
                 tracing::error!(domain = "user", error.message = %reason, "internal error");
                 HttpError::Internal(reason)

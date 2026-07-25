@@ -47,6 +47,7 @@ impl AuthenticatorPort for FirebaseAuthenticator {
             uid: get_string_claim(&claims, "sub")?,
             email: get_string_claim(&claims, "email")?,
             issued_at: get_i64_claim(&claims, "iat")?,
+            auth_time: get_i64_claim(&claims, "auth_time")?,
         })
     }
 }
@@ -67,11 +68,23 @@ impl IdentityProviderPort for FirebaseAuthenticator {
     }
 
     async fn delete_user(&self, uid: &str) -> Result<(), AuthError> {
-        self.auth
-            .delete_user(uid.to_string())
-            .await
-            .map_err(map_api_error)
+        match self.auth.delete_user(uid.to_string()).await {
+            Ok(()) => Ok(()),
+            Err(error) => {
+                if is_user_not_found_error(&error) {
+                    return Ok(());
+                }
+                Err(map_api_error(error))
+            }
+        }
     }
+}
+
+fn is_user_not_found_error(error: &error_stack::Report<ApiClientError>) -> bool {
+    matches!(
+        error.current_context(),
+        ApiClientError::ServerError(api_error) if api_error.message == "USER_NOT_FOUND"
+    )
 }
 
 fn get_string_claim(

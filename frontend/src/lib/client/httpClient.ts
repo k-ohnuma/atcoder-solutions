@@ -46,7 +46,11 @@ async function request<T = unknown>({
 
   try {
     const res = await fetch(url, init);
-    return await res.json();
+    const json = (await res.json()) as Resp<T>;
+    return {
+      ...json,
+      status: typeof json.status === "number" ? json.status : res.status,
+    } as Resp<T>;
   } catch (e) {
     console.error(`failed to send a request ${url}, method: ${method}, ${e}`.trim());
     return {

@@ -21,6 +21,8 @@ pub enum UserError {
     EmailAlreadyExists(String),
     #[error("{0}")]
     UserNameAlreadyExists(String),
+    #[error("{0}")]
+    RequiresRecentLogin(String),
 }
 
 impl From<RepositoryError> for UserError {

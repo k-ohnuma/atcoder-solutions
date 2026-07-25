@@ -1,8 +1,8 @@
-import { deleteUser, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { userApi } from "@/features/auth/api/userApi";
 import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignInSchema } from "../model/schema";
-import { toFirebaseAuthErrorMessage } from "./errors";
+import { RequiresRecentLoginError, toDeleteAccountApiErrorMessage, toFirebaseAuthErrorMessage } from "./errors";
 
 export const onSubmitSignIn = async (values: SignInSchema) => {
   const auth = getFirebaseAuth();
@@ -40,24 +40,13 @@ export const onSubmitDeleteAccount = async () => {
   }
 
   const idToken = await user.getIdToken();
-  try {
-    await deleteUser(user);
-  } catch (error) {
-    throw new Error(toFirebaseAuthErrorMessage(error));
+  const deleted = await userApi.deleteMe(idToken);
+  if (!deleted.ok) {
+    if (deleted.status === 401 && deleted.errorCode === "REQUIRES_RECENT_LOGIN") {
+      throw new RequiresRecentLoginError();
+    }
+    throw new Error(toDeleteAccountApiErrorMessage(deleted.status, deleted.error, deleted.errorCode));
   }
 
-  try {
-    const deleted = await userApi.deleteMe(idToken);
-    if (!deleted.ok) {
-      const message =
-        typeof deleted.error === "string" && deleted.error.length > 0
-          ? deleted.error
-          : "サーバー上のデータ削除に失敗しました。";
-      throw new Error(message);
-    }
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : "unknown error";
-    console.error("backend delete failed after firebase delete", detail);
-    throw new Error("アカウント削除は完了しましたが、サーバー上のデータ削除で一部失敗しました。時間をおいて確認してください。");
-  }
+  await signOut(auth);
 };

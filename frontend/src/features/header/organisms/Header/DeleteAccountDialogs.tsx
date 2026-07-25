@@ -8,9 +8,12 @@ type DeleteAccountDialogsProps = {
   onDeleteDialogOpenChangeAction: (open: boolean) => void;
   isDeleteErrorDialogOpen: boolean;
   onDeleteErrorDialogOpenChangeAction: (open: boolean) => void;
+  isRecentLoginDialogOpen: boolean;
+  onRecentLoginDialogOpenChangeAction: (open: boolean) => void;
   deleteErrorMessage: string;
   isDeleting: boolean;
   onDeleteAccountAction: () => void;
+  onRequireRecentLoginAction: () => void;
 };
 
 export function DeleteAccountDialogs({
@@ -18,9 +21,12 @@ export function DeleteAccountDialogs({
   onDeleteDialogOpenChangeAction,
   isDeleteErrorDialogOpen,
   onDeleteErrorDialogOpenChangeAction,
+  isRecentLoginDialogOpen,
+  onRecentLoginDialogOpenChangeAction,
   deleteErrorMessage,
   isDeleting,
   onDeleteAccountAction,
+  onRequireRecentLoginAction,
 }: DeleteAccountDialogsProps) {
   return (
     <>
@@ -49,6 +55,22 @@ export function DeleteAccountDialogs({
           <DialogFooter>
             <Button type="button" onClick={() => onDeleteErrorDialogOpenChangeAction(false)}>
               閉じる
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isRecentLoginDialogOpen} onOpenChange={onRecentLoginDialogOpenChangeAction}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>安全のために再度ログインしてください</DialogTitle>
+            <DialogDescription>アカウント削除を続けるには、もう一度ログインが必要です。</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onRecentLoginDialogOpenChangeAction(false)}>
+              キャンセル
+            </Button>
+            <Button type="button" onClick={onRequireRecentLoginAction}>
+              ログイン画面へ
             </Button>
           </DialogFooter>
         </DialogContent>

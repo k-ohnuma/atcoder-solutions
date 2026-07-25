@@ -20,10 +20,13 @@ export function Header({ appName }: { appName: string }) {
     setIsDeleteDialogOpen,
     isDeleteErrorDialogOpen,
     setIsDeleteErrorDialogOpen,
+    isRecentLoginDialogOpen,
+    setIsRecentLoginDialogOpen,
     deleteErrorMessage,
     isDeleting,
     handleSignOut,
     handleDeleteAccount,
+    handleRequireRecentLogin,
   } = useHeaderActions();
 
   return (
@@ -60,9 +63,12 @@ export function Header({ appName }: { appName: string }) {
         onDeleteDialogOpenChangeAction={setIsDeleteDialogOpen}
         isDeleteErrorDialogOpen={isDeleteErrorDialogOpen}
         onDeleteErrorDialogOpenChangeAction={setIsDeleteErrorDialogOpen}
+        isRecentLoginDialogOpen={isRecentLoginDialogOpen}
+        onRecentLoginDialogOpenChangeAction={setIsRecentLoginDialogOpen}
         deleteErrorMessage={deleteErrorMessage}
         isDeleting={isDeleting}
         onDeleteAccountAction={handleDeleteAccount}
+        onRequireRecentLoginAction={handleRequireRecentLogin}
       />
     </header>
   );

@@ -1,4 +1,5 @@
 use axum::{Json, extract::State};
+use chrono::Utc;
 use registry::Registry;
 use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::{
@@ -48,8 +49,14 @@ pub async fn delete_me_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
 ) -> Result<Json<ApiResponse<DeleteMeResponse>>, HttpError> {
-    let uc = DeleteMeUsecase::new(registry.user_repository());
-    let deleted = uc.run(user.uid).await.map_err(|e| e.to_http_error())?;
+    let uc = DeleteMeUsecase::new(
+        registry.user_repository(),
+        registry.identity_provider_port(),
+    );
+    let deleted = uc
+        .run(user.uid, user.auth_time, Utc::now().timestamp())
+        .await
+        .map_err(|e| e.to_http_error())?;
     Ok(Json(ApiResponse::ok(deleted.into())))
 }
 
