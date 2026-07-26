@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { getAuthFormErrorMessage } from "@/features/auth/lib/error";
+import { getAuthFormErrorMessage } from "@/features/auth/lib/errors";
 import { onSubmitSignIn } from "@/features/auth/lib/session";
 import { SignInSchema, signInSchema } from "@/features/auth/model/schema";
 

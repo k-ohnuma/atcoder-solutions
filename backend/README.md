@@ -88,7 +88,7 @@ Notes:
 
 Notes:
 
-- `series` must be one of `ABC`, `ARC`, `AGC`, `AHC`, `OTHER`.
+- `series` must be one of `ABC`, `ARC`, `AGC`, `AHC`, `AWC`, `OTHER`.
 - `q` is optional and must be at most 100 characters.
 - `offset` is optional and must be at most 5000.
 
@@ -96,7 +96,7 @@ Notes:
 
 | Method | Path | Auth | Query | Body | Description |
 |---|---|---|---|---|---|
-| `POST` | `/users` | VerifiedUser | - | `{ "userName": string }` | Creates the current app user. |
+| `POST` | `/users` | Public | - | `{ "userName": string, "email": string, "password": string }` | Creates a Firebase Auth user and the current app user. |
 | `GET` | `/users/me` | AuthUser | - | - | Gets the current app user. |
 | `DELETE` | `/users/me` | AuthUser | - | - | Deletes the current app user. |
 | `POST` | `/users/me/revoke` | AuthUser | - | - | Revokes current user's tokens from this app's perspective. |

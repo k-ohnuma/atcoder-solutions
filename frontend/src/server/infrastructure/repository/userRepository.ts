@@ -22,12 +22,14 @@ export class UserRepositoryImpl implements UserRepository {
     return "users/me/revoke";
   };
 
-  async create(input: Pick<User, "userName">, token: string): Promise<Resp<User>> {
+  async create(input: { userName: string; email: string; password: string }): Promise<Resp<User>> {
     const path = this.createReqPath();
     const body = {
       userName: input.userName,
+      email: input.email,
+      password: input.password,
     };
-    const user = await this.client.postWithToken<User>(path, token, JSON.stringify(body));
+    const user = await this.client.post<User>(path, JSON.stringify(body));
     return user;
   }
 

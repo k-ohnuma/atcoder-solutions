@@ -12,6 +12,12 @@ pub enum HttpError {
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
 
+    #[error("Unauthorized: {message}")]
+    UnauthorizedWithCode {
+        message: String,
+        error_code: &'static str,
+    },
+
     #[error("Forbidden: {0}")]
     Forbidden(String),
 
@@ -21,6 +27,12 @@ pub enum HttpError {
     #[error("Conflict: {0}")]
     Conflict(String),
 
+    #[error("Conflict: {message}")]
+    ConflictWithCode {
+        message: String,
+        error_code: &'static str,
+    },
+
     #[error("Internal Server Error: {0}")]
     Internal(String),
 }
@@ -29,10 +41,12 @@ impl HttpError {
     pub fn status_code(&self) -> StatusCode {
         match self {
             HttpError::BadRequest(_) => StatusCode::BAD_REQUEST,
-            HttpError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            HttpError::Unauthorized(_) | HttpError::UnauthorizedWithCode { .. } => {
+                StatusCode::UNAUTHORIZED
+            }
             HttpError::Forbidden(_) => StatusCode::FORBIDDEN,
             HttpError::NotFound(_) => StatusCode::NOT_FOUND,
-            HttpError::Conflict(_) => StatusCode::CONFLICT,
+            HttpError::Conflict(_) | HttpError::ConflictWithCode { .. } => StatusCode::CONFLICT,
             HttpError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -41,9 +55,11 @@ impl HttpError {
         match self {
             HttpError::BadRequest(_) => "BAD_REQUEST",
             HttpError::Unauthorized(_) => "UNAUTHORIZED",
+            HttpError::UnauthorizedWithCode { error_code, .. } => error_code,
             HttpError::Forbidden(_) => "FORBIDDEN",
             HttpError::NotFound(_) => "NOT_FOUND",
             HttpError::Conflict(_) => "CONFLICT",
+            HttpError::ConflictWithCode { error_code, .. } => error_code,
             HttpError::Internal(_) => "INTERNAL",
         }
     }

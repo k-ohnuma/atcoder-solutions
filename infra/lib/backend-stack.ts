@@ -11,6 +11,8 @@ import { CloudRunServiceIamMember } from "../.gen/providers/google/cloud-run-ser
 import { CloudRunV2Service } from "../.gen/providers/google/cloud-run-v2-service";
 import { CloudSchedulerJob } from "../.gen/providers/google/cloud-scheduler-job";
 import { GoogleProvider } from "../.gen/providers/google/provider";
+import { ProjectIamCustomRole } from "../.gen/providers/google/project-iam-custom-role";
+import { ProjectIamMember } from "../.gen/providers/google/project-iam-member";
 import { ProjectService } from "../.gen/providers/google/project-service";
 import { SecretManagerSecret } from "../.gen/providers/google/secret-manager-secret";
 import { SecretManagerSecretIamMember } from "../.gen/providers/google/secret-manager-secret-iam-member";
@@ -134,6 +136,26 @@ export class BackendStack extends TerraformStack {
         dependsOn: serviceEnables,
       },
     );
+
+    const firebaseAuthUserManagerRole = new ProjectIamCustomRole(
+      this,
+      "firebase-auth-user-manager-role",
+      {
+        project: firebaseProjectId.value,
+        roleId: `atcoderSolutionsFirebaseAuthUserManager${environment.value}`,
+        title: "AtCoder Solutions Firebase Auth User Manager",
+        description:
+          "Allows the backend service account to create and delete Firebase Authentication users.",
+        permissions: ["firebaseauth.users.create", "firebaseauth.users.delete"],
+      },
+    );
+
+    new ProjectIamMember(this, "auth-user-manager", {
+      project: firebaseProjectId.value,
+      role: firebaseAuthUserManagerRole.name,
+      member: `serviceAccount:${runServiceAccount.email}`,
+      dependsOn: [firebaseAuthUserManagerRole],
+    });
 
     new SecretManagerSecretIamMember(this, "run-sa-secret-access", {
       project: projectId.value,

@@ -41,6 +41,7 @@ axum = { version = "0.8.6", features = ["macros"] }
 base64 = { version = "0.22.1" }
 chrono = { version = "0.4.42", features = ["serde"] }
 derive-new = "0.7.0"
+error-stack = "0.7.0"
 itertools = "0.14.0"
 jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
 reqwest = { version = "0.12.23", features = [
@@ -49,6 +50,7 @@ reqwest = { version = "0.12.23", features = [
   "brotli",
   "deflate",
 ] }
+rs-firebase-admin-sdk = "5.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 sqlx = { version = "0.8", default-features = false, features = [

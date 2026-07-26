@@ -9,6 +9,8 @@ export const createUserRequest = z.object({
     .min(1, "userName is required")
     .max(120, "userName must be at most 120 characters")
     .regex(userNamePattern, "userName must contain only letters, numbers, and underscore"),
+  email: z.email("invalid email"),
+  password: z.string().min(1, "password is required"),
 });
 
 export type CreateUserRequest = z.infer<typeof createUserRequest>;
