@@ -4,6 +4,7 @@ pub struct AppConfig {
     pub atcoder_problems: AtcoderProblemsConfig,
     pub database: DatabaseConfig,
     pub auth: AuthConfig,
+    pub turnstile: TurnstileConfig,
     pub server: ServerConfig,
     pub log: LogConfig,
 }
@@ -40,6 +41,21 @@ impl AppConfig {
         let auth = AuthConfig {
             project_id: std::env::var("FIREBASE_PROJECT_ID")?,
         };
+        let turnstile_enabled = std::env::var("TURNSTILE_ENABLED")
+            .ok()
+            .map(|v| v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+        let turnstile = TurnstileConfig {
+            enabled: turnstile_enabled,
+            secret_key: if turnstile_enabled {
+                Some(std::env::var("TURNSTILE_SECRET_KEY")?)
+            } else {
+                std::env::var("TURNSTILE_SECRET_KEY").ok()
+            },
+            siteverify_endpoint: std::env::var("TURNSTILE_SITEVERIFY_ENDPOINT").unwrap_or_else(
+                |_| "https://challenges.cloudflare.com/turnstile/v0/siteverify".to_string(),
+            ),
+        };
         let server = ServerConfig {
             host: std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             port: std::env::var("PORT")
@@ -55,6 +71,7 @@ impl AppConfig {
             atcoder_problems,
             database,
             auth,
+            turnstile,
             server,
             log,
         })
@@ -77,6 +94,12 @@ pub struct DatabaseConfig {
 
 pub struct AuthConfig {
     pub project_id: String,
+}
+
+pub struct TurnstileConfig {
+    pub enabled: bool,
+    pub secret_key: Option<String>,
+    pub siteverify_endpoint: String,
 }
 
 pub struct ServerConfig {

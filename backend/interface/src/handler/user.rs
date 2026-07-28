@@ -9,7 +9,7 @@ use usecase::user::{
 
 use crate::{
     error::ToHttpError,
-    http::{ApiJson, AuthUser},
+    http::{ApiJson, AuthUser, TurnstileGuard},
     model::user::create_user::{
         CreateUserRequest, CreateUserResponse, try_from_create_user_request_for_create_user_input,
     },
@@ -20,6 +20,7 @@ use crate::{
 
 pub async fn create_user_handler(
     State(registry): State<Registry>,
+    _turnstile_guard: TurnstileGuard,
     ApiJson(req): ApiJson<CreateUserRequest>,
 ) -> Result<Json<ApiResponse<CreateUserResponse>>, HttpError> {
     let create_user_input =
