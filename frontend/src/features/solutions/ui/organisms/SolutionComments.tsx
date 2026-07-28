@@ -2,7 +2,9 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useSolutionComments } from "@/features/solutions/hooks/useSolutionComments";
+import { clientConfig } from "@/shared/config/client";
 import { SolutionComment } from "@/shared/model/solution";
+import { TurnstileField } from "@/shared/turnstile/TurnstileField";
 import { CommentForm } from "../molecules/CommentForm";
 import { DeleteCommentDialog } from "../molecules/DeleteCommentDialog";
 import { CommentList } from "./CommentList";
@@ -19,6 +21,9 @@ export function SolutionComments({ solutionId, initialComments }: SolutionCommen
     setBodyMd,
     isSubmitting,
     error,
+    turnstileToken,
+    setTurnstileToken,
+    turnstileResetKey,
     currentUserId,
     editingCommentId,
     editingBodyMd,
@@ -63,10 +68,14 @@ export function SolutionComments({ solutionId, initialComments }: SolutionCommen
             <CommentForm
               bodyMd={bodyMd}
               errorMessage={error}
+              canSubmit={!clientConfig.turnstileConfig.enabled || !!turnstileToken}
               isSubmitting={isSubmitting}
               onBodyChangeAction={setBodyMd}
               onSubmitAction={submitComment}
             />
+            <div className="mt-3">
+              <TurnstileField key={turnstileResetKey} onTokenChangeAction={setTurnstileToken} />
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

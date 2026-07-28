@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import { useContestsBySeries } from "@/features/contests/hooks/useContestsBySeries";
 import { useProblemsByContest } from "@/features/problems/hooks/useProblemsByContest";
 import { useCreateSolution } from "@/features/solutions/hooks/useCreateSolution";
+import { clientConfig } from "@/shared/config/client";
 import { CreateSolutionInput, createSolutionSchema } from "@/shared/model/solutionCreate";
 
 function inferSeriesFromProblemId(problemId: string) {
@@ -39,6 +40,8 @@ export function useCreateSolutionForm() {
   const [series, setSeries] = useState<string>("ABC");
   const [contestId, setContestId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [prefilled, setPrefilled] = useState(false);
   const form = useForm<CreateSolutionInput>({
     resolver: zodResolver(createSolutionSchema),
@@ -105,8 +108,12 @@ export function useCreateSolutionForm() {
 
   const submit = handleSubmit(async (values) => {
     setSubmitError(null);
+    if (clientConfig.turnstileConfig.enabled && !turnstileToken) {
+      setSubmitError("認証チェックを完了してください。");
+      return;
+    }
     try {
-      const response = await createMutation.mutateAsync(values);
+      const response = await createMutation.mutateAsync({ input: values, turnstileToken });
       const solutionId = response.solutionId;
       if (!solutionId) {
         setSubmitError("投稿に失敗しました。時間をおいて再度お試しください。");
@@ -119,6 +126,8 @@ export function useCreateSolutionForm() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "投稿に失敗しました。時間をおいて再度お試しください。";
       setSubmitError(message);
+      setTurnstileToken(null);
+      setTurnstileResetKey((current) => current + 1);
       toast({ title: "投稿に失敗しました", description: message, variant: "error" });
     }
   });
@@ -144,6 +153,9 @@ export function useCreateSolutionForm() {
     selectedProblem,
     submitError,
     isSubmitting: isSubmitting || createMutation.isPending,
+    turnstileToken,
+    setTurnstileToken,
+    turnstileResetKey,
     submit,
     selectSeries,
     selectContest,
