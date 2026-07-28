@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   const repo = new UserRepositoryImpl();
-  const created = await repo.create(parsed.data);
+  const created = await repo.create(parsed.data, req.headers.get("x-turnstile-token"));
   if (!created.ok) {
     return NextResponse.json({ ok: false, error: created.error, errorCode: created.errorCode }, { status: created.status });
   }

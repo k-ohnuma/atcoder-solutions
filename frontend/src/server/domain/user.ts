@@ -15,7 +15,7 @@ export interface UserMe {
 
 export interface UserRepository {
   // findByUid(uid: string): Promise<User>;
-  create(input: { userName: string; email: string; password: string }): Promise<Resp<User>>;
+  create(input: { userName: string; email: string; password: string }, turnstileToken?: string | null): Promise<Resp<User>>;
   getMe(token: string): Promise<Resp<UserMe>>;
   deleteMe(token: string): Promise<Resp<{ id: string }>>;
   revokeMe(token: string): Promise<Resp<{ id: string }>>;

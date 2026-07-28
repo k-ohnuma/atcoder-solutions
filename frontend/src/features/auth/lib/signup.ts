@@ -4,12 +4,15 @@ import { getFirebaseAuth } from "@/shared/firebase/client";
 import { SignUpSchema } from "../model/schema";
 import { toCreateUserApiErrorMessage, toFirebaseAuthErrorMessage } from "./errors";
 
-export const onSubmitSignUp = async (values: SignUpSchema) => {
-  const created = await userApi.create({
-    userName: values.userName,
-    email: values.email,
-    password: values.password,
-  });
+export const onSubmitSignUp = async (values: SignUpSchema, turnstileToken: string | null) => {
+  const created = await userApi.create(
+    {
+      userName: values.userName,
+      email: values.email,
+      password: values.password,
+    },
+    turnstileToken,
+  );
   if (!created.ok) {
     throw new Error(toCreateUserApiErrorMessage(created.status, created.error, created.errorCode));
   }

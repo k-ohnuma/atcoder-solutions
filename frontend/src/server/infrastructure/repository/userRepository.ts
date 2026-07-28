@@ -22,14 +22,18 @@ export class UserRepositoryImpl implements UserRepository {
     return "users/me/revoke";
   };
 
-  async create(input: { userName: string; email: string; password: string }): Promise<Resp<User>> {
+  async create(
+    input: { userName: string; email: string; password: string },
+    turnstileToken?: string | null,
+  ): Promise<Resp<User>> {
     const path = this.createReqPath();
     const body = {
       userName: input.userName,
       email: input.email,
       password: input.password,
     };
-    const user = await this.client.post<User>(path, JSON.stringify(body));
+    const headers = turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined;
+    const user = await this.client.post<User>(path, JSON.stringify(body), headers);
     return user;
   }
 

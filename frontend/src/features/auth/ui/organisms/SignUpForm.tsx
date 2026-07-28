@@ -7,10 +7,12 @@ import { AuthFormError } from "../molecules/AuthFormError";
 import { ConfirmPasswordField } from "../molecules/ConfirmPasswordField";
 import { EmailField } from "../molecules/EmailField";
 import { PasswordField } from "../molecules/PasswordField";
+import { TurnstileField } from "../molecules/TurnstileField";
 import { UserNameField } from "../molecules/UserNameField";
+import { clientConfig } from "@/shared/config/client";
 
 export function SignUpForm() {
-  const { form, submit } = useSignUpForm();
+  const { form, submit, turnstileToken, setTurnstileToken } = useSignUpForm();
   const {
     control,
     formState: { isSubmitting },
@@ -23,10 +25,15 @@ export function SignUpForm() {
         <EmailField control={control} />
         <PasswordField control={control} />
         <ConfirmPasswordField control={control} />
+        <TurnstileField onTokenChangeAction={setTurnstileToken} />
 
         <AuthFormError message={form.formState.errors.root?.message} />
 
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button
+          type="submit"
+          disabled={isSubmitting || (clientConfig.turnstileConfig.enabled && !turnstileToken)}
+          className="w-full"
+        >
           {isSubmitting ? "送信中..." : "新規登録"}
         </Button>
       </form>
