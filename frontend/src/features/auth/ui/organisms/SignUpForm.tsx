@@ -2,14 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { clientConfig } from "@/shared/config/client";
+import { TurnstileField } from "@/shared/turnstile/TurnstileField";
 import { useSignUpForm } from "../../hooks/useSignUpForm";
 import { AuthFormError } from "../molecules/AuthFormError";
 import { ConfirmPasswordField } from "../molecules/ConfirmPasswordField";
 import { EmailField } from "../molecules/EmailField";
 import { PasswordField } from "../molecules/PasswordField";
-import { TurnstileField } from "@/shared/turnstile/TurnstileField";
 import { UserNameField } from "../molecules/UserNameField";
-import { clientConfig } from "@/shared/config/client";
 
 export function SignUpForm() {
   const { form, submit, turnstileToken, setTurnstileToken } = useSignUpForm();
