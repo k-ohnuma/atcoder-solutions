@@ -6,28 +6,27 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "get": "cdktf get",
+    "get": "cdktn get",
     "build": "tsc",
-    "synth": "cdktf synth",
+    "synth": "cdktn synth",
     "compile": "tsc --pretty --noEmit",
     "lint": "biome lint",
     "format:write": "biome format --write",
     "format:check": "biome format",
     "check:write": "biome check --write",
     "check:check": "biome check",
-    "ci": "pnpm run compile && pnpm run check:check && pnpm run format:check && pnpm run lint",
+    "ci": "pnpm run get && pnpm run compile && pnpm run check:check && pnpm run format:check && pnpm run lint",
     "watch": "tsc -w",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "upgrade": "npm i cdktf@latest cdktf-cli@latest",
-    "upgrade:next": "npm i cdktf@next cdktf-cli@next"
+    "test:watch": "jest --watch"
   },
   "engines": {
     "node": ">=20.9"
   },
   "dependencies": {
-    "cdktf": "^0.21.0",
-    "constructs": "^10.5.1"
+    "cdktn": "^0.23.4",
+    "cdktn-cli": "^0.23.4",
+    "constructs": "^10.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",

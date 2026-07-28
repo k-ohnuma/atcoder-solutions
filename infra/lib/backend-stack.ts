@@ -1,4 +1,4 @@
-import { GcsBackend, TerraformOutput, TerraformStack, TerraformVariable } from "cdktf";
+import { GcsBackend, TerraformOutput, TerraformStack, TerraformVariable } from "cdktn";
 import { Construct } from "constructs";
 import { CloudRunServiceIamMember } from "../.gen/providers/google/cloud-run-service-iam-member";
 import { CloudRunV2Job } from "../.gen/providers/google/cloud-run-v2-job";

@@ -1,4 +1,4 @@
-import { App } from "cdktf";
+import { App } from "cdktn";
 import { BackendStack } from "../lib/backend-stack";
 
 const app = new App();

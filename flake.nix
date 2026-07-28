@@ -61,7 +61,6 @@
           nodejs_24
           pnpm
           google-cloud-sdk
-          cdktn-cli
           terraform
         ];
       in
@@ -73,6 +72,10 @@
 
           backend = pkgs.mkShell {
             packages = rootTools ++ backendTools;
+          };
+
+          lint = pkgs.mkShell {
+            packages = rootTools;
           };
 
           frontend = pkgs.mkShell {
