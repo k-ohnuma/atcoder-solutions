@@ -93,8 +93,8 @@ export class BackendApiClient {
     return this.request({ path, method: "POST", body, headers });
   }
 
-  async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
-    return this.request({ path, method: "POST", body, token });
+  async postWithToken<T>(path: string, token: string, body: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> {
+    return this.request({ path, method: "POST", body, token, headers });
   }
 
   async putWithToken<T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> {

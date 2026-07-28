@@ -34,7 +34,12 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
   const { solutionId } = await params;
   const repo = new SolutionRepositoryImpl();
-  const created = await repo.createComment(solutionId, parsed.data.bodyMd, bearerToken.data);
+  const created = await repo.createComment(
+    solutionId,
+    parsed.data.bodyMd,
+    bearerToken.data,
+    req.headers.get("x-turnstile-token"),
+  );
   if (!created.ok) {
     return NextResponse.json({ ok: false, error: created.error }, { status: created.status });
   }

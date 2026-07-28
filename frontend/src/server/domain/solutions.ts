@@ -11,7 +11,7 @@ import { Solution, SolutionResponse } from "@/shared/model/solutionCreate";
 import { Resp } from "../response";
 
 export interface SolutionRepository {
-  create(solution: Solution, token: string): Promise<Resp<SolutionResponse>>;
+  create(solution: Solution, token: string, turnstileToken?: string | null): Promise<Resp<SolutionResponse>>;
   update(
     solutionId: string,
     solution: Pick<Solution, "title" | "bodyMd" | "submitUrl" | "tags">,
@@ -23,7 +23,12 @@ export interface SolutionRepository {
   getByProblemId(problemId: string, sortBy?: SolutionListSortBy, limit?: number): Promise<Resp<SolutionListItem[]>>;
   getByUserName(userName: string, sortBy?: SolutionListSortBy): Promise<Resp<UserSolutionListItem[]>>;
   getCommentsBySolutionId(solutionId: string): Promise<Resp<SolutionComment[]>>;
-  createComment(solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>>;
+  createComment(
+    solutionId: string,
+    bodyMd: string,
+    token: string,
+    turnstileToken?: string | null,
+  ): Promise<Resp<SolutionComment>>;
   updateComment(commentId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>>;
   deleteComment(commentId: string, token: string): Promise<Resp<{ commentId: string }>>;
   vote(solutionId: string, token: string): Promise<Resp<SolutionLikeStatus>>;

@@ -71,8 +71,8 @@ export const httpClient = {
     request({ method: "GET", path, token, params }),
   post: <T>(path: string, body?: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> =>
     request({ method: "POST", path, body, headers }),
-  postWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
-    request({ method: "POST", path, token, body }),
+  postWithToken: <T>(path: string, token: string, body?: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> =>
+    request({ method: "POST", path, token, body, headers }),
   putWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
     request({ method: "PUT", path, token, body }),
   patchWithToken: <T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> =>
