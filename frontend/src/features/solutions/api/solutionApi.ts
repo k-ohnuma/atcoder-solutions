@@ -18,12 +18,17 @@ function throwIfFailed<T>(resp: Resp<T>, fallbackMessage: string): asserts resp 
 }
 
 export const solutionApi = {
-  create: async (solution: Solution, token: string): Promise<SolutionResponse> => {
+  create: async (solution: Solution, token: string, turnstileToken: string | null): Promise<SolutionResponse> => {
     if (!token) {
       throw new Error("投稿にはログインが必要です。");
     }
 
-    const resp = await httpClient.postWithToken<SolutionResponse>("api/solutions", token, JSON.stringify(solution));
+    const resp = await httpClient.postWithToken<SolutionResponse>(
+      "api/solutions",
+      token,
+      JSON.stringify(solution),
+      turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined,
+    );
     throwIfFailed(resp, "投稿に失敗しました。");
     return resp.data;
   },
@@ -73,11 +78,17 @@ export const solutionApi = {
     return [];
   },
 
-  createComment: async (solutionId: string, bodyMd: string, token: string): Promise<SolutionComment> => {
+  createComment: async (
+    solutionId: string,
+    bodyMd: string,
+    token: string,
+    turnstileToken: string | null,
+  ): Promise<SolutionComment> => {
     const resp = await httpClient.postWithToken<SolutionComment>(
       `api/solutions/${encodeURIComponent(solutionId)}/comments`,
       token,
       JSON.stringify({ bodyMd }),
+      turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined,
     );
     throwIfFailed(resp, "コメントの投稿に失敗しました。");
     return resp.data;

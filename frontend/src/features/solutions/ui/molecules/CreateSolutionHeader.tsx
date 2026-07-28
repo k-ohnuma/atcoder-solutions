@@ -8,9 +8,16 @@ type CreateSolutionHeaderProps = {
   selectedProblem: Problem | null;
   submitError: string | null;
   isSubmitting: boolean;
+  canSubmit: boolean;
 };
 
-export function CreateSolutionHeader({ title, selectedProblem, submitError, isSubmitting }: CreateSolutionHeaderProps) {
+export function CreateSolutionHeader({
+  title,
+  selectedProblem,
+  submitError,
+  isSubmitting,
+  canSubmit,
+}: CreateSolutionHeaderProps) {
   return (
     <div className="sticky top-16 z-20 rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
       <div className="flex items-center justify-between gap-3">
@@ -20,7 +27,7 @@ export function CreateSolutionHeader({ title, selectedProblem, submitError, isSu
             {selectedProblem ? `${selectedProblem.id} の解説` : "問題と内容を入力して投稿"}
           </p>
         </div>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || !canSubmit}>
           {isSubmitting ? "送信中..." : "投稿する"}
         </Button>
       </div>

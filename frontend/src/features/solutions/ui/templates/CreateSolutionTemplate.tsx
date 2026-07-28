@@ -3,6 +3,8 @@
 import React from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useCreateSolutionForm } from "@/features/solutions/hooks/useCreateSolutionForm";
+import { clientConfig } from "@/shared/config/client";
+import { TurnstileField } from "@/shared/turnstile/TurnstileField";
 import { ContestProblemSelectorSection } from "../molecules/ContestProblemSelectorSection";
 import { CreateSolutionBodyEditor } from "../molecules/CreateSolutionBodyEditor";
 import { CreateSolutionHeader } from "../molecules/CreateSolutionHeader";
@@ -23,6 +25,9 @@ export const CreateSolutionTemplate: React.FC = () => {
     selectedProblem,
     submitError,
     isSubmitting,
+    turnstileToken,
+    setTurnstileToken,
+    turnstileResetKey,
     submit,
     selectSeries,
     selectContest,
@@ -42,6 +47,7 @@ export const CreateSolutionTemplate: React.FC = () => {
           selectedProblem={selectedProblem}
           submitError={submitError}
           isSubmitting={isSubmitting}
+          canSubmit={!clientConfig.turnstileConfig.enabled || !!turnstileToken}
         />
 
         <section className="space-y-4 p-1">
@@ -70,6 +76,10 @@ export const CreateSolutionTemplate: React.FC = () => {
             onSubmitUrlChangeAction={setSubmitUrl}
           />
         </section>
+
+        <div className="px-1">
+          <TurnstileField key={turnstileResetKey} onTokenChangeAction={setTurnstileToken} />
+        </div>
 
         <CreateSolutionBodyEditor title={title} bodyMd={bodyMd} error={errors.bodyMd} onBodyChangeAction={setBodyMd} />
       </PageContainer>

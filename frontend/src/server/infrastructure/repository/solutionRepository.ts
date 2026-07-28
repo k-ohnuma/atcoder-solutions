@@ -51,9 +51,10 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return `comments/${encodeURIComponent(commentId)}`;
   };
 
-  create = async (solution: Solution, token: string): Promise<Resp<SolutionResponse>> => {
+  create = async (solution: Solution, token: string, turnstileToken?: string | null): Promise<Resp<SolutionResponse>> => {
     const path = this.createSolutionPath();
-    return await this.client.postWithToken<SolutionResponse>(path, token, JSON.stringify(solution));
+    const headers = turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined;
+    return await this.client.postWithToken<SolutionResponse>(path, token, JSON.stringify(solution), headers);
   };
 
   update = async (
@@ -114,9 +115,15 @@ export class SolutionRepositoryImpl implements SolutionRepository {
     return await this.client.get<SolutionComment[]>(path, undefined, SolutionRepositoryImpl.NO_STORE);
   };
 
-  createComment = async (solutionId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {
+  createComment = async (
+    solutionId: string,
+    bodyMd: string,
+    token: string,
+    turnstileToken?: string | null,
+  ): Promise<Resp<SolutionComment>> => {
     const path = this.commentsPath(solutionId);
-    return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ bodyMd }));
+    const headers = turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined;
+    return await this.client.postWithToken<SolutionComment>(path, token, JSON.stringify({ bodyMd }), headers);
   };
 
   updateComment = async (commentId: string, bodyMd: string, token: string): Promise<Resp<SolutionComment>> => {

@@ -5,7 +5,10 @@ use axum::{
 };
 use domain::{
     model::user::Role,
-    ports::external::auth::{AuthError, Principal},
+    ports::external::{
+        auth::{AuthError, Principal},
+        turnstile::TurnstileError,
+    },
 };
 use serde::de::DeserializeOwned;
 use shared::{error::http::HttpError, response::ApiResponse};
@@ -15,6 +18,7 @@ use registry::Registry;
 pub struct AuthUser(pub Principal);
 pub struct VerifiedUser(pub Principal);
 pub struct AdminUser(pub Principal);
+pub struct TurnstileGuard;
 pub struct ApiJson<T>(pub T);
 pub struct ApiQuery<T>(pub T);
 
@@ -125,6 +129,34 @@ impl FromRequestParts<Registry> for AdminUser {
             Role::Admin => Ok(AdminUser(principal)),
             _ => Err(AuthRejection::Forbidden),
         }
+    }
+}
+
+impl FromRequestParts<Registry> for TurnstileGuard {
+    type Rejection = AuthRejection;
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &Registry,
+    ) -> Result<Self, Self::Rejection> {
+        let token = parts
+            .headers
+            .get("x-turnstile-token")
+            .and_then(|v| v.to_str().ok());
+
+        state
+            .turnstile_verifier_port()
+            .verify(token)
+            .await
+            .map_err(|error| match error {
+                TurnstileError::TokenRequired | TurnstileError::InvalidToken => {
+                    AuthRejection::Forbidden
+                }
+                TurnstileError::TemporarilyUnavailable | TurnstileError::Unexpected(_) => {
+                    AuthRejection::Unavailable
+                }
+            })?;
+
+        Ok(TurnstileGuard)
     }
 }
 

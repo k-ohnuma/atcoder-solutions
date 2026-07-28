@@ -1,5 +1,7 @@
 set shell := ["bash", "-cu"]
 
+database_url := env_var_or_default("DATABASE_URL", "postgres://app:password@localhost:5432/app")
+
 default:
   @just --list
 
@@ -18,7 +20,7 @@ compose arg="":
 
 migrate:
   #!/usr/bin/env bash
-  until sqlx migrate run --source infrastructure/migrations; do
+  until DATABASE_URL="{{database_url}}" sqlx migrate run --source infrastructure/migrations; do
     sleep 1
   done
 
@@ -41,10 +43,10 @@ clippy:
   cargo clippy --all --all-targets --all-features --locked -- -D warnings
 
 sqlx arg="":
-  sqlx {{arg}} --source infrastructure/migrations
+  DATABASE_URL="{{database_url}}" sqlx {{arg}} --source infrastructure/migrations
 
 psql arg="":
-  docker run -it --rm --network host -v "$PWD:/work" postgres:15 psql "${DATABASE_URL}" {{arg}}
+  docker run -it --rm --network host -v "$PWD:/work" postgres:15 psql "{{database_url}}" {{arg}}
 
 test: before-ci
   cargo nextest run --workspace --status-level all

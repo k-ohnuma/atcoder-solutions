@@ -2,6 +2,7 @@ import "server-only";
 import { Resp } from "../response";
 
 type JsonValue = string;
+type RequestHeaders = Record<string, string>;
 
 type QueryParams = Record<string, string>;
 type GetCacheStrategy = { kind: "revalidate"; seconds: number } | { kind: "no-store" };
@@ -23,6 +24,7 @@ export class BackendApiClient {
     body,
     params,
     cacheStrategy,
+    headers,
   }: {
     method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
     path: string;
@@ -30,6 +32,7 @@ export class BackendApiClient {
     body?: JsonValue;
     params?: Record<string, string>;
     cacheStrategy?: GetCacheStrategy;
+    headers?: RequestHeaders;
   }): Promise<Resp<T>> {
     const url = new URL(path.replace(/^\//, ""), this.baseEndpoint);
 
@@ -41,6 +44,7 @@ export class BackendApiClient {
 
     const reqHeaders: Record<string, string> = {
       Accept: "application/json, text/plain;q=0.8, */*;q=0.5",
+      ...headers,
     };
 
     if (token) reqHeaders.Authorization = this.bearerHeader(token);
@@ -85,12 +89,12 @@ export class BackendApiClient {
     return this.request({ method: "GET", path, token, params, cacheStrategy });
   }
 
-  async post<T>(path: string, body: JsonValue): Promise<Resp<T>> {
-    return this.request({ path, method: "POST", body });
+  async post<T>(path: string, body: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> {
+    return this.request({ path, method: "POST", body, headers });
   }
 
-  async postWithToken<T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> {
-    return this.request({ path, method: "POST", body, token });
+  async postWithToken<T>(path: string, token: string, body: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> {
+    return this.request({ path, method: "POST", body, token, headers });
   }
 
   async putWithToken<T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> {

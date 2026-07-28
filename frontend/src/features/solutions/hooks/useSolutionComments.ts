@@ -7,6 +7,7 @@ import { solutionApi } from "@/features/solutions/api/solutionApi";
 import { useAuthenticatedSolutionMutation } from "@/features/solutions/hooks/useAuthenticatedSolutionMutation";
 import { useCommentEditForm } from "@/features/solutions/hooks/useCommentEditForm";
 import { CommentFormInput } from "@/features/solutions/model/comment";
+import { clientConfig } from "@/shared/config/client";
 import { SolutionComment } from "@/shared/model/solution";
 
 type UseSolutionCommentsParams = {
@@ -20,6 +21,8 @@ export function useSolutionComments({ solutionId, initialComments }: UseSolution
   const { isSubmitting, error, setError, runMutation } = useAuthenticatedSolutionMutation();
   const [comments, setComments] = useState(initialComments);
   const [bodyMd, setBodyMd] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState<string | null>(null);
   const {
@@ -43,18 +46,26 @@ export function useSolutionComments({ solutionId, initialComments }: UseSolution
       setError("コメントは2000文字以内で入力してください");
       return;
     }
+    if (clientConfig.turnstileConfig.enabled && !turnstileToken) {
+      setError("認証チェックを完了してください");
+      return;
+    }
 
     const created = await runMutation({
-      action: (token) => solutionApi.createComment(solutionId, normalized, token),
+      action: (token) => solutionApi.createComment(solutionId, normalized, token, turnstileToken),
       fallbackErrorMessage: "コメントの投稿に失敗しました",
       errorToastTitle: "コメントの投稿に失敗しました",
     });
     if (!created) {
+      setTurnstileToken(null);
+      setTurnstileResetKey((current) => current + 1);
       return;
     }
 
     setComments((prev) => [...prev, created]);
     setBodyMd("");
+    setTurnstileToken(null);
+    setTurnstileResetKey((current) => current + 1);
     toast({ title: "コメントを投稿しました" });
   };
 
@@ -124,6 +135,9 @@ export function useSolutionComments({ solutionId, initialComments }: UseSolution
     setBodyMd,
     isSubmitting,
     error,
+    turnstileToken,
+    setTurnstileToken,
+    turnstileResetKey,
     currentUserId,
     editingCommentId,
     editingBodyMd,

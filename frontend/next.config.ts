@@ -8,11 +8,13 @@ const csp = [
   "form-action 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "frame-src 'none'",
+  "frame-src https://challenges.cloudflare.com",
   "img-src 'self' data: https:",
   "font-src 'self' data: https:",
   "style-src 'self' 'unsafe-inline'",
-  isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'",
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com"
+    : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   isDev
     ? "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://*.gstatic.com ws: http:"
     : "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://*.gstatic.com",

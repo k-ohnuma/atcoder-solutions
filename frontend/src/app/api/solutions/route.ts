@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const solution = parsed.data;
   const repo = new SolutionRepositoryImpl();
-  const id = await repo.create(solution, bearerToken.data);
+  const id = await repo.create(solution, bearerToken.data, req.headers.get("x-turnstile-token"));
   if (!id.ok) {
     return NextResponse.json({ ok: false, error: id.error }, { status: id.status });
   }

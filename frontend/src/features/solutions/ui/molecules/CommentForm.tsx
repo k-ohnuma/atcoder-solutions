@@ -6,12 +6,20 @@ import { MarkdownEditor } from "./MarkdownEditor";
 type CommentFormProps = {
   bodyMd: string;
   errorMessage: string | null;
+  canSubmit: boolean;
   isSubmitting: boolean;
   onBodyChangeAction: (value: string) => void;
   onSubmitAction: () => void;
 };
 
-export function CommentForm({ bodyMd, errorMessage, isSubmitting, onBodyChangeAction, onSubmitAction }: CommentFormProps) {
+export function CommentForm({
+  bodyMd,
+  errorMessage,
+  canSubmit,
+  isSubmitting,
+  onBodyChangeAction,
+  onSubmitAction,
+}: CommentFormProps) {
   return (
     <div className="rounded-xl bg-muted/30 p-4">
       <Tabs defaultValue="write" className="gap-3">
@@ -33,7 +41,7 @@ export function CommentForm({ bodyMd, errorMessage, isSubmitting, onBodyChangeAc
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">{bodyMd.length}/2000</p>
-        <Button type="button" size="sm" disabled={isSubmitting} onClick={onSubmitAction}>
+        <Button type="button" size="sm" disabled={isSubmitting || !canSubmit} onClick={onSubmitAction}>
           コメントを投稿
         </Button>
       </div>

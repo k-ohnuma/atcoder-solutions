@@ -5,9 +5,9 @@ import { Solution } from "@/shared/model/solutionCreate";
 
 export function useCreateSolution() {
   return useMutation({
-    mutationFn: async (input: Solution) => {
+    mutationFn: async ({ input, turnstileToken }: { input: Solution; turnstileToken: string | null }) => {
       const token = await getFirebaseIdToken();
-      const res = await solutionApi.create(input, token ?? "");
+      const res = await solutionApi.create(input, token ?? "", turnstileToken);
       return res;
     },
   });

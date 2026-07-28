@@ -60,6 +60,9 @@ export class BackendStack extends TerraformStack {
     const appDatabaseUrlSecretVersion = defineStringVariable(
       backendStackVariableDefinitions.appDatabaseUrlSecretVersion,
     );
+    const turnstileSecretKeyVersion = defineStringVariable(
+      backendStackVariableDefinitions.turnstileSecretKeyVersion,
+    );
     const firebaseProjectId = defineStringVariable(
       backendStackVariableDefinitions.firebaseProjectId,
     );
@@ -92,6 +95,9 @@ export class BackendStack extends TerraformStack {
     );
     const appDatabaseSecretId = withEnvSuffix(
       backendStackStaticConfig.appDatabaseSecretIdBase,
+    );
+    const turnstileSecretId = withEnvSuffix(
+      backendStackStaticConfig.turnstileSecretIdBase,
     );
 
     new GoogleProvider(this, "google", {
@@ -137,6 +143,17 @@ export class BackendStack extends TerraformStack {
       },
     );
 
+    const turnstileSecretKeySecret = new SecretManagerSecret(
+      this,
+      "turnstile-secret-key-secret",
+      {
+        project: projectId.value,
+        secretId: turnstileSecretId,
+        replication: { auto: {} },
+        dependsOn: serviceEnables,
+      },
+    );
+
     const firebaseAuthUserManagerRole = new ProjectIamCustomRole(
       this,
       "firebase-auth-user-manager-role",
@@ -160,6 +177,13 @@ export class BackendStack extends TerraformStack {
     new SecretManagerSecretIamMember(this, "run-sa-secret-access", {
       project: projectId.value,
       secretId: appDatabaseUrlSecret.secretId,
+      role: "roles/secretmanager.secretAccessor",
+      member: `serviceAccount:${runServiceAccount.email}`,
+    });
+
+    new SecretManagerSecretIamMember(this, "run-sa-turnstile-secret-access", {
+      project: projectId.value,
+      secretId: turnstileSecretKeySecret.secretId,
       role: "roles/secretmanager.secretAccessor",
       member: `serviceAccount:${runServiceAccount.email}`,
     });
@@ -188,6 +212,19 @@ export class BackendStack extends TerraformStack {
               {
                 name: "FIREBASE_PROJECT_ID",
                 value: firebaseProjectId.value,
+              },
+              {
+                name: "TURNSTILE_ENABLED",
+                value: "true",
+              },
+              {
+                name: "TURNSTILE_SECRET_KEY",
+                valueSource: {
+                  secretKeyRef: {
+                    secret: turnstileSecretKeySecret.secretId,
+                    version: turnstileSecretKeyVersion.value,
+                  },
+                },
               },
               {
                 name: "ENV",

@@ -2,6 +2,7 @@ export type Resp<T> = { ok: true; data: T; status: 200 } | { ok: false; error: s
 
 type JsonValue = string;
 type QueryParams = Record<string, string>;
+type RequestHeaders = Record<string, string>;
 
 function bearerHeader(token: string) {
   return `Bearer ${token}`;
@@ -13,12 +14,14 @@ async function request<T = unknown>({
   token,
   body,
   params,
+  headers,
 }: {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   token?: string;
   body?: JsonValue;
   params?: QueryParams;
+  headers?: RequestHeaders;
 }): Promise<Resp<T>> {
   const url = new URL(path, window.location.origin);
 
@@ -30,6 +33,7 @@ async function request<T = unknown>({
 
   const reqHeaders: Record<string, string> = {
     Accept: "application/json",
+    ...headers,
   };
 
   if (token) {
@@ -65,9 +69,10 @@ export const httpClient = {
   get: <T>(path: string, params?: QueryParams): Promise<Resp<T>> => request({ method: "GET", path, params }),
   getWithToken: <T>(path: string, token: string, params?: QueryParams): Promise<Resp<T>> =>
     request({ method: "GET", path, token, params }),
-  post: <T>(path: string, body?: JsonValue): Promise<Resp<T>> => request({ method: "POST", path, body }),
-  postWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
-    request({ method: "POST", path, token, body }),
+  post: <T>(path: string, body?: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> =>
+    request({ method: "POST", path, body, headers }),
+  postWithToken: <T>(path: string, token: string, body?: JsonValue, headers?: RequestHeaders): Promise<Resp<T>> =>
+    request({ method: "POST", path, token, body, headers }),
   putWithToken: <T>(path: string, token: string, body?: JsonValue): Promise<Resp<T>> =>
     request({ method: "PUT", path, token, body }),
   patchWithToken: <T>(path: string, token: string, body: JsonValue): Promise<Resp<T>> =>
