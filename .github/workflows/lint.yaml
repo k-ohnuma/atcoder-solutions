@@ -21,4 +21,4 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v19
       - uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: CI
-        run: nix develop -c just lint-ci
+        run: nix develop .#lint -c just lint-ci

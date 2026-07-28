@@ -1,27 +1,22 @@
-import {
-  GcsBackend,
-  TerraformOutput,
-  TerraformStack,
-  TerraformVariable,
-} from "cdktf";
+import { GcsBackend, TerraformOutput, TerraformStack, TerraformVariable } from "cdktn";
 import { Construct } from "constructs";
+import { CloudRunServiceIamMember } from "../.gen/providers/google/cloud-run-service-iam-member";
 import { CloudRunV2Job } from "../.gen/providers/google/cloud-run-v2-job";
 import { CloudRunV2JobIamMember } from "../.gen/providers/google/cloud-run-v2-job-iam-member";
-import { CloudRunServiceIamMember } from "../.gen/providers/google/cloud-run-service-iam-member";
 import { CloudRunV2Service } from "../.gen/providers/google/cloud-run-v2-service";
 import { CloudSchedulerJob } from "../.gen/providers/google/cloud-scheduler-job";
-import { GoogleProvider } from "../.gen/providers/google/provider";
 import { ProjectIamCustomRole } from "../.gen/providers/google/project-iam-custom-role";
 import { ProjectIamMember } from "../.gen/providers/google/project-iam-member";
 import { ProjectService } from "../.gen/providers/google/project-service";
+import { GoogleProvider } from "../.gen/providers/google/provider";
 import { SecretManagerSecret } from "../.gen/providers/google/secret-manager-secret";
 import { SecretManagerSecretIamMember } from "../.gen/providers/google/secret-manager-secret-iam-member";
 import { ServiceAccount } from "../.gen/providers/google/service-account";
 import {
   backendStackStaticConfig,
   backendStackVariableDefinitions,
-  stackEnvironmentName,
   type StringVariableDefinition,
+  stackEnvironmentName,
 } from "../config/config";
 
 export class BackendStack extends TerraformStack {
@@ -32,73 +27,36 @@ export class BackendStack extends TerraformStack {
       prefix: `${backendStackStaticConfig.tfStateBackendPrefixBase}/${stackEnvironmentName}`,
     });
 
-    const defineStringVariable = (
-      definition: StringVariableDefinition,
-    ): TerraformVariable =>
+    const defineStringVariable = (definition: StringVariableDefinition): TerraformVariable =>
       new TerraformVariable(this, definition.tfName, {
         type: definition.type,
         default: definition.defaultValue,
         sensitive: definition.sensitive,
       });
 
-    const projectId = defineStringVariable(
-      backendStackVariableDefinitions.projectId,
-    );
-    const environment = defineStringVariable(
-      backendStackVariableDefinitions.environment,
-    );
+    const projectId = defineStringVariable(backendStackVariableDefinitions.projectId);
+    const environment = defineStringVariable(backendStackVariableDefinitions.environment);
     const region = defineStringVariable(backendStackVariableDefinitions.region);
-    const apiServiceName = defineStringVariable(
-      backendStackVariableDefinitions.apiServiceName,
-    );
-    const dailyJobName = defineStringVariable(
-      backendStackVariableDefinitions.dailyJobName,
-    );
-    const apiContainerImage = defineStringVariable(
-      backendStackVariableDefinitions.apiContainerImage,
-    );
-    const appDatabaseUrlSecretVersion = defineStringVariable(
-      backendStackVariableDefinitions.appDatabaseUrlSecretVersion,
-    );
-    const turnstileSecretKeyVersion = defineStringVariable(
-      backendStackVariableDefinitions.turnstileSecretKeyVersion,
-    );
-    const firebaseProjectId = defineStringVariable(
-      backendStackVariableDefinitions.firebaseProjectId,
-    );
-    const atcoderProblemsBaseEndpoint = defineStringVariable(
-      backendStackVariableDefinitions.atcoderProblemsBaseEndpoint,
-    );
-    const atcoderDifficultyBaseEndpoint = defineStringVariable(
-      backendStackVariableDefinitions.atcoderDifficultyBaseEndpoint,
-    );
-    const dailyCron = defineStringVariable(
-      backendStackVariableDefinitions.dailyCron,
-    );
-    const dailyTimeZone = defineStringVariable(
-      backendStackVariableDefinitions.dailyTimeZone,
-    );
+    const apiServiceName = defineStringVariable(backendStackVariableDefinitions.apiServiceName);
+    const dailyJobName = defineStringVariable(backendStackVariableDefinitions.dailyJobName);
+    const apiContainerImage = defineStringVariable(backendStackVariableDefinitions.apiContainerImage);
+    const appDatabaseUrlSecretVersion = defineStringVariable(backendStackVariableDefinitions.appDatabaseUrlSecretVersion);
+    const turnstileSecretKeyVersion = defineStringVariable(backendStackVariableDefinitions.turnstileSecretKeyVersion);
+    const firebaseProjectId = defineStringVariable(backendStackVariableDefinitions.firebaseProjectId);
+    const atcoderProblemsBaseEndpoint = defineStringVariable(backendStackVariableDefinitions.atcoderProblemsBaseEndpoint);
+    const atcoderDifficultyBaseEndpoint = defineStringVariable(backendStackVariableDefinitions.atcoderDifficultyBaseEndpoint);
+    const dailyCron = defineStringVariable(backendStackVariableDefinitions.dailyCron);
+    const dailyTimeZone = defineStringVariable(backendStackVariableDefinitions.dailyTimeZone);
 
-    const withEnvSuffix = (base: string): string =>
-      `${base}-${environment.value}`;
+    const withEnvSuffix = (base: string): string => `${base}-${environment.value}`;
 
     const apiServiceResourceName = withEnvSuffix(apiServiceName.value);
     const dailyJobResourceName = withEnvSuffix(dailyJobName.value);
-    const schedulerJobResourceName = withEnvSuffix(
-      backendStackStaticConfig.schedulerJobNameBase,
-    );
-    const runServiceAccountId = withEnvSuffix(
-      backendStackStaticConfig.runServiceAccountIdBase,
-    );
-    const schedulerServiceAccountId = withEnvSuffix(
-      backendStackStaticConfig.schedulerServiceAccountIdBase,
-    );
-    const appDatabaseSecretId = withEnvSuffix(
-      backendStackStaticConfig.appDatabaseSecretIdBase,
-    );
-    const turnstileSecretId = withEnvSuffix(
-      backendStackStaticConfig.turnstileSecretIdBase,
-    );
+    const schedulerJobResourceName = withEnvSuffix(backendStackStaticConfig.schedulerJobNameBase);
+    const runServiceAccountId = withEnvSuffix(backendStackStaticConfig.runServiceAccountIdBase);
+    const schedulerServiceAccountId = withEnvSuffix(backendStackStaticConfig.schedulerServiceAccountIdBase);
+    const appDatabaseSecretId = withEnvSuffix(backendStackStaticConfig.appDatabaseSecretIdBase);
+    const turnstileSecretId = withEnvSuffix(backendStackStaticConfig.turnstileSecretIdBase);
 
     new GoogleProvider(this, "google", {
       project: projectId.value,
@@ -121,51 +79,34 @@ export class BackendStack extends TerraformStack {
       dependsOn: serviceEnables,
     });
 
-    const schedulerServiceAccount = new ServiceAccount(
-      this,
-      "scheduler-service-account",
-      {
-        project: projectId.value,
-        accountId: schedulerServiceAccountId,
-        displayName: "AtCoder Solutions Scheduler",
-        dependsOn: serviceEnables,
-      },
-    );
+    const schedulerServiceAccount = new ServiceAccount(this, "scheduler-service-account", {
+      project: projectId.value,
+      accountId: schedulerServiceAccountId,
+      displayName: "AtCoder Solutions Scheduler",
+      dependsOn: serviceEnables,
+    });
 
-    const appDatabaseUrlSecret = new SecretManagerSecret(
-      this,
-      "app-database-url-secret",
-      {
-        project: projectId.value,
-        secretId: appDatabaseSecretId,
-        replication: { auto: {} },
-        dependsOn: serviceEnables,
-      },
-    );
+    const appDatabaseUrlSecret = new SecretManagerSecret(this, "app-database-url-secret", {
+      project: projectId.value,
+      secretId: appDatabaseSecretId,
+      replication: { auto: {} },
+      dependsOn: serviceEnables,
+    });
 
-    const turnstileSecretKeySecret = new SecretManagerSecret(
-      this,
-      "turnstile-secret-key-secret",
-      {
-        project: projectId.value,
-        secretId: turnstileSecretId,
-        replication: { auto: {} },
-        dependsOn: serviceEnables,
-      },
-    );
+    const turnstileSecretKeySecret = new SecretManagerSecret(this, "turnstile-secret-key-secret", {
+      project: projectId.value,
+      secretId: turnstileSecretId,
+      replication: { auto: {} },
+      dependsOn: serviceEnables,
+    });
 
-    const firebaseAuthUserManagerRole = new ProjectIamCustomRole(
-      this,
-      "firebase-auth-user-manager-role",
-      {
-        project: firebaseProjectId.value,
-        roleId: `atcoderSolutionsFirebaseAuthUserManager${environment.value}`,
-        title: "AtCoder Solutions Firebase Auth User Manager",
-        description:
-          "Allows the backend service account to create and delete Firebase Authentication users.",
-        permissions: ["firebaseauth.users.create", "firebaseauth.users.delete"],
-      },
-    );
+    const firebaseAuthUserManagerRole = new ProjectIamCustomRole(this, "firebase-auth-user-manager-role", {
+      project: firebaseProjectId.value,
+      roleId: `atcoderSolutionsFirebaseAuthUserManager${environment.value}`,
+      title: "AtCoder Solutions Firebase Auth User Manager",
+      description: "Allows the backend service account to create and delete Firebase Authentication users.",
+      permissions: ["firebaseauth.users.create", "firebaseauth.users.delete"],
+    });
 
     new ProjectIamMember(this, "auth-user-manager", {
       project: firebaseProjectId.value,
