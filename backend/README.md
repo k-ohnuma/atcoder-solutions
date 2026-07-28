@@ -109,7 +109,7 @@ Notes:
 | Method | Path | Auth | Query | Body | Description |
 |---|---|---|---|---|---|
 | `GET` | `/solutions` | Public | `sortBy`, `limit` | - | Lists latest solutions. |
-| `POST` | `/solutions` | AuthUser | - | create solution body | Creates a solution. |
+| `POST` | `/solutions` | AuthUser + Turnstile | - | create solution body | Creates a solution. Requires a valid `X-Turnstile-Token` header when `TURNSTILE_ENABLED=true`. |
 | `GET` | `/solutions/{solution_id}` | Public | - | - | Gets one solution. |
 | `PATCH` | `/solutions/{solution_id}` | AuthUser | - | update solution body | Updates own solution. |
 | `DELETE` | `/solutions/{solution_id}` | AuthUser | - | - | Deletes own solution. |
@@ -153,7 +153,7 @@ Update solution body:
 | Method | Path | Auth | Query | Body | Description |
 |---|---|---|---|---|---|
 | `GET` | `/solutions/{solution_id}/comments` | Public | - | - | Lists comments for one solution. |
-| `POST` | `/solutions/{solution_id}/comments` | AuthUser | - | `{ "bodyMd": string }` | Creates a comment on one solution. |
+| `POST` | `/solutions/{solution_id}/comments` | AuthUser + Turnstile | - | `{ "bodyMd": string }` | Creates a comment on one solution. Requires a valid `X-Turnstile-Token` header when `TURNSTILE_ENABLED=true`. |
 | `PATCH` | `/comments/{comment_id}` | AuthUser | - | `{ "bodyMd": string }` | Updates own comment. |
 | `DELETE` | `/comments/{comment_id}` | AuthUser | - | - | Deletes own comment. |
 

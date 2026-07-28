@@ -19,7 +19,7 @@ use usecase::solution::{
 
 use crate::{
     error::ToHttpError,
-    http::{ApiJson, ApiQuery, AuthUser},
+    http::{ApiJson, ApiQuery, AuthUser, TurnstileGuard},
     model::solution::{
         create_comment::{CreateCommentRequest, CreateCommentResponse},
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
@@ -69,6 +69,7 @@ fn validate_latest_solutions_sort(sort_by: Option<&str>) -> Result<(), HttpError
 pub async fn create_solution_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
+    _turnstile_guard: TurnstileGuard,
     ApiJson(req): ApiJson<CreateSolutionRequest>,
 ) -> Result<Json<ApiResponse<CreateSolutionResponse>>, HttpError> {
     let user_id = user.uid;
@@ -258,6 +259,7 @@ pub async fn create_comment_handler(
     State(registry): State<Registry>,
     Path(solution_id): Path<Uuid>,
     AuthUser(user): AuthUser,
+    _turnstile_guard: TurnstileGuard,
     ApiJson(req): ApiJson<CreateCommentRequest>,
 ) -> Result<Json<ApiResponse<CreateCommentResponse>>, HttpError> {
     let uc = CreateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
