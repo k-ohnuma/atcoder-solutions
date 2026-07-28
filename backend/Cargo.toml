@@ -41,6 +41,7 @@ axum = { version = "0.8.6", features = ["macros"] }
 base64 = { version = "0.22.1" }
 chrono = { version = "0.4.42", features = ["serde"] }
 derive-new = "0.7.0"
+dotenvy = "0.15.7"
 error-stack = "0.7.0"
 itertools = "0.14.0"
 jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
@@ -82,6 +83,7 @@ shared.workspace = true
 
 anyhow.workspace = true
 axum.workspace = true
+dotenvy.workspace = true
 tokio.workspace = true
 tower-http.workspace = true
 tracing.workspace = true
