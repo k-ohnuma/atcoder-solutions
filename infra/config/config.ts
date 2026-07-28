@@ -16,6 +16,7 @@ export interface BackendStackVariableDefinitions {
   dailyJobName: StringVariableDefinition;
   apiContainerImage: StringVariableDefinition;
   appDatabaseUrlSecretVersion: StringVariableDefinition;
+  turnstileSecretKeyVersion: StringVariableDefinition;
   firebaseProjectId: StringVariableDefinition;
   atcoderProblemsBaseEndpoint: StringVariableDefinition;
   atcoderDifficultyBaseEndpoint: StringVariableDefinition;
@@ -32,7 +33,7 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
   projectId: {
     tfName: "project_id",
     type: "string",
-    defaultValue: 'atcoder-solutions'
+    defaultValue: "atcoder-solutions",
   },
   region: {
     tfName: "region",
@@ -57,6 +58,11 @@ export const backendStackVariableDefinitions: BackendStackVariableDefinitions = 
     tfName: "app_database_url_secret_version",
     type: "string",
     defaultValue: "2",
+  },
+  turnstileSecretKeyVersion: {
+    tfName: "turnstile_secret_key_version",
+    type: "string",
+    defaultValue: "1",
   },
   firebaseProjectId: {
     tfName: "firebase_project_id",
@@ -92,6 +98,7 @@ export interface BackendStackStaticConfig {
   runServiceAccountIdBase: string;
   schedulerServiceAccountIdBase: string;
   appDatabaseSecretIdBase: string;
+  turnstileSecretIdBase: string;
   schedulerJobNameBase: string;
   runDailyJobCommand: readonly string[];
   dailyJobTimeout: string;
@@ -110,6 +117,7 @@ export const backendStackStaticConfig: BackendStackStaticConfig = {
   runServiceAccountIdBase: "atcoder-solutions-run",
   schedulerServiceAccountIdBase: "atcoder-solutions-rule",
   appDatabaseSecretIdBase: "app-database-url",
+  turnstileSecretIdBase: "turnstile-secret-key",
   schedulerJobNameBase: "atcoder-solutions-daily-import",
   runDailyJobCommand: ["./run_daily_job"],
   dailyJobTimeout: "3600s",

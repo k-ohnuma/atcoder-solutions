@@ -29,3 +29,6 @@ cdkdeploy tag env="dev":
 
 setsecret dburl env="dev" project=project_id:
   printf '%s' "{{dburl}}" | gcloud secrets versions add "app-database-url-{{env}}" --data-file=- --project="{{project}}"
+
+setturnstilesecret secret env="dev" project=project_id:
+  printf '%s' "{{secret}}" | gcloud secrets versions add "turnstile-secret-key-{{env}}" --data-file=- --project="{{project}}"
