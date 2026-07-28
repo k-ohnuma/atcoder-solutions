@@ -23,7 +23,10 @@ frontend-ci:
 backend-ci:
   cd backend && just ci
 
-before-push: frontend-ci lint-ci backend-ci
+infra-ci:
+  cd infra && pnpm run ci
+
+before-push: frontend-ci lint-ci backend-ci infra-ci
 
 gitpush: before-push
   git push origin "$(git rev-parse --abbrev-ref HEAD)"

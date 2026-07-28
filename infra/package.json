@@ -10,6 +10,12 @@
     "build": "tsc",
     "synth": "cdktf synth",
     "compile": "tsc --pretty --noEmit",
+    "lint": "biome lint",
+    "format:write": "biome format --write",
+    "format:check": "biome format",
+    "check:write": "biome check --write",
+    "check:check": "biome check",
+    "ci": "pnpm run compile && pnpm run check:check && pnpm run format:check && pnpm run lint",
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -24,6 +30,7 @@
     "constructs": "^10.5.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.3.0",
     "jest": "^30.2.0",
