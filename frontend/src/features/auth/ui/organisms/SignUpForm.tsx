@@ -7,7 +7,7 @@ import { AuthFormError } from "../molecules/AuthFormError";
 import { ConfirmPasswordField } from "../molecules/ConfirmPasswordField";
 import { EmailField } from "../molecules/EmailField";
 import { PasswordField } from "../molecules/PasswordField";
-import { TurnstileField } from "../molecules/TurnstileField";
+import { TurnstileField } from "@/shared/turnstile/TurnstileField";
 import { UserNameField } from "../molecules/UserNameField";
 import { clientConfig } from "@/shared/config/client";
 
