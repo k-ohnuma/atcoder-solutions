@@ -12,7 +12,7 @@ import { PasswordField } from "../molecules/PasswordField";
 import { UserNameField } from "../molecules/UserNameField";
 
 export function SignUpForm() {
-  const { form, submit, turnstileToken, setTurnstileToken } = useSignUpForm();
+  const { form, submit, turnstileToken, setTurnstileToken, turnstileResetKey } = useSignUpForm();
   const {
     control,
     formState: { isSubmitting },
@@ -25,7 +25,7 @@ export function SignUpForm() {
         <EmailField control={control} />
         <PasswordField control={control} />
         <ConfirmPasswordField control={control} />
-        <TurnstileField onTokenChangeAction={setTurnstileToken} />
+        <TurnstileField key={turnstileResetKey} onTokenChangeAction={setTurnstileToken} />
 
         <AuthFormError message={form.formState.errors.root?.message} />
 

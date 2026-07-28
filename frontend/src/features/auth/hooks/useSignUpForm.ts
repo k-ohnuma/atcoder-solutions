@@ -11,6 +11,7 @@ import { SignUpSchema, signUpSchema } from "@/features/auth/model/schema";
 export function useSignUpForm() {
   const router = useRouter();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const form = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -26,6 +27,8 @@ export function useSignUpForm() {
       await onSubmitSignUp(values, turnstileToken);
       router.push("/");
     } catch (error) {
+      setTurnstileToken(null);
+      setTurnstileResetKey((current) => current + 1);
       form.setError("root", { message: getAuthFormErrorMessage(error) });
     }
   });
@@ -35,5 +38,6 @@ export function useSignUpForm() {
     submit,
     turnstileToken,
     setTurnstileToken,
+    turnstileResetKey,
   };
 }
