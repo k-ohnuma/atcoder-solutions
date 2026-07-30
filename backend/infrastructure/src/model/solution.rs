@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use usecase::model::solution::{SolutionComment, SolutionListItem, UserSolutionListItem};
+use domain::read_model::solution::{SolutionComment, SolutionListItem, UserSolutionListItem};
 use uuid::Uuid;
 
 pub struct SolutionListItemViewRaw {

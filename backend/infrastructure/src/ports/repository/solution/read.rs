@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use derive_new::new;
-use domain::error::repository::RepositoryError;
-use usecase::{
-    model::solution::{
+use domain::{
+    error::repository::RepositoryError,
+    ports::repository::solution::SolutionRepository,
+    read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
-    service::solution::SolutionService,
 };
 use uuid::Uuid;
 
@@ -18,12 +18,12 @@ use crate::{
 };
 
 #[derive(new)]
-pub struct SolutionServiceImpl {
+pub struct SolutionRepositoryImpl {
     db: ConnectionPool,
 }
 
 #[async_trait]
-impl SolutionService for SolutionServiceImpl {
+impl SolutionRepository for SolutionRepositoryImpl {
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,

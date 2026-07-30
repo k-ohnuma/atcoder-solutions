@@ -2,15 +2,16 @@ use std::sync::Arc;
 
 use derive_new::new;
 
+use domain::ports::repository::solution::SolutionRepository;
+
 use crate::{
-    dto::solution::SolutionListItemView,
-    model::solution::{SolutionError, list::GetLatestSolutionsInput},
-    service::solution::SolutionService,
+    dto::solution::SolutionListItemView, error::SolutionError,
+    model::solution::list::GetLatestSolutionsInput,
 };
 
 #[derive(new)]
 pub struct GetLatestSolutionsUsecase {
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl GetLatestSolutionsUsecase {
@@ -18,7 +19,7 @@ impl GetLatestSolutionsUsecase {
         &self,
         input: GetLatestSolutionsInput,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
-        let items = self.service.get_latest_solutions(input.limit).await?;
+        let items = self.repository.get_latest_solutions(input.limit).await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }
 }

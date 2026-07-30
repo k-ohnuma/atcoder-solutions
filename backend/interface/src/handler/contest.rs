@@ -13,7 +13,7 @@ pub async fn get_contests_by_series_handler(
     State(reg): State<Registry>,
     Path(series): Path<String>,
 ) -> ApiResult<Vec<ContestResponse>> {
-    let service = reg.contest_service();
+    let service = reg.contest_repository();
     let usecase = GetContestsBySeriesUseCase::new(service);
 
     let input = GetContestsBySeriesInput::try_new(series).into_api_result()?;

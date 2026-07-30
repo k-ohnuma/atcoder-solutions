@@ -3,16 +3,18 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Utc;
-use domain::error::repository::RepositoryError;
-use usecase::{
-    model::solution::{
-        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
-        UserSolutionListItem,
-        list::{
-            GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
-        },
+use domain::{
+    error::repository::RepositoryError,
+    ports::repository::solution::SolutionRepository,
+    read_model::solution::{
+        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
-    service::solution::SolutionService,
+};
+use usecase::{
+    error::SolutionError,
+    model::solution::list::{
+        GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
+    },
     solution::{
         get_by_problem_id::GetSolutionsByProblemIdUsecase,
         get_by_user_name::GetSolutionsByUserNameUsecase, get_latest::GetLatestSolutionsUsecase,
@@ -20,14 +22,14 @@ use usecase::{
 };
 use uuid::Uuid;
 
-struct DummySolutionService {
+struct DummySolutionRepository {
     problem_exists: bool,
     user_exists: bool,
     last_problem_sort: Mutex<Option<SolutionListSort>>,
     last_user_sort: Mutex<Option<SolutionListSort>>,
 }
 
-impl DummySolutionService {
+impl DummySolutionRepository {
     fn new(problem_exists: bool, user_exists: bool) -> Self {
         Self {
             problem_exists,
@@ -39,7 +41,7 @@ impl DummySolutionService {
 }
 
 #[async_trait]
-impl SolutionService for DummySolutionService {
+impl SolutionRepository for DummySolutionRepository {
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,
@@ -163,8 +165,8 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(false, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new(false, true));
+    let uc = GetSolutionsByProblemIdUsecase::new(repository);
     let input =
         GetSolutionsByProblemIdInput::try_new("abc100_a".to_string(), None, None).expect("valid");
 
@@ -179,9 +181,9 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
 }
 
 #[tokio::test]
-async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service.clone());
+async fn get_solutions_by_problem_id_passes_sort_to_repository() -> Result<()> {
+    let repository = Arc::new(DummySolutionRepository::new(true, true));
+    let uc = GetSolutionsByProblemIdUsecase::new(repository.clone());
     let input = GetSolutionsByProblemIdInput::try_new(
         "abc100_a".to_string(),
         Some("votes".to_string()),
@@ -193,15 +195,15 @@ async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].votes_count, 3);
 
-    let sort = *service.last_problem_sort.lock().unwrap();
+    let sort = *repository.last_problem_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
     Ok(())
 }
 
 #[tokio::test]
 async fn get_latest_solutions_returns_items() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetLatestSolutionsUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new(true, true));
+    let uc = GetLatestSolutionsUsecase::new(repository);
     let input = GetLatestSolutionsInput::try_new(None, Some(10)).expect("valid");
 
     let result = uc.run(input).await?;
@@ -213,8 +215,8 @@ async fn get_latest_solutions_returns_items() -> Result<()> {
 
 #[tokio::test]
 async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, false));
-    let uc = GetSolutionsByUserNameUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new(true, false));
+    let uc = GetSolutionsByUserNameUsecase::new(repository);
     let input = GetSolutionsByUserNameInput::try_new("alice".to_string(), None).expect("valid");
 
     let err = uc
@@ -227,9 +229,9 @@ async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Resu
 }
 
 #[tokio::test]
-async fn get_solutions_by_user_name_passes_sort_to_service() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByUserNameUsecase::new(service.clone());
+async fn get_solutions_by_user_name_passes_sort_to_repository() -> Result<()> {
+    let repository = Arc::new(DummySolutionRepository::new(true, true));
+    let uc = GetSolutionsByUserNameUsecase::new(repository.clone());
     let input =
         GetSolutionsByUserNameInput::try_new("alice".to_string(), Some("votes".to_string()))
             .expect("valid");
@@ -238,7 +240,7 @@ async fn get_solutions_by_user_name_passes_sort_to_service() -> Result<()> {
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].problem_title, "A - Sample");
 
-    let sort = *service.last_user_sort.lock().unwrap();
+    let sort = *repository.last_user_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
     Ok(())
 }

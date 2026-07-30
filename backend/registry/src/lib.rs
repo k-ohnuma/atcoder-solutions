@@ -8,8 +8,12 @@ use domain::ports::{
         turnstile::TurnstileVerifierPort,
     },
     repository::{
-        health::HealthCheckRepository, problem::ProblemRepository, problem::tx::ProblemTxManager,
-        solution::tx::SolutionTxManager, user::UserRepository,
+        contest::ContestRepository,
+        health::HealthCheckRepository,
+        problem::ProblemRepository,
+        problem::tx::ProblemTxManager,
+        solution::{SolutionRepository, tx::SolutionTxManager},
+        user::UserRepository,
     },
 };
 use infrastructure::{
@@ -18,15 +22,16 @@ use infrastructure::{
     ports::{
         external::{auth::FirebaseAuthenticator, id::UuidProvider, turnstile::TurnstileVerifier},
         repository::{
-            health::HealthCheckRepositoryImpl, problem::ProblemRepositoryImpl,
-            problem::tx::ProblemTransactionManager, solution::tx::SolutionTransactionManager,
+            contest::ContestRepositoryImpl,
+            health::HealthCheckRepositoryImpl,
+            problem::ProblemRepositoryImpl,
+            problem::tx::ProblemTransactionManager,
+            solution::{SolutionRepositoryImpl, tx::SolutionTransactionManager},
             user::UserRepositoryImpl,
         },
-        service::{contests::ContestServiceImpl, solution::SolutionServiceImpl},
     },
 };
 use shared::config::AppConfig;
-use usecase::service::{contest::ContestService, solution::SolutionService};
 
 #[derive(Clone)]
 pub struct Registry {
@@ -40,8 +45,8 @@ pub struct Registry {
     user_repository: Arc<dyn UserRepository>,
     id_provider: Arc<dyn IdProviderPort>,
     solution_tx_manager: Arc<dyn SolutionTxManager>,
-    solution_service: Arc<dyn SolutionService>,
-    contest_service: Arc<dyn ContestService>,
+    solution_repository: Arc<dyn SolutionRepository>,
+    contest_repository: Arc<dyn ContestRepository>,
 }
 
 impl Registry {
@@ -64,8 +69,8 @@ impl Registry {
         let id_provider = Arc::new(UuidProvider::new());
         let solution_tx_manager = Arc::new(SolutionTransactionManager::new(pool.to_owned()));
 
-        let solution_service = Arc::new(SolutionServiceImpl::new(pool.to_owned()));
-        let contest_service = Arc::new(ContestServiceImpl::new(pool.to_owned()));
+        let solution_repository = Arc::new(SolutionRepositoryImpl::new(pool.to_owned()));
+        let contest_repository = Arc::new(ContestRepositoryImpl::new(pool.to_owned()));
 
         Self {
             atcoder_problems_port: atcoder_problems_client,
@@ -78,8 +83,8 @@ impl Registry {
             user_repository,
             id_provider,
             solution_tx_manager,
-            solution_service,
-            contest_service,
+            solution_repository,
+            contest_repository,
         }
     }
 
@@ -113,10 +118,10 @@ impl Registry {
     pub fn solution_tx_manager(&self) -> Arc<dyn SolutionTxManager> {
         self.solution_tx_manager.to_owned()
     }
-    pub fn solution_service(&self) -> Arc<dyn SolutionService> {
-        self.solution_service.to_owned()
+    pub fn solution_repository(&self) -> Arc<dyn SolutionRepository> {
+        self.solution_repository.to_owned()
     }
-    pub fn contest_service(&self) -> Arc<dyn ContestService> {
-        self.contest_service.to_owned()
+    pub fn contest_repository(&self) -> Arc<dyn ContestRepository> {
+        self.contest_repository.to_owned()
     }
 }

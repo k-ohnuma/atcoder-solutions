@@ -1,21 +1,20 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::tx::SolutionTxManager;
+use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use uuid::Uuid;
 
-use crate::model::solution::SolutionError;
-use crate::service::solution::SolutionService;
+use crate::error::SolutionError;
 
 #[derive(new)]
 pub struct UnvoteSolutionUsecase {
     txm: Arc<dyn SolutionTxManager>,
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl UnvoteSolutionUsecase {
     pub async fn run(&self, user_id: String, solution_id: Uuid) -> Result<(), SolutionError> {
-        let exists = self.service.solution_exists(solution_id).await?;
+        let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
             return Err(SolutionError::BadRequest("solution not found".to_string()));
         }

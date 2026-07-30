@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::ports::repository::solution::SolutionRepository;
 
 use crate::{
-    dto::solution::SolutionListItemView,
-    model::solution::{SolutionError, list::GetSolutionsByProblemIdInput},
-    service::solution::SolutionService,
+    dto::solution::SolutionListItemView, error::SolutionError,
+    model::solution::list::GetSolutionsByProblemIdInput,
 };
 
 #[derive(new)]
 pub struct GetSolutionsByProblemIdUsecase {
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl GetSolutionsByProblemIdUsecase {
@@ -18,13 +18,13 @@ impl GetSolutionsByProblemIdUsecase {
         &self,
         input: GetSolutionsByProblemIdInput,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
-        let exists = self.service.problem_exists(&input.problem_id).await?;
+        let exists = self.repository.problem_exists(&input.problem_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("problem not found".to_string()));
         }
 
         let items = self
-            .service
+            .repository
             .get_solutions_by_problem_id(input.problem_id, input.sort, input.limit)
             .await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())

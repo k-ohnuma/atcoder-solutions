@@ -1,19 +1,16 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::tx::SolutionTxManager;
+use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    model::solution::{SolutionError, update::UpdateSolutionInput},
-    service::solution::SolutionService,
-};
+use crate::{error::SolutionError, model::solution::update::UpdateSolutionInput};
 
 #[derive(new)]
 pub struct UpdateSolutionUsecase {
     txm: Arc<dyn SolutionTxManager>,
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl UpdateSolutionUsecase {
@@ -22,12 +19,15 @@ impl UpdateSolutionUsecase {
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let exists = self.service.solution_exists(input.solution_id).await?;
+        let exists = self.repository.solution_exists(input.solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));
         }
 
-        let owner_user_id = self.service.get_solution_user_id(input.solution_id).await?;
+        let owner_user_id = self
+            .repository
+            .get_solution_user_id(input.solution_id)
+            .await?;
         if owner_user_id != input.user_id {
             return Err(SolutionError::Forbidden(
                 "you cannot update this solution".to_string(),

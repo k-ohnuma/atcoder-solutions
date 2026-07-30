@@ -4,17 +4,20 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
-    ports::repository::solution::tx::{
-        CommentRepositoryTx, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
-        VoteRepositoryTx,
+    ports::repository::solution::{
+        SolutionRepository,
+        tx::{
+            CommentRepositoryTx, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
+            UnitOfWork, VoteRepositoryTx,
+        },
+    },
+    read_model::solution::{
+        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
 };
 use usecase::{
-    model::solution::{
-        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
-        UserSolutionListItem, update::UpdateSolutionInput, update_comment::UpdateCommentInput,
-    },
-    service::solution::SolutionService,
+    error::SolutionError,
+    model::solution::{update::UpdateSolutionInput, update_comment::UpdateCommentInput},
     solution::{
         delete::DeleteSolutionUsecase, delete_comment::DeleteCommentUsecase,
         unvote::UnvoteSolutionUsecase, update::UpdateSolutionUsecase,
@@ -35,7 +38,7 @@ impl SolutionTxManager for NeverCalledTxManager {
 }
 
 #[derive(Clone)]
-struct GateService {
+struct GateRepository {
     solution_exists: bool,
     comment_exists: bool,
     solution_owner: String,
@@ -43,7 +46,7 @@ struct GateService {
 }
 
 #[async_trait]
-impl SolutionService for GateService {
+impl SolutionRepository for GateRepository {
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,
@@ -126,13 +129,13 @@ impl SolutionService for GateService {
 #[tokio::test]
 async fn update_solution_forbidden_for_non_owner() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateSolutionUsecase::new(txm, service);
+    let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
         user_id: "attacker".to_string(),
         solution_id: Uuid::now_v7(),
@@ -150,13 +153,13 @@ async fn update_solution_forbidden_for_non_owner() -> Result<()> {
 #[tokio::test]
 async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = DeleteSolutionUsecase::new(txm, service);
+    let uc = DeleteSolutionUsecase::new(txm, repository);
 
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
@@ -169,13 +172,13 @@ async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
 #[tokio::test]
 async fn update_comment_forbidden_for_non_owner() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateCommentUsecase::new(txm, service);
+    let uc = UpdateCommentUsecase::new(txm, repository);
     let input = UpdateCommentInput {
         user_id: "attacker".to_string(),
         comment_id: Uuid::now_v7(),
@@ -190,13 +193,13 @@ async fn update_comment_forbidden_for_non_owner() -> Result<()> {
 #[tokio::test]
 async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = DeleteCommentUsecase::new(txm, service);
+    let uc = DeleteCommentUsecase::new(txm, repository);
 
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
@@ -209,13 +212,13 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
 #[tokio::test]
 async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = VoteSolutionUsecase::new(txm, service);
+    let uc = VoteSolutionUsecase::new(txm, repository);
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
@@ -227,13 +230,13 @@ async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
 #[tokio::test]
 async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UnvoteSolutionUsecase::new(txm, service);
+    let uc = UnvoteSolutionUsecase::new(txm, repository);
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
@@ -245,13 +248,13 @@ async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
 #[tokio::test]
 async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateSolutionUsecase::new(txm, service);
+    let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
         user_id: "owner".to_string(),
         solution_id: Uuid::now_v7(),
@@ -269,13 +272,13 @@ async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()
 #[tokio::test]
 async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()> {
     let txm = Arc::new(NeverCalledTxManager);
-    let service = Arc::new(GateService {
+    let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: false,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateCommentUsecase::new(txm, service);
+    let uc = UpdateCommentUsecase::new(txm, repository);
     let input = UpdateCommentInput {
         user_id: "owner".to_string(),
         comment_id: Uuid::now_v7(),

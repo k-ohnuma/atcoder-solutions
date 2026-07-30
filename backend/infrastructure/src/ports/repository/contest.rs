@@ -1,20 +1,21 @@
 use async_trait::async_trait;
 use derive_new::new;
-use domain::error::repository::RepositoryError;
-use domain::model::problem::ContestSeries;
-use usecase::{model::contests::ContestListItem, service::contest::ContestService};
+use domain::{
+    error::repository::RepositoryError, model::problem::ContestSeries,
+    ports::repository::contest::ContestRepository, read_model::contests::ContestListItem,
+};
 
 use crate::error::map_sqlx_error;
 use crate::{database::ConnectionPool, model::contests::ContestListItemViewRaw};
 
 #[derive(new)]
-pub struct ContestServiceImpl {
+pub struct ContestRepositoryImpl {
     db: ConnectionPool,
 }
 
 #[async_trait]
-impl ContestService for ContestServiceImpl {
-    async fn get_contents_by_series(
+impl ContestRepository for ContestRepositoryImpl {
+    async fn get_contests_by_series(
         &self,
         series: ContestSeries,
     ) -> Result<Vec<ContestListItem>, RepositoryError> {

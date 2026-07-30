@@ -1,23 +1,25 @@
 use anyhow::Result;
 use domain::model::user::{Role, User};
-use domain::ports::repository::problem::ProblemRepository;
-use domain::ports::repository::user::UserRepository;
 use domain::{
     error::repository::RepositoryError,
     model::{problem::Problem, solution::Solution},
-    ports::repository::solution::tx::SolutionTxManager,
+    ports::repository::{
+        problem::ProblemRepository,
+        solution::{SolutionRepository, tx::SolutionTxManager},
+        user::UserRepository,
+    },
+    read_model::solution::SolutionListSort,
 };
 use infrastructure::ports::repository::user::UserRepositoryImpl;
 use infrastructure::{
     database::ConnectionPool,
-    ports::{
-        repository::{problem::ProblemRepositoryImpl, solution::tx::SolutionTransactionManager},
-        service::solution::SolutionServiceImpl,
+    ports::repository::{
+        problem::ProblemRepositoryImpl,
+        solution::{SolutionRepositoryImpl, tx::SolutionTransactionManager},
     },
 };
 use sqlx::PgPool;
 use tokio::time::{Duration, sleep};
-use usecase::{model::solution::SolutionListSort, service::solution::SolutionService};
 use uuid::Uuid;
 
 #[cfg(test)]
@@ -261,7 +263,7 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     insert_vote(&pool, "voter2", old_solution_id).await?;
     insert_vote(&pool, "voter3", new_solution_id).await?;
 
-    let service = SolutionServiceImpl::new(conn);
+    let service = SolutionRepositoryImpl::new(conn);
 
     let latest = service
         .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Latest, None)
@@ -337,7 +339,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
     insert_vote(&pool, "voter2", b_id).await?;
     insert_vote(&pool, "voter3", a_id).await?;
 
-    let service = SolutionServiceImpl::new(conn);
+    let service = SolutionRepositoryImpl::new(conn);
     let rows = service
         .get_solutions_by_user_name("alice".to_string(), SolutionListSort::Votes)
         .await?;
@@ -397,7 +399,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
     insert_vote(&pool, "voter1", older).await?;
     insert_vote(&pool, "voter2", newer).await?;
 
-    let service = SolutionServiceImpl::new(conn);
+    let service = SolutionRepositoryImpl::new(conn);
     let rows = service
         .get_solutions_by_problem_id("abc301_a".to_string(), SolutionListSort::Votes, None)
         .await?;

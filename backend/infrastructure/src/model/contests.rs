@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use usecase::model::contests::ContestListItem;
+use domain::read_model::contests::ContestListItem;
 use uuid::Uuid;
 
 pub struct ContestListItemViewRaw {

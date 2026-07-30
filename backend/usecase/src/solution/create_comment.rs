@@ -1,19 +1,19 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::tx::SolutionTxManager;
+use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use validator::Validate;
 
 use crate::{
     dto::solution::CreatedCommentView,
-    model::solution::{CreatedComment, SolutionError, create_comment::CreateCommentInput},
-    service::solution::SolutionService,
+    error::SolutionError,
+    model::solution::{CreatedComment, create_comment::CreateCommentInput},
 };
 
 #[derive(new)]
 pub struct CreateCommentUsecase {
     txm: Arc<dyn SolutionTxManager>,
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl CreateCommentUsecase {
@@ -25,12 +25,12 @@ impl CreateCommentUsecase {
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let exists = self.service.solution_exists(input.solution_id).await?;
+        let exists = self.repository.solution_exists(input.solution_id).await?;
         if !exists {
             return Err(SolutionError::BadRequest("solution not found".to_string()));
         }
 
-        let user_name = self.service.get_user_name_by_id(&input.user_id).await?;
+        let user_name = self.repository.get_user_name_by_id(&input.user_id).await?;
         let mut uow = self.txm.begin().await?;
         let created = uow
             .comments()
