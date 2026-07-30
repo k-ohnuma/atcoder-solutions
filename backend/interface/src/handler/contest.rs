@@ -1,7 +1,7 @@
 use axum::extract::{Path, State};
 use registry::Registry;
 use usecase::{
-    contest::get_by_series::GetContestsBySeriesUseCase, model::contests::GetContestsBySeriesInput,
+    contest::get_by_series::GetContestsBySeriesUsecase, model::contests::GetContestsBySeriesInput,
 };
 
 use crate::error::IntoApiResult;
@@ -14,7 +14,7 @@ pub async fn get_contests_by_series_handler(
     Path(series): Path<String>,
 ) -> ApiResult<Vec<ContestResponse>> {
     let service = reg.contest_repository();
-    let usecase = GetContestsBySeriesUseCase::new(service);
+    let usecase = GetContestsBySeriesUsecase::new(service);
 
     let input = GetContestsBySeriesInput::try_new(series).into_api_result()?;
     let contests = usecase.run(input).await.into_api_result()?;

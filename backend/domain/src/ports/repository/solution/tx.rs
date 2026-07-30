@@ -35,7 +35,7 @@ pub trait VoteRepositoryTx: Send + Sync {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreatedComment {
+pub struct SavedComment {
     pub id: Uuid,
     pub user_id: String,
     pub solution_id: Uuid,
@@ -51,12 +51,12 @@ pub trait CommentRepositoryTx: Send + Sync {
         user_id: &str,
         solution_id: Uuid,
         body_md: &str,
-    ) -> Result<CreatedComment, RepositoryError>;
+    ) -> Result<SavedComment, RepositoryError>;
     async fn update_comment(
         &mut self,
         comment_id: Uuid,
         body_md: &str,
-    ) -> Result<CreatedComment, RepositoryError>;
+    ) -> Result<SavedComment, RepositoryError>;
     async fn delete_comment(&mut self, comment_id: Uuid) -> Result<(), RepositoryError>;
 }
 

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use usecase::model::solution::output::SolutionCommentOutput;
+use usecase::model::solution::output::CommentOutput;
 use uuid::Uuid;
 
 #[derive(Serialize)]
@@ -15,8 +15,8 @@ pub struct GetCommentsBySolutionIdResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionCommentOutput> for GetCommentsBySolutionIdResponse {
-    fn from(value: SolutionCommentOutput) -> Self {
+impl From<CommentOutput> for GetCommentsBySolutionIdResponse {
+    fn from(value: CommentOutput) -> Self {
         Self {
             id: value.id,
             user_id: value.user_id,

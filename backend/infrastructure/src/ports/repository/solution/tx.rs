@@ -3,7 +3,7 @@ use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
-    CommentRepositoryTx, CreatedComment, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
+    CommentRepositoryTx, SavedComment, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
     UnitOfWork, VoteRepositoryTx,
 };
 use sqlx::{Postgres, Transaction};
@@ -222,7 +222,7 @@ impl CommentRepositoryTx for SolutionUnitOfWork {
         user_id: &str,
         solution_id: Uuid,
         body_md: &str,
-    ) -> Result<CreatedComment, RepositoryError> {
+    ) -> Result<SavedComment, RepositoryError> {
         let rec = sqlx::query!(
             r#"
             INSERT INTO comments (user_id, solution_id, body_md)
@@ -237,7 +237,7 @@ impl CommentRepositoryTx for SolutionUnitOfWork {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(CreatedComment {
+        Ok(SavedComment {
             id: rec.id,
             user_id: rec.user_id,
             solution_id: rec.solution_id,
@@ -250,7 +250,7 @@ impl CommentRepositoryTx for SolutionUnitOfWork {
         &mut self,
         comment_id: Uuid,
         body_md: &str,
-    ) -> Result<CreatedComment, RepositoryError> {
+    ) -> Result<SavedComment, RepositoryError> {
         let rec = sqlx::query!(
             r#"
             UPDATE comments
@@ -265,7 +265,7 @@ impl CommentRepositoryTx for SolutionUnitOfWork {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(CreatedComment {
+        Ok(SavedComment {
             id: rec.id,
             user_id: rec.user_id,
             solution_id: rec.solution_id,

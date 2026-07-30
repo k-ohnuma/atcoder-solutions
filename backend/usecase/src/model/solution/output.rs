@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::model::solution::{
-    CreatedComment, SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
+    SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
 };
 
 pub struct SolutionListItemOutput {
@@ -43,17 +43,7 @@ pub struct UserSolutionListItemOutput {
     pub updated_at: DateTime<Utc>,
 }
 
-pub struct CreatedCommentOutput {
-    pub id: Uuid,
-    pub user_id: String,
-    pub user_name: String,
-    pub solution_id: Uuid,
-    pub body_md: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-pub struct SolutionCommentOutput {
+pub struct CommentOutput {
     pub id: Uuid,
     pub user_id: String,
     pub user_name: String,
@@ -113,21 +103,7 @@ impl From<UserSolutionListItem> for UserSolutionListItemOutput {
     }
 }
 
-impl From<CreatedComment> for CreatedCommentOutput {
-    fn from(value: CreatedComment) -> Self {
-        Self {
-            id: value.id,
-            user_id: value.user_id,
-            user_name: value.user_name,
-            solution_id: value.solution_id,
-            body_md: value.body_md,
-            created_at: value.created_at,
-            updated_at: value.updated_at,
-        }
-    }
-}
-
-impl From<SolutionComment> for SolutionCommentOutput {
+impl From<SolutionComment> for CommentOutput {
     fn from(value: SolutionComment) -> Self {
         Self {
             id: value.id,

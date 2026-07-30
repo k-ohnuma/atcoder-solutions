@@ -4,7 +4,7 @@ use derive_new::new;
 use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use uuid::Uuid;
 
-use crate::error::SolutionError;
+use crate::{error::SolutionError, solution::authorization::ensure_comment_owner};
 
 #[derive(new)]
 pub struct DeleteCommentUsecase {
@@ -14,17 +14,13 @@ pub struct DeleteCommentUsecase {
 
 impl DeleteCommentUsecase {
     pub async fn run(&self, user_id: String, comment_id: Uuid) -> Result<Uuid, SolutionError> {
-        let exists = self.repository.comment_exists(comment_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("comment not found".to_string()));
-        }
-
-        let owner_user_id = self.repository.get_comment_user_id(comment_id).await?;
-        if owner_user_id != user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot delete this comment".to_string(),
-            ));
-        }
+        ensure_comment_owner(
+            self.repository.as_ref(),
+            comment_id,
+            &user_id,
+            "you cannot delete this comment",
+        )
+        .await?;
 
         let mut uow = self.txm.begin().await?;
         uow.comments().delete_comment(comment_id).await?;

@@ -24,6 +24,21 @@ pub struct SolutionRepositoryImpl {
 
 #[async_trait]
 impl SolutionRepository for SolutionRepositoryImpl {
+    async fn delete_solution(&self, solution_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM solutions
+            WHERE id = $1
+            "#,
+            solution_id
+        )
+        .execute(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
+    }
+
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,

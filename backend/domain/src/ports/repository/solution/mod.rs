@@ -12,6 +12,7 @@ pub mod tx;
 
 #[async_trait]
 pub trait SolutionRepository: Send + Sync {
+    async fn delete_solution(&self, solution_id: Uuid) -> Result<(), RepositoryError>;
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,

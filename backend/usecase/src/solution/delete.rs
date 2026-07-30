@@ -1,34 +1,27 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
+use domain::ports::repository::solution::SolutionRepository;
 use uuid::Uuid;
 
-use crate::error::SolutionError;
+use crate::{error::SolutionError, solution::authorization::ensure_solution_owner};
 
 #[derive(new)]
 pub struct DeleteSolutionUsecase {
-    txm: Arc<dyn SolutionTxManager>,
     repository: Arc<dyn SolutionRepository>,
 }
 
 impl DeleteSolutionUsecase {
     pub async fn run(&self, user_id: String, solution_id: Uuid) -> Result<Uuid, SolutionError> {
-        let exists = self.repository.solution_exists(solution_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("solution not found".to_string()));
-        }
+        ensure_solution_owner(
+            self.repository.as_ref(),
+            solution_id,
+            &user_id,
+            "you cannot delete this solution",
+        )
+        .await?;
 
-        let owner_user_id = self.repository.get_solution_user_id(solution_id).await?;
-        if owner_user_id != user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot delete this solution".to_string(),
-            ));
-        }
-
-        let mut uow = self.txm.begin().await?;
-        uow.solutions().delete(solution_id).await?;
-        uow.commit().await?;
+        self.repository.delete_solution(solution_id).await?;
 
         Ok(solution_id)
     }

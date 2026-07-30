@@ -34,13 +34,10 @@ impl CreateSolutionUsecase {
             ));
         }
 
-        let mut uow = self.txm.begin().await?;
-        let uid = self.idp.new_solution_id();
-        let solution = from_create_solution_input_for_solution(uid, &input);
-
         let tags = input
             .tags
-            .into_iter()
+            .iter()
+            .map(|tag| tag.to_owned())
             .filter(|e| !e.trim().is_empty())
             .sorted()
             .dedup()
@@ -53,6 +50,10 @@ impl CreateSolutionUsecase {
         if tags.iter().any(|tag| tag.chars().count() > 24) {
             return Err(SolutionError::BadRequest("tag is too long".to_string()));
         }
+
+        let mut uow = self.txm.begin().await?;
+        let uid = self.idp.new_solution_id();
+        let solution = from_create_solution_input_for_solution(uid, &input);
 
         let tag_ids = uow.tags().upsert(&tags).await?;
         let solution_id = uow.solutions().create(&solution).await?;

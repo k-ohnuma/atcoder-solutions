@@ -6,9 +6,7 @@ use validator::Validate;
 
 use crate::{
     error::SolutionError,
-    model::solution::{
-        CreatedComment, create_comment::CreateCommentInput, output::CreatedCommentOutput,
-    },
+    model::solution::{SolutionComment, create_comment::CreateCommentInput, output::CommentOutput},
 };
 
 #[derive(new)]
@@ -18,10 +16,7 @@ pub struct CreateCommentUsecase {
 }
 
 impl CreateCommentUsecase {
-    pub async fn run(
-        &self,
-        input: CreateCommentInput,
-    ) -> Result<CreatedCommentOutput, SolutionError> {
+    pub async fn run(&self, input: CreateCommentInput) -> Result<CommentOutput, SolutionError> {
         input
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
@@ -39,7 +34,7 @@ impl CreateCommentUsecase {
             .await?;
         uow.commit().await?;
 
-        Ok(CreatedCommentOutput::from(CreatedComment {
+        Ok(CommentOutput::from(SolutionComment {
             id: created.id,
             user_id: created.user_id,
             user_name,

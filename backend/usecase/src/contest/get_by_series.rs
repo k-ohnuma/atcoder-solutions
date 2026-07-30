@@ -9,11 +9,11 @@ use crate::{
 use derive_new::new;
 
 #[derive(new)]
-pub struct GetContestsBySeriesUseCase {
+pub struct GetContestsBySeriesUsecase {
     repository: Arc<dyn ContestRepository>,
 }
 
-impl GetContestsBySeriesUseCase {
+impl GetContestsBySeriesUsecase {
     pub async fn run(
         &self,
         input: GetContestsBySeriesInput,

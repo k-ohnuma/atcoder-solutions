@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use usecase::model::solution::{output::CreatedCommentOutput, update_comment::UpdateCommentInput};
+use usecase::model::solution::{output::CommentOutput, update_comment::UpdateCommentInput};
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -32,8 +32,8 @@ pub struct UpdateCommentResponse {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl From<CreatedCommentOutput> for UpdateCommentResponse {
-    fn from(value: CreatedCommentOutput) -> Self {
+impl From<CommentOutput> for UpdateCommentResponse {
+    fn from(value: CommentOutput) -> Self {
         Self {
             id: value.id,
             user_id: value.user_id,
@@ -50,7 +50,7 @@ impl From<CreatedCommentOutput> for UpdateCommentResponse {
 mod tests {
     use chrono::Utc;
     use serde_json::json;
-    use usecase::model::solution::output::CreatedCommentOutput;
+    use usecase::model::solution::output::CommentOutput;
     use uuid::Uuid;
 
     use super::{UpdateCommentRequest, UpdateCommentResponse, from_req_for_input};
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn update_comment_response_conversion_keeps_fields() {
         let now = Utc::now();
-        let dto = CreatedCommentOutput {
+        let dto = CommentOutput {
             id: Uuid::now_v7(),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),

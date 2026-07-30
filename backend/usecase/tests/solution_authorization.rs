@@ -47,6 +47,10 @@ struct GateRepository {
 
 #[async_trait]
 impl SolutionRepository for GateRepository {
+    async fn delete_solution(&self, _solution_id: Uuid) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,
@@ -152,14 +156,13 @@ async fn update_solution_forbidden_for_non_owner() -> Result<()> {
 
 #[tokio::test]
 async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = DeleteSolutionUsecase::new(txm, repository);
+    let uc = DeleteSolutionUsecase::new(repository);
 
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
@@ -348,14 +351,14 @@ impl CommentRepositoryTx for _NoopCommentRepo {
         _user_id: &str,
         _solution_id: Uuid,
         _body_md: &str,
-    ) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
+    ) -> Result<domain::ports::repository::solution::tx::SavedComment, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn update_comment(
         &mut self,
         _comment_id: Uuid,
         _body_md: &str,
-    ) -> Result<domain::ports::repository::solution::tx::CreatedComment, RepositoryError> {
+    ) -> Result<domain::ports::repository::solution::tx::SavedComment, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn delete_comment(&mut self, _comment_id: Uuid) -> Result<(), RepositoryError> {

@@ -6,9 +6,8 @@ use validator::Validate;
 
 use crate::{
     error::SolutionError,
-    model::solution::{
-        CreatedComment, output::CreatedCommentOutput, update_comment::UpdateCommentInput,
-    },
+    model::solution::{SolutionComment, output::CommentOutput, update_comment::UpdateCommentInput},
+    solution::authorization::ensure_comment_owner,
 };
 
 #[derive(new)]
@@ -18,28 +17,18 @@ pub struct UpdateCommentUsecase {
 }
 
 impl UpdateCommentUsecase {
-    pub async fn run(
-        &self,
-        input: UpdateCommentInput,
-    ) -> Result<CreatedCommentOutput, SolutionError> {
+    pub async fn run(&self, input: UpdateCommentInput) -> Result<CommentOutput, SolutionError> {
         input
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let exists = self.repository.comment_exists(input.comment_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("comment not found".to_string()));
-        }
-
-        let owner_user_id = self
-            .repository
-            .get_comment_user_id(input.comment_id)
-            .await?;
-        if owner_user_id != input.user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot update this comment".to_string(),
-            ));
-        }
+        ensure_comment_owner(
+            self.repository.as_ref(),
+            input.comment_id,
+            &input.user_id,
+            "you cannot update this comment",
+        )
+        .await?;
 
         let user_name = self.repository.get_user_name_by_id(&input.user_id).await?;
         let mut uow = self.txm.begin().await?;
@@ -49,7 +38,7 @@ impl UpdateCommentUsecase {
             .await?;
         uow.commit().await?;
 
-        Ok(CreatedCommentOutput::from(CreatedComment {
+        Ok(CommentOutput::from(SolutionComment {
             id: updated.id,
             user_id: updated.user_id,
             user_name,

@@ -42,6 +42,10 @@ impl DummySolutionRepository {
 
 #[async_trait]
 impl SolutionRepository for DummySolutionRepository {
+    async fn delete_solution(&self, _solution_id: Uuid) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,

@@ -5,7 +5,10 @@ use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxMana
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{error::SolutionError, model::solution::update::UpdateSolutionInput};
+use crate::{
+    error::SolutionError, model::solution::update::UpdateSolutionInput,
+    solution::authorization::ensure_solution_owner,
+};
 
 #[derive(new)]
 pub struct UpdateSolutionUsecase {
@@ -19,20 +22,13 @@ impl UpdateSolutionUsecase {
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let exists = self.repository.solution_exists(input.solution_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("solution not found".to_string()));
-        }
-
-        let owner_user_id = self
-            .repository
-            .get_solution_user_id(input.solution_id)
-            .await?;
-        if owner_user_id != input.user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot update this solution".to_string(),
-            ));
-        }
+        ensure_solution_owner(
+            self.repository.as_ref(),
+            input.solution_id,
+            &input.user_id,
+            "you cannot update this solution",
+        )
+        .await?;
 
         let tags = input
             .tags

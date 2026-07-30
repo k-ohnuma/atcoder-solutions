@@ -72,10 +72,7 @@ pub async fn delete_solution_handler(
     Path(solution_id): Path<Uuid>,
     AuthUser(user): AuthUser,
 ) -> ApiResult<DeleteSolutionResponse> {
-    let uc = DeleteSolutionUsecase::new(
-        registry.solution_tx_manager(),
-        registry.solution_repository(),
-    );
+    let uc = DeleteSolutionUsecase::new(registry.solution_repository());
     let deleted_id = uc.run(user.uid, solution_id).await.into_api_result()?;
     Ok(ApiResponse::ok(deleted_id.into()))
 }

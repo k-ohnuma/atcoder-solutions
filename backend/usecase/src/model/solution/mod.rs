@@ -6,6 +6,5 @@ pub mod update;
 pub mod update_comment;
 
 pub use domain::read_model::solution::{
-    CreatedComment, SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort,
-    UserSolutionListItem,
+    SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
 };

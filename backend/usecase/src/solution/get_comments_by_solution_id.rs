@@ -4,7 +4,7 @@ use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
 use uuid::Uuid;
 
-use crate::{error::SolutionError, model::solution::output::SolutionCommentOutput};
+use crate::{error::SolutionError, model::solution::output::CommentOutput};
 
 #[derive(new)]
 pub struct GetCommentsBySolutionIdUsecase {
@@ -12,10 +12,7 @@ pub struct GetCommentsBySolutionIdUsecase {
 }
 
 impl GetCommentsBySolutionIdUsecase {
-    pub async fn run(
-        &self,
-        solution_id: Uuid,
-    ) -> Result<Vec<SolutionCommentOutput>, SolutionError> {
+    pub async fn run(&self, solution_id: Uuid) -> Result<Vec<CommentOutput>, SolutionError> {
         let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));
@@ -24,9 +21,6 @@ impl GetCommentsBySolutionIdUsecase {
             .repository
             .get_comments_by_solution_id(solution_id)
             .await?;
-        Ok(comments
-            .into_iter()
-            .map(SolutionCommentOutput::from)
-            .collect())
+        Ok(comments.into_iter().map(CommentOutput::from).collect())
     }
 }
