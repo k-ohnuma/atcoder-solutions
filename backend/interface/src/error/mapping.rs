@@ -1,6 +1,4 @@
-use usecase::model::{
-    contests::ContestError, problem::ProblemError, solution::SolutionError, user::UserError,
-};
+use usecase::error::{ContestError, ProblemError, SolutionError, UserError};
 
 use super::HttpError;
 

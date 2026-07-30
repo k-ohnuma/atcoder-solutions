@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
 
-use crate::model::problem::{ProblemError, get_by_contest::GetProblemByIdInput};
+use crate::{error::ProblemError, model::problem::get_by_contest::GetProblemByIdInput};
 
 #[derive(new)]
 pub struct GetProblemByIdUsecase {

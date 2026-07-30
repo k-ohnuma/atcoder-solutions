@@ -1,6 +1,8 @@
-use domain::error::repository::RepositoryError;
 use domain::model::problem::ContestSeries;
-use thiserror::Error;
+
+use crate::error::ContestError;
+
+pub use domain::read_model::contests::ContestListItem;
 
 #[derive(Clone, Copy)]
 pub struct GetContestsBySeriesInput {
@@ -13,12 +15,6 @@ impl GetContestsBySeriesInput {
             ContestSeries::try_from(series).map_err(|e| ContestError::BadRequest(e.msg()))?;
         Ok(Self { series })
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct ContestListItem {
-    pub code: String,
-    pub series_code: String,
 }
 
 #[cfg(test)]
@@ -36,31 +32,5 @@ mod tests {
             GetContestsBySeriesInput::try_new("invalid".to_string()),
             Err(ContestError::BadRequest(message)) if message == "invalid"
         ));
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum ContestError {
-    #[error("{0}")]
-    BadRequest(String),
-    #[error("{0}")]
-    DBError(String),
-    #[error("{0}")]
-    NotFound(String),
-}
-
-impl From<RepositoryError> for ContestError {
-    fn from(value: RepositoryError) -> Self {
-        match value {
-            RepositoryError::NotFound(msg) => ContestError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::UniqueViolation(msg) => ContestError::DBError(msg),
-            RepositoryError::ForeignKeyViolation(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::Connection(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::Query(msg) => ContestError::DBError(msg.to_string()),
-            RepositoryError::Unexpected(msg) => ContestError::DBError(msg.to_string()),
-        }
     }
 }

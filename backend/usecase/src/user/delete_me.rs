@@ -4,7 +4,7 @@ use derive_new::new;
 use domain::ports::{external::auth::IdentityProviderPort, repository::user::UserRepository};
 use tracing::error;
 
-use crate::model::user::{UserError, delete_me::DeleteMeOutput};
+use crate::{error::UserError, model::user::delete_me::DeleteMeOutput};
 
 const RECENT_LOGIN_MAX_AGE_SECONDS: i64 = 5 * 60;
 

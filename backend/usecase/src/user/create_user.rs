@@ -5,9 +5,9 @@ use domain::ports::{external::auth::IdentityProviderPort, repository::user::User
 use tracing::error;
 use validator::Validate;
 
-use crate::model::user::{
-    UserError,
-    create::{CreateUserInput, CreateUserOutput},
+use crate::{
+    error::UserError,
+    model::user::create::{CreateUserInput, CreateUserOutput},
 };
 
 #[derive(new)]

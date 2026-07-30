@@ -3,9 +3,9 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::ports::repository::problem::ProblemRepository;
 
-use crate::model::problem::{
-    ProblemError,
-    get_contest_group_by_contest_series::{
+use crate::{
+    error::ProblemError,
+    model::problem::get_contest_group_by_contest_series::{
         ContestGroupCollection, ContestGroupPage, GetContestGroupByContestSeriesInput,
     },
 };

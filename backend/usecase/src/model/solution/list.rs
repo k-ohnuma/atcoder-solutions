@@ -1,4 +1,5 @@
-use super::{SolutionError, SolutionListSort};
+use super::SolutionListSort;
+use crate::error::SolutionError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetLatestSolutionsInput {
@@ -88,7 +89,7 @@ mod tests {
     use super::{
         GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
     };
-    use crate::model::solution::{SolutionError, SolutionListSort};
+    use crate::{error::SolutionError, model::solution::SolutionListSort};
 
     #[test]
     fn latest_input_accepts_empty_or_latest_sort() {

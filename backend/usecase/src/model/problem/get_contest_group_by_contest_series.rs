@@ -2,7 +2,7 @@ use std::{cmp::Reverse, collections::BTreeMap};
 
 use domain::model::problem::{ContestSeries, Problem};
 
-use super::ProblemError;
+use crate::error::ProblemError;
 
 const MAX_CONTEST_GROUP_QUERY_LENGTH: usize = 100;
 const MAX_CONTEST_GROUP_OFFSET: usize = 5_000;
@@ -74,7 +74,7 @@ impl From<Vec<Problem>> for ContestGroupCollection {
 #[cfg(test)]
 mod tests {
     use super::GetContestGroupByContestSeriesInput;
-    use crate::model::problem::ProblemError;
+    use crate::error::ProblemError;
 
     #[test]
     fn contest_group_input_normalizes_query() {

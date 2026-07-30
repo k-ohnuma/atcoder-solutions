@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::ports::repository::user::UserRepository;
 
-use crate::model::user::{UserError, revoke_tokens::RevokeTokensOutput};
+use crate::{error::UserError, model::user::revoke_tokens::RevokeTokensOutput};
 
 #[derive(new)]
 pub struct RevokeTokensUsecase {

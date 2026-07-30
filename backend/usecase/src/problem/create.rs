@@ -11,7 +11,7 @@ use domain::{
 };
 use tracing::{info, warn};
 
-use crate::model::problem::create::ImportProblemsUsecaseError;
+use crate::error::problem::ImportProblemsUsecaseError;
 
 const PROBLEM_UPSERT_CHUNK_SIZE: usize = 500;
 

@@ -11,7 +11,8 @@ use domain::{
     },
 };
 use usecase::{
-    model::user::{UserError, create::CreateUserInput},
+    error::UserError,
+    model::user::create::CreateUserInput,
     user::{create_user::CreateUserUsecase, delete_me::DeleteMeUsecase},
 };
 

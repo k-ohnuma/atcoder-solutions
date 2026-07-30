@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use usecase::model::user::{
-    UserError,
-    create::{CreateUserInput, CreateUserOutput},
+use usecase::{
+    error::UserError,
+    model::user::create::{CreateUserInput, CreateUserOutput},
 };
 
 #[derive(Deserialize, Clone)]

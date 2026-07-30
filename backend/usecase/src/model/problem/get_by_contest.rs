@@ -1,4 +1,4 @@
-use super::ProblemError;
+use crate::error::ProblemError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetProblemsByContestInput {
@@ -41,7 +41,7 @@ impl GetProblemByIdInput {
 #[cfg(test)]
 mod tests {
     use super::{GetProblemByIdInput, GetProblemsByContestInput};
-    use crate::model::problem::ProblemError;
+    use crate::error::ProblemError;
 
     #[test]
     fn contest_input_normalizes_contest_code() {

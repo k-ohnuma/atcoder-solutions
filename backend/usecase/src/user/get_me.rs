@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::ports::repository::user::UserRepository;
 
-use crate::model::user::{UserError, get_me::GetMeOutput};
+use crate::{error::UserError, model::user::get_me::GetMeOutput};
 
 #[derive(new)]
 pub struct GetMeUsecase {
