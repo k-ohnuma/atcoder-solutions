@@ -6,7 +6,7 @@ use usecase::{
 };
 
 use crate::{
-    error::ToHttpError,
+    error::IntoApiResult,
     http::{ApiQuery, ApiResult},
     model::problem::{
         ProblemResponse,
@@ -27,9 +27,9 @@ pub async fn get_contest_group_by_contest_series_handler(
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
     let input =
         GetContestGroupByContestSeriesInput::try_new(series, query.q, query.limit, query.offset)
-            .map_err(|e| e.to_http_error())?;
+            .into_api_result()?;
 
-    let page = usecase.run(input).await.map_err(|e| e.to_http_error())?;
+    let page = usecase.run(input).await.into_api_result()?;
     let groups = page
         .items
         .0

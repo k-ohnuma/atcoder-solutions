@@ -6,7 +6,7 @@ use usecase::{
 };
 
 use crate::{
-    error::ToHttpError, http::ApiResult, model::problem::ProblemResponse, response::ApiResponse,
+    error::IntoApiResult, http::ApiResult, model::problem::ProblemResponse, response::ApiResponse,
 };
 
 pub async fn get_problems_by_contest_handler(
@@ -15,8 +15,8 @@ pub async fn get_problems_by_contest_handler(
 ) -> ApiResult<Vec<ProblemResponse>> {
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemsByContestUsecase::new(problems_repository);
-    let input = GetProblemsByContestInput::try_new(contest_code).map_err(|e| e.to_http_error())?;
-    let problems = usecase.run(input).await.map_err(|e| e.to_http_error())?;
+    let input = GetProblemsByContestInput::try_new(contest_code).into_api_result()?;
+    let problems = usecase.run(input).await.into_api_result()?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
@@ -28,8 +28,8 @@ pub async fn get_problem_by_id_handler(
 ) -> ApiResult<ProblemResponse> {
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemByIdUsecase::new(problems_repository);
-    let input = GetProblemByIdInput::try_new(problem_id).map_err(|e| e.to_http_error())?;
-    let problem = usecase.run(input).await.map_err(|e| e.to_http_error())?;
+    let input = GetProblemByIdInput::try_new(problem_id).into_api_result()?;
+    let problem = usecase.run(input).await.into_api_result()?;
 
     Ok(ApiResponse::ok(ProblemResponse::from(problem)))
 }

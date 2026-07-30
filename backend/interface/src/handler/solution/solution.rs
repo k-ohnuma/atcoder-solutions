@@ -13,7 +13,7 @@ use usecase::solution::{
 use uuid::Uuid;
 
 use crate::{
-    error::ToHttpError,
+    error::IntoApiResult,
     http::{ApiJson, ApiQuery, ApiResult, AuthUser, TurnstileGuard},
     model::solution::{
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
@@ -47,7 +47,7 @@ pub async fn create_solution_handler(
         registry.solution_service(),
     );
     let input = from_req_for_input(user_id, req);
-    let res = repo.run(input).await.map_err(|e| e.to_http_error())?;
+    let res = repo.run(input).await.into_api_result()?;
 
     Ok(ApiResponse::ok(res.into()))
 }
@@ -61,7 +61,7 @@ pub async fn update_solution_handler(
     let uc =
         UpdateSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     let input = from_req_for_update_solution(user.uid, solution_id, req);
-    let updated_id = uc.run(input).await.map_err(|e| e.to_http_error())?;
+    let updated_id = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(updated_id.into()))
 }
 
@@ -72,10 +72,7 @@ pub async fn delete_solution_handler(
 ) -> ApiResult<DeleteSolutionResponse> {
     let uc =
         DeleteSolutionUsecase::new(registry.solution_tx_manager(), registry.solution_service());
-    let deleted_id = uc
-        .run(user.uid, solution_id)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let deleted_id = uc.run(user.uid, solution_id).await.into_api_result()?;
     Ok(ApiResponse::ok(deleted_id.into()))
 }
 
@@ -86,8 +83,8 @@ pub async fn get_solutions_by_problems_id_handler(
 ) -> ApiResult<Vec<GetSolutionsByProblemIdResponse>> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
     let input = GetSolutionsByProblemIdInput::try_new(problem_id, req.sort_by, req.limit)
-        .map_err(|e| e.to_http_error())?;
-    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
+        .into_api_result()?;
+    let solutions = uc.run(input).await.into_api_result()?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByProblemIdResponse::from)
@@ -100,9 +97,8 @@ pub async fn get_latest_solutions_handler(
     ApiQuery(req): ApiQuery<GetLatestSolutionsRequest>,
 ) -> ApiResult<Vec<GetLatestSolutionsResponse>> {
     let uc = GetLatestSolutionsUsecase::new(registry.solution_service());
-    let input =
-        GetLatestSolutionsInput::try_new(req.sort_by, req.limit).map_err(|e| e.to_http_error())?;
-    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
+    let input = GetLatestSolutionsInput::try_new(req.sort_by, req.limit).into_api_result()?;
+    let solutions = uc.run(input).await.into_api_result()?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetLatestSolutionsResponse::from)
@@ -116,10 +112,9 @@ pub async fn get_solutions_by_user_name_handler(
     ApiQuery(req): ApiQuery<GetSolutionsByUserNameRequest>,
 ) -> ApiResult<Vec<GetSolutionsByUserNameResponse>> {
     let uc = GetSolutionsByUserNameUsecase::new(registry.solution_service());
-    let input = GetSolutionsByUserNameInput::try_new(user_name, req.sort_by)
-        .map_err(|e| e.to_http_error())?;
+    let input = GetSolutionsByUserNameInput::try_new(user_name, req.sort_by).into_api_result()?;
 
-    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
+    let solutions = uc.run(input).await.into_api_result()?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByUserNameResponse::from)
@@ -132,6 +127,6 @@ pub async fn get_solution_by_solution_id_handler(
     Path(solution_id): Path<Uuid>,
 ) -> ApiResult<GetSolutionBySolutionIdResponse> {
     let uc = GetSolutionBySolutionIdUsecase::new(registry.solution_service());
-    let solution = uc.run(solution_id).await.map_err(|e| e.to_http_error())?;
+    let solution = uc.run(solution_id).await.into_api_result()?;
     Ok(ApiResponse::ok(solution.into()))
 }

@@ -11,7 +11,7 @@ use usecase::{
 use uuid::Uuid;
 
 use crate::{
-    error::ToHttpError,
+    error::IntoApiResult,
     http::{ApiJson, ApiResult, AuthUser, TurnstileGuard},
     model::solution::{
         create_comment::{CreateCommentRequest, CreateCommentResponse},
@@ -38,7 +38,7 @@ pub async fn create_comment_handler(
         solution_id,
         body_md: req.body_md,
     };
-    let created = uc.run(input).await.map_err(|e| e.to_http_error())?;
+    let created = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(CreateCommentResponse::from(created)))
 }
 
@@ -50,7 +50,7 @@ pub async fn update_comment_handler(
 ) -> ApiResult<UpdateCommentResponse> {
     let uc = UpdateCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
     let input = from_req_for_update_comment(user.uid, comment_id, req);
-    let updated = uc.run(input).await.map_err(|e| e.to_http_error())?;
+    let updated = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(UpdateCommentResponse::from(updated)))
 }
 
@@ -60,10 +60,7 @@ pub async fn delete_comment_handler(
     AuthUser(user): AuthUser,
 ) -> ApiResult<DeleteCommentResponse> {
     let uc = DeleteCommentUsecase::new(registry.solution_tx_manager(), registry.solution_service());
-    let deleted_id = uc
-        .run(user.uid, comment_id)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let deleted_id = uc.run(user.uid, comment_id).await.into_api_result()?;
     Ok(ApiResponse::ok(deleted_id.into()))
 }
 
@@ -72,7 +69,7 @@ pub async fn get_comments_by_solution_id_handler(
     Path(solution_id): Path<Uuid>,
 ) -> ApiResult<Vec<GetCommentsBySolutionIdResponse>> {
     let uc = GetCommentsBySolutionIdUsecase::new(registry.solution_service());
-    let comments = uc.run(solution_id).await.map_err(|e| e.to_http_error())?;
+    let comments = uc.run(solution_id).await.into_api_result()?;
     let ret: Vec<_> = comments
         .into_iter()
         .map(GetCommentsBySolutionIdResponse::from)

@@ -8,6 +8,19 @@ pub trait ToHttpError {
     fn to_http_error(self) -> HttpError;
 }
 
+pub trait IntoApiResult<T> {
+    fn into_api_result(self) -> Result<T, HttpError>;
+}
+
+impl<T, E> IntoApiResult<T> for Result<T, E>
+where
+    E: ToHttpError,
+{
+    fn into_api_result(self) -> Result<T, HttpError> {
+        self.map_err(|e| e.to_http_error())
+    }
+}
+
 impl ToHttpError for ProblemError {
     fn to_http_error(self) -> HttpError {
         match self {
