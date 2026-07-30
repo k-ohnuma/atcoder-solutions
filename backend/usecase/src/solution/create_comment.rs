@@ -5,9 +5,10 @@ use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxMana
 use validator::Validate;
 
 use crate::{
-    dto::solution::CreatedCommentView,
     error::SolutionError,
-    model::solution::{CreatedComment, create_comment::CreateCommentInput},
+    model::solution::{
+        CreatedComment, create_comment::CreateCommentInput, output::CreatedCommentOutput,
+    },
 };
 
 #[derive(new)]
@@ -20,7 +21,7 @@ impl CreateCommentUsecase {
     pub async fn run(
         &self,
         input: CreateCommentInput,
-    ) -> Result<CreatedCommentView, SolutionError> {
+    ) -> Result<CreatedCommentOutput, SolutionError> {
         input
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
@@ -38,7 +39,7 @@ impl CreateCommentUsecase {
             .await?;
         uow.commit().await?;
 
-        Ok(CreatedCommentView::from(CreatedComment {
+        Ok(CreatedCommentOutput::from(CreatedComment {
             id: created.id,
             user_id: created.user_id,
             user_name,

@@ -4,7 +4,7 @@ use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
 use uuid::Uuid;
 
-use crate::{dto::solution::SolutionView, error::SolutionError};
+use crate::{error::SolutionError, model::solution::output::SolutionOutput};
 
 #[derive(new)]
 pub struct GetSolutionBySolutionIdUsecase {
@@ -12,7 +12,7 @@ pub struct GetSolutionBySolutionIdUsecase {
 }
 
 impl GetSolutionBySolutionIdUsecase {
-    pub async fn run(&self, solution_id: Uuid) -> Result<SolutionView, SolutionError> {
+    pub async fn run(&self, solution_id: Uuid) -> Result<SolutionOutput, SolutionError> {
         let item = self
             .repository
             .get_solution_by_solution_id(solution_id)

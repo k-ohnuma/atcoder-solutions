@@ -4,8 +4,8 @@ use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
 
 use crate::{
-    dto::solution::SolutionListItemView, error::SolutionError,
-    model::solution::list::GetSolutionsByProblemIdInput,
+    error::SolutionError,
+    model::solution::{list::GetSolutionsByProblemIdInput, output::SolutionListItemOutput},
 };
 
 #[derive(new)]
@@ -17,7 +17,7 @@ impl GetSolutionsByProblemIdUsecase {
     pub async fn run(
         &self,
         input: GetSolutionsByProblemIdInput,
-    ) -> Result<Vec<SolutionListItemView>, SolutionError> {
+    ) -> Result<Vec<SolutionListItemOutput>, SolutionError> {
         let exists = self.repository.problem_exists(&input.problem_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("problem not found".to_string()));
@@ -27,6 +27,9 @@ impl GetSolutionsByProblemIdUsecase {
             .repository
             .get_solutions_by_problem_id(input.problem_id, input.sort, input.limit)
             .await?;
-        Ok(items.into_iter().map(SolutionListItemView::from).collect())
+        Ok(items
+            .into_iter()
+            .map(SolutionListItemOutput::from)
+            .collect())
     }
 }

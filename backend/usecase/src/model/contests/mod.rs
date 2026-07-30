@@ -2,6 +2,8 @@ use domain::model::problem::ContestSeries;
 
 use crate::error::ContestError;
 
+pub mod output;
+
 pub use domain::read_model::contests::ContestListItem;
 
 #[derive(Clone, Copy)]

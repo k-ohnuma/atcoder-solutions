@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use usecase::dto::solution::SolutionListItemView;
+use usecase::model::solution::output::SolutionListItemOutput;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -23,9 +23,9 @@ pub struct GetSolutionsByProblemIdResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionListItemView> for GetSolutionsByProblemIdResponse {
-    fn from(value: SolutionListItemView) -> Self {
-        let SolutionListItemView {
+impl From<SolutionListItemOutput> for GetSolutionsByProblemIdResponse {
+    fn from(value: SolutionListItemOutput) -> Self {
+        let SolutionListItemOutput {
             id,
             title,
             problem_id,
@@ -53,7 +53,7 @@ impl From<SolutionListItemView> for GetSolutionsByProblemIdResponse {
 mod tests {
     use chrono::Utc;
     use serde_json::json;
-    use usecase::dto::solution::SolutionListItemView;
+    use usecase::model::solution::output::SolutionListItemOutput;
     use uuid::Uuid;
 
     use super::{GetSolutionsByProblemIdRequest, GetSolutionsByProblemIdResponse};
@@ -73,7 +73,7 @@ mod tests {
     fn response_conversion_keeps_votes_count() {
         let id = Uuid::now_v7();
         let now = Utc::now();
-        let dto = SolutionListItemView {
+        let dto = SolutionListItemOutput {
             id,
             title: "title".to_string(),
             problem_id: "abc100_a".to_string(),

@@ -5,7 +5,7 @@ use crate::model::solution::{
     CreatedComment, SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
 };
 
-pub struct SolutionListItemView {
+pub struct SolutionListItemOutput {
     pub id: Uuid,
     pub title: String,
     pub problem_id: String,
@@ -16,7 +16,7 @@ pub struct SolutionListItemView {
     pub updated_at: DateTime<Utc>,
 }
 
-pub struct SolutionView {
+pub struct SolutionOutput {
     pub id: Uuid,
     pub title: String,
     pub problem_id: String,
@@ -31,7 +31,7 @@ pub struct SolutionView {
     pub updated_at: DateTime<Utc>,
 }
 
-pub struct UserSolutionListItemView {
+pub struct UserSolutionListItemOutput {
     pub id: Uuid,
     pub title: String,
     pub problem_id: String,
@@ -43,7 +43,7 @@ pub struct UserSolutionListItemView {
     pub updated_at: DateTime<Utc>,
 }
 
-pub struct CreatedCommentView {
+pub struct CreatedCommentOutput {
     pub id: Uuid,
     pub user_id: String,
     pub user_name: String,
@@ -53,7 +53,7 @@ pub struct CreatedCommentView {
     pub updated_at: DateTime<Utc>,
 }
 
-pub struct SolutionCommentView {
+pub struct SolutionCommentOutput {
     pub id: Uuid,
     pub user_id: String,
     pub user_name: String,
@@ -63,7 +63,7 @@ pub struct SolutionCommentView {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionListItem> for SolutionListItemView {
+impl From<SolutionListItem> for SolutionListItemOutput {
     fn from(value: SolutionListItem) -> Self {
         Self {
             id: value.id,
@@ -78,7 +78,7 @@ impl From<SolutionListItem> for SolutionListItemView {
     }
 }
 
-impl From<SolutionDetails> for SolutionView {
+impl From<SolutionDetails> for SolutionOutput {
     fn from(value: SolutionDetails) -> Self {
         Self {
             id: value.id,
@@ -97,7 +97,7 @@ impl From<SolutionDetails> for SolutionView {
     }
 }
 
-impl From<UserSolutionListItem> for UserSolutionListItemView {
+impl From<UserSolutionListItem> for UserSolutionListItemOutput {
     fn from(value: UserSolutionListItem) -> Self {
         Self {
             id: value.id,
@@ -113,7 +113,7 @@ impl From<UserSolutionListItem> for UserSolutionListItemView {
     }
 }
 
-impl From<CreatedComment> for CreatedCommentView {
+impl From<CreatedComment> for CreatedCommentOutput {
     fn from(value: CreatedComment) -> Self {
         Self {
             id: value.id,
@@ -127,7 +127,7 @@ impl From<CreatedComment> for CreatedCommentView {
     }
 }
 
-impl From<SolutionComment> for SolutionCommentView {
+impl From<SolutionComment> for SolutionCommentOutput {
     fn from(value: SolutionComment) -> Self {
         Self {
             id: value.id,

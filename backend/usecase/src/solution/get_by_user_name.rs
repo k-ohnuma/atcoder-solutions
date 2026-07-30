@@ -4,8 +4,8 @@ use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
 
 use crate::{
-    dto::solution::UserSolutionListItemView, error::SolutionError,
-    model::solution::list::GetSolutionsByUserNameInput,
+    error::SolutionError,
+    model::solution::{list::GetSolutionsByUserNameInput, output::UserSolutionListItemOutput},
 };
 
 #[derive(new)]
@@ -17,7 +17,7 @@ impl GetSolutionsByUserNameUsecase {
     pub async fn run(
         &self,
         input: GetSolutionsByUserNameInput,
-    ) -> Result<Vec<UserSolutionListItemView>, SolutionError> {
+    ) -> Result<Vec<UserSolutionListItemOutput>, SolutionError> {
         let exists = self.repository.user_name_exists(&input.user_name).await?;
         if !exists {
             return Err(SolutionError::NotFound("user not found".to_string()));
@@ -29,7 +29,7 @@ impl GetSolutionsByUserNameUsecase {
             .await?;
         Ok(items
             .into_iter()
-            .map(UserSolutionListItemView::from)
+            .map(UserSolutionListItemOutput::from)
             .collect())
     }
 }

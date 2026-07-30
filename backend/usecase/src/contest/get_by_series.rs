@@ -3,8 +3,8 @@ use std::sync::Arc;
 use domain::ports::repository::contest::ContestRepository;
 
 use crate::{
-    dto::contests::ContestListItemView, error::ContestError,
-    model::contests::GetContestsBySeriesInput,
+    error::ContestError,
+    model::contests::{GetContestsBySeriesInput, output::ContestListItemOutput},
 };
 use derive_new::new;
 
@@ -17,12 +17,12 @@ impl GetContestsBySeriesUseCase {
     pub async fn run(
         &self,
         input: GetContestsBySeriesInput,
-    ) -> Result<Vec<ContestListItemView>, ContestError> {
+    ) -> Result<Vec<ContestListItemOutput>, ContestError> {
         let items = self
             .repository
             .get_contests_by_series(input.series)
             .await
             .map_err(ContestError::from)?;
-        Ok(items.into_iter().map(ContestListItemView::from).collect())
+        Ok(items.into_iter().map(ContestListItemOutput::from).collect())
     }
 }
