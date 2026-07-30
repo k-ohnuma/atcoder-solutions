@@ -39,6 +39,121 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(())
     }
 
+    async fn vote_solution(&self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            INSERT INTO solution_votes (user_id, solution_id)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, solution_id) DO NOTHING
+            "#,
+            user_id,
+            solution_id
+        )
+        .execute(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
+    }
+
+    async fn unvote_solution(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+    ) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM solution_votes
+            WHERE user_id = $1 AND solution_id = $2
+            "#,
+            user_id,
+            solution_id
+        )
+        .execute(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        let comment = sqlx::query_as!(
+            SolutionCommentViewRaw,
+            r#"
+            INSERT INTO comments (user_id, solution_id, body_md)
+            VALUES ($1, $2, $3)
+            RETURNING
+                id,
+                user_id,
+                (SELECT user_name FROM users WHERE id = $1) AS "user_name!",
+                solution_id,
+                body_md,
+                created_at,
+                updated_at
+            "#,
+            user_id,
+            solution_id,
+            body_md
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(comment.into())
+    }
+
+    async fn update_comment(
+        &self,
+        comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        let comment = sqlx::query_as!(
+            SolutionCommentViewRaw,
+            r#"
+            UPDATE comments c
+            SET body_md = $2
+            FROM users u
+            WHERE c.id = $1
+              AND u.id = c.user_id
+            RETURNING
+                c.id,
+                c.user_id,
+                u.user_name,
+                c.solution_id,
+                c.body_md,
+                c.created_at,
+                c.updated_at
+            "#,
+            comment_id,
+            body_md
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(comment.into())
+    }
+
+    async fn delete_comment(&self, comment_id: Uuid) -> Result<(), RepositoryError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM comments
+            WHERE id = $1
+            "#,
+            comment_id
+        )
+        .execute(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(())
+    }
+
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,

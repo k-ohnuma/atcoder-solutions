@@ -13,6 +13,24 @@ pub mod tx;
 #[async_trait]
 pub trait SolutionRepository: Send + Sync {
     async fn delete_solution(&self, solution_id: Uuid) -> Result<(), RepositoryError>;
+    async fn vote_solution(&self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError>;
+    async fn unvote_solution(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+    ) -> Result<(), RepositoryError>;
+    async fn create_comment(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError>;
+    async fn update_comment(
+        &self,
+        comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError>;
+    async fn delete_comment(&self, comment_id: Uuid) -> Result<(), RepositoryError>;
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,

@@ -22,10 +22,7 @@ pub async fn vote_solution_handler(
     Path(solution_id): Path<Uuid>,
     AuthUser(user): AuthUser,
 ) -> ApiResult<VoteSolutionResponse> {
-    let uc = VoteSolutionUsecase::new(
-        registry.solution_tx_manager(),
-        registry.solution_repository(),
-    );
+    let uc = VoteSolutionUsecase::new(registry.solution_repository());
     uc.run(user.uid, solution_id).await.into_api_result()?;
     Ok(ApiResponse::ok(VoteSolutionResponse::liked(solution_id)))
 }
@@ -35,10 +32,7 @@ pub async fn unvote_solution_handler(
     Path(solution_id): Path<Uuid>,
     AuthUser(user): AuthUser,
 ) -> ApiResult<UnvoteSolutionResponse> {
-    let uc = UnvoteSolutionUsecase::new(
-        registry.solution_tx_manager(),
-        registry.solution_repository(),
-    );
+    let uc = UnvoteSolutionUsecase::new(registry.solution_repository());
     uc.run(user.uid, solution_id).await.into_api_result()?;
     Ok(ApiResponse::ok(UnvoteSolutionResponse::unliked(
         solution_id,

@@ -46,6 +46,59 @@ impl SolutionRepository for DummySolutionRepository {
         Ok(())
     }
 
+    async fn vote_solution(
+        &self,
+        _user_id: &str,
+        _solution_id: Uuid,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn unvote_solution(
+        &self,
+        _user_id: &str,
+        _solution_id: Uuid,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn delete_comment(&self, _comment_id: Uuid) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7(),
+            user_id: user_id.to_string(),
+            user_name: "alice".to_string(),
+            solution_id,
+            body_md: body_md.to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        })
+    }
+
+    async fn update_comment(
+        &self,
+        _comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7(),
+            user_id: "uid".to_string(),
+            user_name: "alice".to_string(),
+            solution_id: Uuid::now_v7(),
+            body_md: body_md.to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        })
+    }
+
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,

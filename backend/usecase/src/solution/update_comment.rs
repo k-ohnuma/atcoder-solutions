@@ -1,18 +1,17 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
+use domain::ports::repository::solution::SolutionRepository;
 use validator::Validate;
 
 use crate::{
     error::SolutionError,
-    model::solution::{SolutionComment, output::CommentOutput, update_comment::UpdateCommentInput},
+    model::solution::{output::CommentOutput, update_comment::UpdateCommentInput},
     solution::authorization::ensure_comment_owner,
 };
 
 #[derive(new)]
 pub struct UpdateCommentUsecase {
-    txm: Arc<dyn SolutionTxManager>,
     repository: Arc<dyn SolutionRepository>,
 }
 
@@ -30,22 +29,11 @@ impl UpdateCommentUsecase {
         )
         .await?;
 
-        let user_name = self.repository.get_user_name_by_id(&input.user_id).await?;
-        let mut uow = self.txm.begin().await?;
-        let updated = uow
-            .comments()
+        let comment = self
+            .repository
             .update_comment(input.comment_id, &input.body_md)
             .await?;
-        uow.commit().await?;
 
-        Ok(CommentOutput::from(SolutionComment {
-            id: updated.id,
-            user_id: updated.user_id,
-            user_name,
-            solution_id: updated.solution_id,
-            body_md: updated.body_md,
-            created_at: updated.created_at,
-            updated_at: updated.updated_at,
-        }))
+        Ok(CommentOutput::from(comment))
     }
 }

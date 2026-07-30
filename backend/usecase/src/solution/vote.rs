@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
+use domain::ports::repository::solution::SolutionRepository;
 use uuid::Uuid;
 
 use crate::error::SolutionError;
 
 #[derive(new)]
 pub struct VoteSolutionUsecase {
-    txm: Arc<dyn SolutionTxManager>,
     repository: Arc<dyn SolutionRepository>,
 }
 
@@ -19,9 +18,7 @@ impl VoteSolutionUsecase {
             return Err(SolutionError::BadRequest("solution not found".to_string()));
         }
 
-        let mut uow = self.txm.begin().await?;
-        uow.votes().like(&user_id, solution_id).await?;
-        uow.commit().await?;
+        self.repository.vote_solution(&user_id, solution_id).await?;
         Ok(())
     }
 }

@@ -3,8 +3,7 @@ use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
-    CommentRepositoryTx, SavedComment, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
-    UnitOfWork, VoteRepositoryTx,
+    SolutionRepositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
 };
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -40,19 +39,12 @@ impl SolutionUnitOfWork {
 
 #[async_trait]
 impl UnitOfWork for SolutionUnitOfWork {
-    fn solutions(&mut self) -> &mut dyn SolutionRespositoryTx {
+    fn solutions(&mut self) -> &mut dyn SolutionRepositoryTx {
         self
     }
     fn tags(&mut self) -> &mut dyn TagRepositoryTx {
         self
     }
-    fn votes(&mut self) -> &mut dyn VoteRepositoryTx {
-        self
-    }
-    fn comments(&mut self) -> &mut dyn CommentRepositoryTx {
-        self
-    }
-
     async fn commit(mut self: Box<Self>) -> Result<(), RepositoryError> {
         self.tx.commit().await.map_err(map_sqlx_error)?;
         Ok(())
@@ -64,7 +56,7 @@ impl UnitOfWork for SolutionUnitOfWork {
 }
 
 #[async_trait]
-impl SolutionRespositoryTx for SolutionUnitOfWork {
+impl SolutionRepositoryTx for SolutionUnitOfWork {
     async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError> {
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
@@ -98,19 +90,6 @@ impl SolutionRespositoryTx for SolutionUnitOfWork {
             title,
             body_md,
             submit_url
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-        Ok(())
-    }
-    async fn delete(&mut self, solution_id: Uuid) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            DELETE FROM solutions
-            WHERE id = $1
-            "#,
-            solution_id
         )
         .execute(self.conn())
         .await
@@ -176,115 +155,5 @@ impl TagRepositoryTx for SolutionUnitOfWork {
         .map_err(map_sqlx_error)?;
 
         Ok(rows.into_iter().filter_map(|r| r.id).collect())
-    }
-}
-
-#[async_trait]
-impl VoteRepositoryTx for SolutionUnitOfWork {
-    async fn like(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            INSERT INTO solution_votes (user_id, solution_id)
-            VALUES ($1, $2)
-            ON CONFLICT (user_id, solution_id) DO NOTHING
-            "#,
-            user_id,
-            solution_id
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(())
-    }
-
-    async fn unlike(&mut self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            DELETE FROM solution_votes
-            WHERE user_id = $1 AND solution_id = $2
-            "#,
-            user_id,
-            solution_id
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl CommentRepositoryTx for SolutionUnitOfWork {
-    async fn create_comment(
-        &mut self,
-        user_id: &str,
-        solution_id: Uuid,
-        body_md: &str,
-    ) -> Result<SavedComment, RepositoryError> {
-        let rec = sqlx::query!(
-            r#"
-            INSERT INTO comments (user_id, solution_id, body_md)
-            VALUES ($1, $2, $3)
-            RETURNING id, user_id, solution_id, body_md, created_at, updated_at
-            "#,
-            user_id,
-            solution_id,
-            body_md
-        )
-        .fetch_one(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(SavedComment {
-            id: rec.id,
-            user_id: rec.user_id,
-            solution_id: rec.solution_id,
-            body_md: rec.body_md,
-            created_at: rec.created_at,
-            updated_at: rec.updated_at,
-        })
-    }
-    async fn update_comment(
-        &mut self,
-        comment_id: Uuid,
-        body_md: &str,
-    ) -> Result<SavedComment, RepositoryError> {
-        let rec = sqlx::query!(
-            r#"
-            UPDATE comments
-            SET body_md = $2
-            WHERE id = $1
-            RETURNING id, user_id, solution_id, body_md, created_at, updated_at
-            "#,
-            comment_id,
-            body_md
-        )
-        .fetch_one(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(SavedComment {
-            id: rec.id,
-            user_id: rec.user_id,
-            solution_id: rec.solution_id,
-            body_md: rec.body_md,
-            created_at: rec.created_at,
-            updated_at: rec.updated_at,
-        })
-    }
-    async fn delete_comment(&mut self, comment_id: Uuid) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            DELETE FROM comments
-            WHERE id = $1
-            "#,
-            comment_id
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-        Ok(())
     }
 }

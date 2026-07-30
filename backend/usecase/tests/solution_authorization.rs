@@ -6,10 +6,7 @@ use domain::{
     error::repository::RepositoryError,
     ports::repository::solution::{
         SolutionRepository,
-        tx::{
-            CommentRepositoryTx, SolutionRespositoryTx, SolutionTxManager, TagRepositoryTx,
-            UnitOfWork, VoteRepositoryTx,
-        },
+        tx::{SolutionRepositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork},
     },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
@@ -49,6 +46,59 @@ struct GateRepository {
 impl SolutionRepository for GateRepository {
     async fn delete_solution(&self, _solution_id: Uuid) -> Result<(), RepositoryError> {
         Ok(())
+    }
+
+    async fn vote_solution(
+        &self,
+        _user_id: &str,
+        _solution_id: Uuid,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn unvote_solution(
+        &self,
+        _user_id: &str,
+        _solution_id: Uuid,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn delete_comment(&self, _comment_id: Uuid) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        user_id: &str,
+        solution_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7(),
+            user_id: user_id.to_string(),
+            user_name: "name".to_string(),
+            solution_id,
+            body_md: body_md.to_string(),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        })
+    }
+
+    async fn update_comment(
+        &self,
+        _comment_id: Uuid,
+        body_md: &str,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7(),
+            user_id: self.comment_owner.clone(),
+            user_name: "name".to_string(),
+            solution_id: Uuid::now_v7(),
+            body_md: body_md.to_string(),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        })
     }
 
     async fn get_latest_solutions(
@@ -174,14 +224,13 @@ async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
 
 #[tokio::test]
 async fn update_comment_forbidden_for_non_owner() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateCommentUsecase::new(txm, repository);
+    let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
         user_id: "attacker".to_string(),
         comment_id: Uuid::now_v7(),
@@ -195,14 +244,13 @@ async fn update_comment_forbidden_for_non_owner() -> Result<()> {
 
 #[tokio::test]
 async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = DeleteCommentUsecase::new(txm, repository);
+    let uc = DeleteCommentUsecase::new(repository);
 
     let err = uc
         .run("attacker".to_string(), Uuid::now_v7())
@@ -214,14 +262,13 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
 
 #[tokio::test]
 async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = VoteSolutionUsecase::new(txm, repository);
+    let uc = VoteSolutionUsecase::new(repository);
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
@@ -232,14 +279,13 @@ async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
 
 #[tokio::test]
 async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UnvoteSolutionUsecase::new(txm, repository);
+    let uc = UnvoteSolutionUsecase::new(repository);
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
@@ -274,14 +320,13 @@ async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()
 
 #[tokio::test]
 async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()> {
-    let txm = Arc::new(NeverCalledTxManager);
     let repository = Arc::new(GateRepository {
         solution_exists: true,
         comment_exists: false,
         solution_owner: "owner".to_string(),
         comment_owner: "owner".to_string(),
     });
-    let uc = UpdateCommentUsecase::new(txm, repository);
+    let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
         user_id: "owner".to_string(),
         comment_id: Uuid::now_v7(),
@@ -296,7 +341,7 @@ async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()>
 // Unused trait items for the no-op tx manager path.
 struct _NoopSolutionRepo;
 #[async_trait]
-impl SolutionRespositoryTx for _NoopSolutionRepo {
+impl SolutionRepositoryTx for _NoopSolutionRepo {
     async fn create(
         &mut self,
         _s: &domain::model::solution::Solution,
@@ -310,9 +355,6 @@ impl SolutionRespositoryTx for _NoopSolutionRepo {
         _body_md: &str,
         _submit_url: &str,
     ) -> Result<(), RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-    async fn delete(&mut self, _solution_id: Uuid) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn replace_tags(
@@ -332,61 +374,19 @@ impl TagRepositoryTx for _NoopTagRepo {
     }
 }
 
-struct _NoopVoteRepo;
-#[async_trait]
-impl VoteRepositoryTx for _NoopVoteRepo {
-    async fn like(&mut self, _user_id: &str, _solution_id: Uuid) -> Result<(), RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-    async fn unlike(&mut self, _user_id: &str, _solution_id: Uuid) -> Result<(), RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-}
-
-struct _NoopCommentRepo;
-#[async_trait]
-impl CommentRepositoryTx for _NoopCommentRepo {
-    async fn create_comment(
-        &mut self,
-        _user_id: &str,
-        _solution_id: Uuid,
-        _body_md: &str,
-    ) -> Result<domain::ports::repository::solution::tx::SavedComment, RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-    async fn update_comment(
-        &mut self,
-        _comment_id: Uuid,
-        _body_md: &str,
-    ) -> Result<domain::ports::repository::solution::tx::SavedComment, RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-    async fn delete_comment(&mut self, _comment_id: Uuid) -> Result<(), RepositoryError> {
-        Err(RepositoryError::Unexpected("unused".to_string()))
-    }
-}
-
 #[allow(dead_code)]
 struct _NoopUow {
     s: _NoopSolutionRepo,
     t: _NoopTagRepo,
-    v: _NoopVoteRepo,
-    c: _NoopCommentRepo,
 }
 
 #[async_trait]
 impl UnitOfWork for _NoopUow {
-    fn solutions(&mut self) -> &mut dyn SolutionRespositoryTx {
+    fn solutions(&mut self) -> &mut dyn SolutionRepositoryTx {
         &mut self.s
     }
     fn tags(&mut self) -> &mut dyn TagRepositoryTx {
         &mut self.t
-    }
-    fn votes(&mut self) -> &mut dyn VoteRepositoryTx {
-        &mut self.v
-    }
-    fn comments(&mut self) -> &mut dyn CommentRepositoryTx {
-        &mut self.c
     }
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError> {
         let _ = self;
