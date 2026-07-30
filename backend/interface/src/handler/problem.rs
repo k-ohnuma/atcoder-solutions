@@ -4,7 +4,6 @@ use axum::{
 };
 use domain::model::problem::ContestSeries;
 use registry::Registry;
-use shared::{error::http::HttpError, response::ApiResponse};
 use tracing::error;
 use usecase::problem::{
     create::ImportProblemsUsecase, get_by_contest::GetProblemsByContestUsecase,
@@ -12,8 +11,8 @@ use usecase::problem::{
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
 };
 
-use crate::error::ToHttpError;
-use crate::http::ApiQuery;
+use crate::error::{HttpError, ToHttpError};
+use crate::http::{ApiQuery, ApiResult};
 use crate::model::problem::{
     ProblemResponse,
     get_contest_group_by_contest_series::{
@@ -21,6 +20,7 @@ use crate::model::problem::{
         GetContestGroupByContestSeriesRequestParams,
     },
 };
+use crate::response::ApiResponse;
 
 const MAX_CONTEST_GROUP_QUERY_LENGTH: usize = 100;
 const MAX_CONTEST_GROUP_OFFSET: usize = 5_000;
@@ -47,7 +47,7 @@ pub async fn import_problem(reg: &Registry) -> StatusCode {
 pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
     Path(contest_code): Path<String>,
-) -> Result<ApiResponse<Vec<ProblemResponse>>, HttpError> {
+) -> ApiResult<Vec<ProblemResponse>> {
     let contest = contest_code.trim();
     if contest.is_empty() {
         return Err(HttpError::BadRequest(
@@ -66,7 +66,7 @@ pub async fn get_problems_by_contest_handler(
 pub async fn get_problem_by_id_handler(
     State(reg): State<Registry>,
     Path(problem_id): Path<String>,
-) -> Result<ApiResponse<ProblemResponse>, HttpError> {
+) -> ApiResult<ProblemResponse> {
     let problem_id = problem_id.trim();
     if problem_id.is_empty() {
         return Err(HttpError::BadRequest(
@@ -88,7 +88,7 @@ pub async fn get_contest_group_by_contest_series_handler(
     State(reg): State<Registry>,
     Path(series): Path<String>,
     ApiQuery(query): ApiQuery<GetContestGroupByContestSeriesRequestParams>,
-) -> Result<ApiResponse<ContestGroupPageResponse>, HttpError> {
+) -> ApiResult<ContestGroupPageResponse> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
     let series = ContestSeries::try_from(series).map_err(|e| HttpError::BadRequest(e.msg()))?;

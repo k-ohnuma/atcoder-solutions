@@ -1,16 +1,17 @@
 use axum::extract::{Path, State};
 use domain::model::problem::ContestSeries;
 use registry::Registry;
-use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::contest::get_by_series::GetContestsBySeriesUseCase;
 
-use crate::error::ToHttpError;
+use crate::error::{HttpError, ToHttpError};
+use crate::http::ApiResult;
 use crate::model::contests::ContestResponse;
+use crate::response::ApiResponse;
 
 pub async fn get_contests_by_series_handler(
     State(reg): State<Registry>,
     Path(series): Path<String>,
-) -> Result<ApiResponse<Vec<ContestResponse>>, HttpError> {
+) -> ApiResult<Vec<ContestResponse>> {
     let service = reg.contest_service();
     let usecase = GetContestsBySeriesUseCase::new(service);
 

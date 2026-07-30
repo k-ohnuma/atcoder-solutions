@@ -1,6 +1,6 @@
 use axum::{
     extract::{FromRequest, FromRequestParts, Json, Query, Request},
-    http::{StatusCode, header, request::Parts},
+    http::{header, request::Parts},
     response::IntoResponse,
 };
 use domain::{
@@ -11,9 +11,11 @@ use domain::{
     },
 };
 use serde::de::DeserializeOwned;
-use shared::{error::http::HttpError, response::ApiResponse};
 
 use registry::Registry;
+
+use crate::error::HttpError;
+use crate::response::ApiResponse;
 
 pub struct AuthUser(pub Principal);
 pub struct VerifiedUser(pub Principal);
@@ -21,6 +23,8 @@ pub struct AdminUser(pub Principal);
 pub struct TurnstileGuard;
 pub struct ApiJson<T>(pub T);
 pub struct ApiQuery<T>(pub T);
+
+pub type ApiResult<T> = Result<ApiResponse<T>, HttpError>;
 
 #[derive(Debug)]
 pub enum AuthRejection {
@@ -30,19 +34,19 @@ pub enum AuthRejection {
 }
 impl IntoResponse for AuthRejection {
     fn into_response(self) -> axum::response::Response {
-        let (status, message, error_code) = match self {
-            AuthRejection::Unauthorized => {
-                (StatusCode::UNAUTHORIZED, "Unauthorized", "UNAUTHORIZED")
+        HttpError::from(self).into_response()
+    }
+}
+
+impl From<AuthRejection> for HttpError {
+    fn from(value: AuthRejection) -> Self {
+        match value {
+            AuthRejection::Unauthorized => HttpError::Unauthorized("Unauthorized".to_string()),
+            AuthRejection::Unavailable => {
+                HttpError::ServiceUnavailable("Service Unavailable".to_string())
             }
-            AuthRejection::Unavailable => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Service Unavailable",
-                "SERVICE_UNAVAILABLE",
-            ),
-            AuthRejection::Forbidden => (StatusCode::FORBIDDEN, "Forbidden", "FORBIDDEN"),
-        };
-        ApiResponse::<()>::err_with_code(status, message, Some(error_code.to_string()))
-            .into_response()
+            AuthRejection::Forbidden => HttpError::Forbidden("Forbidden".to_string()),
+        }
     }
 }
 
