@@ -5,6 +5,10 @@ use axum::{
 };
 use serde::Serialize;
 
+use crate::error::HttpError;
+
+pub type ApiResult<T> = Result<ApiResponse<T>, HttpError>;
+
 #[derive(Serialize)]
 pub struct ApiResponse<T>
 where
