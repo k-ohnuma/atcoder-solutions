@@ -1,5 +1,8 @@
 use axum::extract::{Path, State};
 use registry::Registry;
+use usecase::model::solution::list::{
+    GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
+};
 use usecase::solution::{
     create::CreateSolutionUsecase, delete::DeleteSolutionUsecase,
     get_by_problem_id::GetSolutionsByProblemIdUsecase,
@@ -10,7 +13,7 @@ use usecase::solution::{
 use uuid::Uuid;
 
 use crate::{
-    error::{HttpError, ToHttpError},
+    error::ToHttpError,
     http::{ApiJson, ApiQuery, ApiResult, AuthUser, TurnstileGuard},
     model::solution::{
         create_solution::{CreateSolutionRequest, CreateSolutionResponse, from_req_for_input},
@@ -30,22 +33,6 @@ use crate::{
     },
     response::ApiResponse,
 };
-
-fn validate_limit(limit: Option<i32>) -> Result<Option<i32>, HttpError> {
-    match limit {
-        Some(value) if value <= 0 => Err(HttpError::BadRequest(
-            "limit must be greater than 0".to_string(),
-        )),
-        _ => Ok(limit),
-    }
-}
-
-fn validate_latest_solutions_sort(sort_by: Option<&str>) -> Result<(), HttpError> {
-    if matches!(sort_by, Some(v) if v != "latest") {
-        return Err(HttpError::BadRequest("sort_by must be latest".to_string()));
-    }
-    Ok(())
-}
 
 pub async fn create_solution_handler(
     State(registry): State<Registry>,
@@ -98,26 +85,9 @@ pub async fn get_solutions_by_problems_id_handler(
     ApiQuery(req): ApiQuery<GetSolutionsByProblemIdRequest>,
 ) -> ApiResult<Vec<GetSolutionsByProblemIdResponse>> {
     let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_service());
-    let problem_id = problem_id.trim();
-    if problem_id.is_empty() {
-        return Err(HttpError::BadRequest(
-            "problem_id cannot be empty".to_string(),
-        ));
-    }
-    let sort = match req.sort_by.as_deref() {
-        None | Some("latest") => usecase::model::solution::SolutionListSort::Latest,
-        Some("votes") => usecase::model::solution::SolutionListSort::Votes,
-        Some(_) => {
-            return Err(HttpError::BadRequest(
-                "sort_by must be one of: latest, votes".to_string(),
-            ));
-        }
-    };
-    let limit = validate_limit(req.limit)?;
-    let solutions = uc
-        .run(problem_id.to_string(), sort, limit)
-        .await
+    let input = GetSolutionsByProblemIdInput::try_new(problem_id, req.sort_by, req.limit)
         .map_err(|e| e.to_http_error())?;
+    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByProblemIdResponse::from)
@@ -129,11 +99,10 @@ pub async fn get_latest_solutions_handler(
     State(registry): State<Registry>,
     ApiQuery(req): ApiQuery<GetLatestSolutionsRequest>,
 ) -> ApiResult<Vec<GetLatestSolutionsResponse>> {
-    validate_latest_solutions_sort(req.sort_by.as_deref())?;
-
     let uc = GetLatestSolutionsUsecase::new(registry.solution_service());
-    let limit = validate_limit(req.limit)?;
-    let solutions = uc.run(limit).await.map_err(|e| e.to_http_error())?;
+    let input =
+        GetLatestSolutionsInput::try_new(req.sort_by, req.limit).map_err(|e| e.to_http_error())?;
+    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetLatestSolutionsResponse::from)
@@ -147,23 +116,10 @@ pub async fn get_solutions_by_user_name_handler(
     ApiQuery(req): ApiQuery<GetSolutionsByUserNameRequest>,
 ) -> ApiResult<Vec<GetSolutionsByUserNameResponse>> {
     let uc = GetSolutionsByUserNameUsecase::new(registry.solution_service());
-    let user_name = user_name.trim();
-    if user_name.is_empty() {
-        return Err(HttpError::BadRequest(
-            "user_name cannot be empty".to_string(),
-        ));
-    }
-
-    if matches!(req.sort_by.as_deref(), Some(v) if v != "latest" && v != "votes") {
-        return Err(HttpError::BadRequest(
-            "sort_by must be one of: latest, votes".to_string(),
-        ));
-    }
-
-    let solutions = uc
-        .run(user_name.to_string(), req.list_sort())
-        .await
+    let input = GetSolutionsByUserNameInput::try_new(user_name, req.sort_by)
         .map_err(|e| e.to_http_error())?;
+
+    let solutions = uc.run(input).await.map_err(|e| e.to_http_error())?;
     let ret: Vec<_> = solutions
         .into_iter()
         .map(GetSolutionsByUserNameResponse::from)
@@ -178,43 +134,4 @@ pub async fn get_solution_by_solution_id_handler(
     let uc = GetSolutionBySolutionIdUsecase::new(registry.solution_service());
     let solution = uc.run(solution_id).await.map_err(|e| e.to_http_error())?;
     Ok(ApiResponse::ok(solution.into()))
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::error::HttpError;
-
-    use super::{validate_latest_solutions_sort, validate_limit};
-
-    #[test]
-    fn validate_limit_accepts_empty_and_positive_values() {
-        assert_eq!(validate_limit(None).expect("valid"), None);
-        assert_eq!(validate_limit(Some(50)).expect("valid"), Some(50));
-    }
-
-    #[test]
-    fn validate_limit_rejects_zero_or_negative_values() {
-        assert!(matches!(
-            validate_limit(Some(0)),
-            Err(HttpError::BadRequest(message)) if message == "limit must be greater than 0"
-        ));
-        assert!(matches!(
-            validate_limit(Some(-1)),
-            Err(HttpError::BadRequest(message)) if message == "limit must be greater than 0"
-        ));
-    }
-
-    #[test]
-    fn validate_latest_solutions_sort_accepts_latest_or_empty() {
-        assert!(validate_latest_solutions_sort(None).is_ok());
-        assert!(validate_latest_solutions_sort(Some("latest")).is_ok());
-    }
-
-    #[test]
-    fn validate_latest_solutions_sort_rejects_other_sort_values() {
-        assert!(matches!(
-            validate_latest_solutions_sort(Some("votes")),
-            Err(HttpError::BadRequest(message)) if message == "sort_by must be latest"
-        ));
-    }
 }

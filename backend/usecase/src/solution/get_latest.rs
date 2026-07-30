@@ -3,7 +3,8 @@ use std::sync::Arc;
 use derive_new::new;
 
 use crate::{
-    dto::solution::SolutionListItemView, model::solution::SolutionError,
+    dto::solution::SolutionListItemView,
+    model::solution::{SolutionError, list::GetLatestSolutionsInput},
     service::solution::SolutionService,
 };
 
@@ -15,9 +16,9 @@ pub struct GetLatestSolutionsUsecase {
 impl GetLatestSolutionsUsecase {
     pub async fn run(
         &self,
-        limit: Option<i32>,
+        input: GetLatestSolutionsInput,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
-        let items = self.service.get_latest_solutions(limit).await?;
+        let items = self.service.get_latest_solutions(input.limit).await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }
 }

@@ -4,7 +4,7 @@ use derive_new::new;
 
 use crate::{
     dto::solution::SolutionListItemView,
-    model::solution::{SolutionError, SolutionListSort},
+    model::solution::{SolutionError, list::GetSolutionsByProblemIdInput},
     service::solution::SolutionService,
 };
 
@@ -16,24 +16,16 @@ pub struct GetSolutionsByProblemIdUsecase {
 impl GetSolutionsByProblemIdUsecase {
     pub async fn run(
         &self,
-        problem_id: String,
-        sort: SolutionListSort,
-        limit: Option<i32>,
+        input: GetSolutionsByProblemIdInput,
     ) -> Result<Vec<SolutionListItemView>, SolutionError> {
-        if problem_id.trim().is_empty() {
-            return Err(SolutionError::BadRequest(
-                "problem_id cannot be empty".to_string(),
-            ));
-        }
-
-        let exists = self.service.problem_exists(&problem_id).await?;
+        let exists = self.service.problem_exists(&input.problem_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("problem not found".to_string()));
         }
 
         let items = self
             .service
-            .get_solutions_by_problem_id(problem_id, sort, limit)
+            .get_solutions_by_problem_id(input.problem_id, input.sort, input.limit)
             .await?;
         Ok(items.into_iter().map(SolutionListItemView::from).collect())
     }

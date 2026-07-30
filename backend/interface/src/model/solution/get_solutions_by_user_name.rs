@@ -1,21 +1,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use usecase::{dto::solution::UserSolutionListItemView, model::solution::SolutionListSort};
+use usecase::dto::solution::UserSolutionListItemView;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSolutionsByUserNameRequest {
     pub sort_by: Option<String>,
-}
-
-impl GetSolutionsByUserNameRequest {
-    pub fn list_sort(&self) -> SolutionListSort {
-        match self.sort_by.as_deref() {
-            Some("votes") => SolutionListSort::Votes,
-            _ => SolutionListSort::Latest,
-        }
-    }
 }
 
 #[derive(Serialize)]
@@ -64,24 +55,10 @@ impl From<UserSolutionListItemView> for GetSolutionsByUserNameResponse {
 mod tests {
     use chrono::Utc;
     use serde_json::json;
-    use usecase::{dto::solution::UserSolutionListItemView, model::solution::SolutionListSort};
+    use usecase::dto::solution::UserSolutionListItemView;
     use uuid::Uuid;
 
     use super::{GetSolutionsByUserNameRequest, GetSolutionsByUserNameResponse};
-
-    #[test]
-    fn list_sort_defaults_to_latest() {
-        let req = GetSolutionsByUserNameRequest { sort_by: None };
-        assert!(matches!(req.list_sort(), SolutionListSort::Latest));
-    }
-
-    #[test]
-    fn list_sort_votes_is_mapped() {
-        let req = GetSolutionsByUserNameRequest {
-            sort_by: Some("votes".to_string()),
-        };
-        assert!(matches!(req.list_sort(), SolutionListSort::Votes));
-    }
 
     #[test]
     fn deserialize_camel_case_sort_by() {

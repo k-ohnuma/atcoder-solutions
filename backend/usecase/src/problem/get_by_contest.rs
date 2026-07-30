@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
 
-use crate::model::problem::ProblemError;
+use crate::model::problem::{ProblemError, get_by_contest::GetProblemsByContestInput};
 
 #[derive(new)]
 pub struct GetProblemsByContestUsecase {
@@ -11,16 +11,13 @@ pub struct GetProblemsByContestUsecase {
 }
 
 impl GetProblemsByContestUsecase {
-    pub async fn run(&self, contest: &str) -> Result<Vec<Problem>, ProblemError> {
-        if contest.trim().is_empty() {
-            return Err(ProblemError::BadRequest(
-                "contest cannot be empty".to_string(),
-            ));
-        }
-
+    pub async fn run(
+        &self,
+        input: GetProblemsByContestInput,
+    ) -> Result<Vec<Problem>, ProblemError> {
         let mut pbs = self
             .problem_repository
-            .get_problems_by_contest(contest)
+            .get_problems_by_contest(&input.contest)
             .await
             .map_err(ProblemError::from)?;
         pbs.sort_by(|a, b| {

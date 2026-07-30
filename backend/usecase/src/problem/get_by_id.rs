@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
 
-use crate::model::problem::ProblemError;
+use crate::model::problem::{ProblemError, get_by_contest::GetProblemByIdInput};
 
 #[derive(new)]
 pub struct GetProblemByIdUsecase {
@@ -11,15 +11,9 @@ pub struct GetProblemByIdUsecase {
 }
 
 impl GetProblemByIdUsecase {
-    pub async fn run(&self, problem_id: &str) -> Result<Problem, ProblemError> {
-        if problem_id.trim().is_empty() {
-            return Err(ProblemError::BadRequest(
-                "problemId cannot be empty".to_string(),
-            ));
-        }
-
+    pub async fn run(&self, input: GetProblemByIdInput) -> Result<Problem, ProblemError> {
         self.problem_repository
-            .get_problem_by_id(problem_id)
+            .get_problem_by_id(&input.problem_id)
             .await
             .map_err(ProblemError::from)
     }

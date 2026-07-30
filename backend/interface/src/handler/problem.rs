@@ -2,16 +2,19 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use domain::model::problem::ContestSeries;
 use registry::Registry;
 use tracing::error;
+use usecase::model::problem::{
+    get_by_contest::{GetProblemByIdInput, GetProblemsByContestInput},
+    get_contest_group_by_contest_series::GetContestGroupByContestSeriesInput,
+};
 use usecase::problem::{
     create::ImportProblemsUsecase, get_by_contest::GetProblemsByContestUsecase,
     get_by_id::GetProblemByIdUsecase,
     get_contest_group_by_contest_series::GetContestGroupByContestSeriesUsecase,
 };
 
-use crate::error::{HttpError, ToHttpError};
+use crate::error::ToHttpError;
 use crate::http::{ApiQuery, ApiResult};
 use crate::model::problem::{
     ProblemResponse,
@@ -21,9 +24,6 @@ use crate::model::problem::{
     },
 };
 use crate::response::ApiResponse;
-
-const MAX_CONTEST_GROUP_QUERY_LENGTH: usize = 100;
-const MAX_CONTEST_GROUP_OFFSET: usize = 5_000;
 
 pub async fn import_problem(reg: &Registry) -> StatusCode {
     let atcoder_problems_port = reg.atcoder_problems_port();
@@ -48,16 +48,10 @@ pub async fn get_problems_by_contest_handler(
     State(reg): State<Registry>,
     Path(contest_code): Path<String>,
 ) -> ApiResult<Vec<ProblemResponse>> {
-    let contest = contest_code.trim();
-    if contest.is_empty() {
-        return Err(HttpError::BadRequest(
-            "contestCode cannot be empty".to_string(),
-        ));
-    }
-
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemsByContestUsecase::new(problems_repository);
-    let problems = usecase.run(contest).await.map_err(|e| e.to_http_error())?;
+    let input = GetProblemsByContestInput::try_new(contest_code).map_err(|e| e.to_http_error())?;
+    let problems = usecase.run(input).await.map_err(|e| e.to_http_error())?;
     let resp: Vec<ProblemResponse> = problems.into_iter().map(ProblemResponse::from).collect();
 
     Ok(ApiResponse::ok(resp))
@@ -67,19 +61,10 @@ pub async fn get_problem_by_id_handler(
     State(reg): State<Registry>,
     Path(problem_id): Path<String>,
 ) -> ApiResult<ProblemResponse> {
-    let problem_id = problem_id.trim();
-    if problem_id.is_empty() {
-        return Err(HttpError::BadRequest(
-            "problemId cannot be empty".to_string(),
-        ));
-    }
-
     let problems_repository = reg.problem_repository();
     let usecase = GetProblemByIdUsecase::new(problems_repository);
-    let problem = usecase
-        .run(problem_id)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let input = GetProblemByIdInput::try_new(problem_id).map_err(|e| e.to_http_error())?;
+    let problem = usecase.run(input).await.map_err(|e| e.to_http_error())?;
 
     Ok(ApiResponse::ok(ProblemResponse::from(problem)))
 }
@@ -91,29 +76,11 @@ pub async fn get_contest_group_by_contest_series_handler(
 ) -> ApiResult<ContestGroupPageResponse> {
     let problems_repository = reg.problem_repository();
     let usecase = GetContestGroupByContestSeriesUsecase::new(problems_repository);
-    let series = ContestSeries::try_from(series).map_err(|e| HttpError::BadRequest(e.msg()))?;
-    if query
-        .q
-        .as_ref()
-        .is_some_and(|q| q.chars().count() > MAX_CONTEST_GROUP_QUERY_LENGTH)
-    {
-        return Err(HttpError::BadRequest(format!(
-            "q must be at most {MAX_CONTEST_GROUP_QUERY_LENGTH} characters"
-        )));
-    }
-    if query
-        .offset
-        .is_some_and(|offset| offset > MAX_CONTEST_GROUP_OFFSET)
-    {
-        return Err(HttpError::BadRequest(format!(
-            "offset must be at most {MAX_CONTEST_GROUP_OFFSET}"
-        )));
-    }
+    let input =
+        GetContestGroupByContestSeriesInput::try_new(series, query.q, query.limit, query.offset)
+            .map_err(|e| e.to_http_error())?;
 
-    let page = usecase
-        .run(series, query.q, query.limit, query.offset)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let page = usecase.run(input).await.map_err(|e| e.to_http_error())?;
     let groups = page
         .items
         .0

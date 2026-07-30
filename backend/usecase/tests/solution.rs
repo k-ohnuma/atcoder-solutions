@@ -8,6 +8,9 @@ use usecase::{
     model::solution::{
         SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
         UserSolutionListItem,
+        list::{
+            GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
+        },
     },
     service::solution::SolutionService,
     solution::{
@@ -150,12 +153,7 @@ impl SolutionService for DummySolutionService {
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service);
-
-    let err = uc
-        .run("   ".to_string(), SolutionListSort::Latest, None)
-        .await
+    let err = GetSolutionsByProblemIdInput::try_new("   ".to_string(), None, None)
         .err()
         .expect("blank problem id should be bad request");
     assert!(matches!(err, SolutionError::BadRequest(_)));
@@ -167,9 +165,11 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
 async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(false, true));
     let uc = GetSolutionsByProblemIdUsecase::new(service);
+    let input =
+        GetSolutionsByProblemIdInput::try_new("abc100_a".to_string(), None, None).expect("valid");
 
     let err = uc
-        .run("abc100_a".to_string(), SolutionListSort::Latest, None)
+        .run(input)
         .await
         .err()
         .expect("unknown problem should be not found");
@@ -182,10 +182,14 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
 async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(true, true));
     let uc = GetSolutionsByProblemIdUsecase::new(service.clone());
+    let input = GetSolutionsByProblemIdInput::try_new(
+        "abc100_a".to_string(),
+        Some("votes".to_string()),
+        None,
+    )
+    .expect("valid");
 
-    let result = uc
-        .run("abc100_a".to_string(), SolutionListSort::Votes, None)
-        .await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].votes_count, 3);
 
@@ -198,8 +202,9 @@ async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
 async fn get_latest_solutions_returns_items() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(true, true));
     let uc = GetLatestSolutionsUsecase::new(service);
+    let input = GetLatestSolutionsInput::try_new(None, Some(10)).expect("valid");
 
-    let result = uc.run(Some(10)).await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].title, "latest");
 
@@ -210,9 +215,10 @@ async fn get_latest_solutions_returns_items() -> Result<()> {
 async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(true, false));
     let uc = GetSolutionsByUserNameUsecase::new(service);
+    let input = GetSolutionsByUserNameInput::try_new("alice".to_string(), None).expect("valid");
 
     let err = uc
-        .run("alice".to_string(), SolutionListSort::Latest)
+        .run(input)
         .await
         .err()
         .expect("unknown user should be not found");
@@ -224,8 +230,11 @@ async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Resu
 async fn get_solutions_by_user_name_passes_sort_to_service() -> Result<()> {
     let service = Arc::new(DummySolutionService::new(true, true));
     let uc = GetSolutionsByUserNameUsecase::new(service.clone());
+    let input =
+        GetSolutionsByUserNameInput::try_new("alice".to_string(), Some("votes".to_string()))
+            .expect("valid");
 
-    let result = uc.run("alice".to_string(), SolutionListSort::Votes).await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].problem_title, "A - Sample");
 
