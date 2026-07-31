@@ -30,9 +30,12 @@ impl FromRequestParts<Registry> for TurnstileGuard {
                 TurnstileError::TokenRequired | TurnstileError::InvalidToken => {
                     AuthRejection::Forbidden
                 }
-                TurnstileError::TemporarilyUnavailable | TurnstileError::Unexpected(_) => {
-                    AuthRejection::Unavailable
-                }
+                TurnstileError::TemporarilyUnavailable => AuthRejection::Unavailable(
+                    "Turnstile verification is temporarily unavailable".to_string(),
+                ),
+                TurnstileError::Unexpected(reason) => AuthRejection::Unavailable(format!(
+                    "unexpected Turnstile verification error: {reason}"
+                )),
             })?;
 
         Ok(TurnstileGuard)
