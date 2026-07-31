@@ -8,12 +8,8 @@ use usecase::{
 use crate::{
     error::IntoApiResult,
     http::{ApiQuery, ApiResult},
-    model::problem::{
-        ProblemResponse,
-        get_contest_group_by_contest_series::{
-            ContestGroupPageResponse, ContestProblemGroupResponse,
-            GetContestGroupByContestSeriesRequestParams,
-        },
+    model::problem::get_contest_group_by_contest_series::{
+        ContestGroupPageResponse, GetContestGroupByContestSeriesRequestParams,
     },
     response::ApiResponse,
 };
@@ -30,22 +26,5 @@ pub async fn get_contest_group_by_contest_series_handler(
             .into_api_result()?;
 
     let page = usecase.run(input).await.into_api_result()?;
-    let groups = page
-        .items
-        .0
-        .into_iter()
-        .map(|(contest_id, problems)| ContestProblemGroupResponse {
-            contest_id: contest_id.0,
-            problems: problems
-                .into_iter()
-                .map(ProblemResponse::from)
-                .collect::<Vec<_>>(),
-        })
-        .collect();
-
-    Ok(ApiResponse::ok(ContestGroupPageResponse {
-        groups,
-        has_more: page.has_more,
-        total_contest_count: page.total_contest_count,
-    }))
+    Ok(ApiResponse::ok(ContestGroupPageResponse::from(page)))
 }

@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use std::{cmp::Reverse, collections::BTreeMap, sync::Arc};
 
 use derive_new::new;
-use domain::ports::repository::problem::ProblemRepository;
+use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
 
 use crate::{
     error::ProblemError,
-    model::problem::get_contest_group_by_contest_series::{
-        ContestGroupCollection, ContestGroupPage, GetContestGroupByContestSeriesInput,
+    model::problem::{
+        get_contest_group_by_contest_series::GetContestGroupByContestSeriesInput,
+        output::{ContestGroupPageOutput, ContestProblemGroupOutput, ProblemOutput},
     },
 };
 
@@ -22,7 +23,7 @@ impl GetContestGroupByContestSeriesUsecase {
     pub async fn run(
         &self,
         input: GetContestGroupByContestSeriesInput,
-    ) -> Result<ContestGroupPage, ProblemError> {
+    ) -> Result<ContestGroupPageOutput, ProblemError> {
         let (mut pbs, has_more) = if let Some(query) = input.query {
             (
                 self.problem_repository
@@ -65,13 +66,66 @@ impl GetContestGroupByContestSeriesUsecase {
             apid.cmp(&bpid)
         });
 
-        let items = ContestGroupCollection::from(pbs);
-        let total_contest_count = items.0.len();
+        let groups = group_problems_by_contest(pbs);
+        let total_contest_count = groups.len();
 
-        Ok(ContestGroupPage {
-            items,
+        Ok(ContestGroupPageOutput {
+            groups,
             has_more,
             total_contest_count,
         })
+    }
+}
+
+fn group_problems_by_contest(problems: Vec<Problem>) -> Vec<ContestProblemGroupOutput> {
+    let mut groups = BTreeMap::new();
+    for problem in problems {
+        groups
+            .entry(Reverse(problem.contest_code.clone()))
+            .or_insert_with(Vec::new)
+            .push(problem);
+    }
+
+    groups
+        .into_iter()
+        .map(
+            |(Reverse(contest_id), problems)| ContestProblemGroupOutput {
+                contest_id,
+                problems: problems.into_iter().map(ProblemOutput::from).collect(),
+            },
+        )
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use domain::model::problem::Problem;
+
+    use super::group_problems_by_contest;
+
+    #[test]
+    fn groups_problems_by_contest_in_descending_order() {
+        let groups = group_problems_by_contest(vec![
+            problem("abc299_a", "abc299", "A"),
+            problem("abc300_b", "abc300", "B"),
+            problem("abc300_a", "abc300", "A"),
+        ]);
+
+        assert_eq!(groups.len(), 2);
+        assert_eq!(groups[0].contest_id, "abc300");
+        assert_eq!(groups[0].problems.len(), 2);
+        assert_eq!(groups[0].problems[0].id, "abc300_b");
+        assert_eq!(groups[1].contest_id, "abc299");
+        assert_eq!(groups[1].problems[0].id, "abc299_a");
+    }
+
+    fn problem(id: &str, contest_code: &str, problem_index: &str) -> Problem {
+        Problem {
+            id: id.to_string(),
+            contest_code: contest_code.to_string(),
+            problem_index: problem_index.to_string(),
+            title: id.to_string(),
+            difficulty: None,
+        }
     }
 }

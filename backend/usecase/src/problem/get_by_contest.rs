@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
+use domain::ports::repository::problem::ProblemRepository;
 
-use crate::{error::ProblemError, model::problem::get_by_contest::GetProblemsByContestInput};
+use crate::{
+    error::ProblemError,
+    model::problem::{get_by_contest::GetProblemsByContestInput, output::ProblemOutput},
+};
 
 #[derive(new)]
 pub struct GetProblemsByContestUsecase {
@@ -14,7 +17,7 @@ impl GetProblemsByContestUsecase {
     pub async fn run(
         &self,
         input: GetProblemsByContestInput,
-    ) -> Result<Vec<Problem>, ProblemError> {
+    ) -> Result<Vec<ProblemOutput>, ProblemError> {
         let mut pbs = self
             .problem_repository
             .get_problems_by_contest(&input.contest)
@@ -31,6 +34,6 @@ impl GetProblemsByContestUsecase {
             apid.cmp(&bpid)
         });
 
-        Ok(pbs)
+        Ok(pbs.into_iter().map(ProblemOutput::from).collect())
     }
 }

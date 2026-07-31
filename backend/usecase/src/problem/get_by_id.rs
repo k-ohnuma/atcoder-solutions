@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{model::problem::Problem, ports::repository::problem::ProblemRepository};
+use domain::ports::repository::problem::ProblemRepository;
 
-use crate::{error::ProblemError, model::problem::get_by_contest::GetProblemByIdInput};
+use crate::{
+    error::ProblemError,
+    model::problem::{get_by_contest::GetProblemByIdInput, output::ProblemOutput},
+};
 
 #[derive(new)]
 pub struct GetProblemByIdUsecase {
@@ -11,10 +14,11 @@ pub struct GetProblemByIdUsecase {
 }
 
 impl GetProblemByIdUsecase {
-    pub async fn run(&self, input: GetProblemByIdInput) -> Result<Problem, ProblemError> {
+    pub async fn run(&self, input: GetProblemByIdInput) -> Result<ProblemOutput, ProblemError> {
         self.problem_repository
             .get_problem_by_id(&input.problem_id)
             .await
             .map_err(ProblemError::from)
+            .map(ProblemOutput::from)
     }
 }

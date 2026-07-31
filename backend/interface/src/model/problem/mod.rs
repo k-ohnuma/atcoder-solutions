@@ -1,5 +1,5 @@
-use domain::model::problem::Problem;
 use serde::Serialize;
+use usecase::model::problem::output::ProblemOutput;
 
 pub mod get_contest_group_by_contest_series;
 
@@ -13,8 +13,8 @@ pub struct ProblemResponse {
     pub difficulty: Option<i32>,
 }
 
-impl From<Problem> for ProblemResponse {
-    fn from(value: Problem) -> Self {
+impl From<ProblemOutput> for ProblemResponse {
+    fn from(value: ProblemOutput) -> Self {
         Self {
             id: value.id,
             contest_code: value.contest_code,
