@@ -73,34 +73,6 @@ fn create_solution_submit_url_allows_blank_and_http_https_only() -> Result<()> {
 }
 
 #[test]
-fn create_solution_tags_allows_zero_and_rejects_over_six() -> Result<()> {
-    let zero = CreateSolutionInput {
-        user_id: "uid".to_string(),
-        title: "title".to_string(),
-        problem_id: "abc100_a".to_string(),
-        body_md: "body".to_string(),
-        submit_url: String::new(),
-        tags: vec![],
-    };
-    assert!(zero.validate().is_ok());
-
-    let seven = CreateSolutionInput {
-        tags: vec![
-            "a".to_string(),
-            "b".to_string(),
-            "c".to_string(),
-            "d".to_string(),
-            "e".to_string(),
-            "f".to_string(),
-            "g".to_string(),
-        ],
-        ..zero
-    };
-    assert!(seven.validate().is_err());
-    Ok(())
-}
-
-#[test]
 fn update_solution_title_and_body_boundaries() -> Result<()> {
     let ok = UpdateSolutionInput {
         user_id: "uid".to_string(),

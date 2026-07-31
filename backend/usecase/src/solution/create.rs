@@ -5,13 +5,15 @@ use domain::ports::{
     external::id::IdProviderPort,
     repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
 };
-use itertools::Itertools;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::error::SolutionError;
-use crate::model::solution::create::{
-    CreateSolutionInput, from_create_solution_input_for_solution,
+use crate::{
+    error::SolutionError,
+    model::solution::{
+        create::{CreateSolutionInput, from_create_solution_input_for_solution},
+        tags::normalize_tags,
+    },
 };
 
 #[derive(new)]
@@ -37,22 +39,7 @@ impl CreateSolutionUsecase {
             ));
         }
 
-        let tags = input
-            .tags
-            .iter()
-            .map(|tag| tag.to_owned())
-            .filter(|e| !e.trim().is_empty())
-            .sorted()
-            .dedup()
-            .collect_vec();
-        if tags.len() > 6 {
-            return Err(SolutionError::BadRequest(
-                "tags must be 6 or fewer".to_string(),
-            ));
-        }
-        if tags.iter().any(|tag| tag.chars().count() > 24) {
-            return Err(SolutionError::BadRequest("tag is too long".to_string()));
-        }
+        let tags = normalize_tags(&input.tags)?;
 
         let mut uow = self.txm.begin().await?;
         let uid = self.idp.new_solution_id();

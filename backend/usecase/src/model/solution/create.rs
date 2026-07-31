@@ -14,7 +14,6 @@ pub struct CreateSolutionInput {
     pub body_md: String,
     #[validate(length(max = 500), custom(function = "validate_http_url"))]
     pub submit_url: String,
-    #[validate(length(max = 6))]
     pub tags: Vec<String>,
 }
 

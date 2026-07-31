@@ -6,7 +6,8 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    error::SolutionError, model::solution::update::UpdateSolutionInput,
+    error::SolutionError,
+    model::solution::{tags::normalize_tags, update::UpdateSolutionInput},
     solution::authorization::ensure_solution_owner,
 };
 
@@ -30,14 +31,7 @@ impl UpdateSolutionUsecase {
         )
         .await?;
 
-        let tags = input
-            .tags
-            .into_iter()
-            .filter(|e| !e.trim().is_empty())
-            .collect::<Vec<_>>();
-        if tags.iter().any(|tag| tag.chars().count() > 24) {
-            return Err(SolutionError::BadRequest("tag is too long".to_string()));
-        }
+        let tags = normalize_tags(&input.tags)?;
 
         let mut uow = self.txm.begin().await?;
         uow.solutions()
