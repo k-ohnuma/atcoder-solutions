@@ -261,6 +261,7 @@ dependencies = [
  "tracing",
  "tracing-error",
  "tracing-subscriber",
+ "usecase",
 ]
 
 [[package]]

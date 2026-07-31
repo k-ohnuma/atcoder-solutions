@@ -80,6 +80,7 @@ wiremock = "0.5"
 interface.workspace = true
 registry.workspace = true
 shared.workspace = true
+usecase.workspace = true
 
 anyhow.workspace = true
 axum.workspace = true

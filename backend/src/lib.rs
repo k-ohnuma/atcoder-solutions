@@ -1,17 +1,11 @@
 use std::net::SocketAddr;
 
-use anyhow::{Context, Result, anyhow};
-use axum::{
-    Router,
-    http::{Request, StatusCode},
-};
-use interface::{
-    handler::problem::import_problem,
-    route::{
-        contest::build_contests_routers, health::build_health_check_routers,
-        problem::build_problem_routers, series::build_series_routers,
-        solution::build_solution_routers, user::build_user_routers, version::build_version_routers,
-    },
+use anyhow::{Context, Result};
+use axum::{Router, http::Request};
+use interface::route::{
+    contest::build_contests_routers, health::build_health_check_routers,
+    problem::build_problem_routers, series::build_series_routers, solution::build_solution_routers,
+    user::build_user_routers, version::build_version_routers,
 };
 use registry::Registry;
 use shared::config::AppConfig;
@@ -24,6 +18,7 @@ use tracing::Level;
 use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use usecase::problem::create::ImportProblemsUsecase;
 
 pub fn init_logger(app_config: &AppConfig) -> Result<()> {
     let env_filter = tracing_subscriber::EnvFilter::new(app_config.log.rust_log.clone());
@@ -112,10 +107,12 @@ pub async fn run(app_config: AppConfig) -> Result<()> {
 
 pub async fn run_daily_job(reg: &Registry) -> Result<()> {
     info!("daily job started");
-    match import_problem(reg).await {
-        StatusCode::OK => Ok(()),
-        _ => Err(anyhow!("daily fetch failed")),
-    }?;
+    let usecase = ImportProblemsUsecase::new(
+        reg.atcoder_problems_port(),
+        reg.problem_repository(),
+        reg.problem_tx_manager(),
+    );
+    usecase.run().await.context("daily problem import failed")?;
     info!("daily job finished");
     Ok(())
 }
