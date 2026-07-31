@@ -6,7 +6,7 @@ pub enum UserError {
     #[error("{0}")]
     BadRequest(String),
     #[error("{0}")]
-    DBError(String),
+    Internal(String),
     #[error("{0}")]
     NotFound(String),
     #[error("{0}")]
@@ -23,14 +23,14 @@ impl From<RepositoryError> for UserError {
     fn from(value: RepositoryError) -> Self {
         match value {
             RepositoryError::NotFound(msg) => UserError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => UserError::DBError(msg.to_string()),
+            RepositoryError::TransactionError(msg) => UserError::Internal(msg.to_string()),
             RepositoryError::UniqueViolation(msg) => UserError::UserNameAlreadyExists(msg),
-            RepositoryError::ForeignKeyViolation(msg) => UserError::DBError(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => UserError::DBError(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => UserError::DBError(msg.to_string()),
-            RepositoryError::Connection(msg) => UserError::DBError(msg.to_string()),
-            RepositoryError::Query(msg) => UserError::DBError(msg.to_string()),
-            RepositoryError::Unexpected(msg) => UserError::DBError(msg.to_string()),
+            RepositoryError::ForeignKeyViolation(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::NotNullViolation(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::CheckViolation(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::Connection(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::Query(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::Unexpected(msg) => UserError::Internal(msg.to_string()),
         }
     }
 }
@@ -42,9 +42,9 @@ impl From<AuthError> for UserError {
             AuthError::BadRequest(msg) => UserError::BadRequest(msg),
             AuthError::Conflict(msg) => UserError::EmailAlreadyExists(msg),
             AuthError::TemporarilyUnavailable => {
-                UserError::DBError("identity provider temporarily unavailable".to_string())
+                UserError::Internal("identity provider temporarily unavailable".to_string())
             }
-            AuthError::Unexpected(msg) => UserError::DBError(msg),
+            AuthError::Unexpected(msg) => UserError::Internal(msg),
         }
     }
 }

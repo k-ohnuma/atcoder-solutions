@@ -24,7 +24,7 @@ impl ToHttpError for ProblemError {
         match self {
             ProblemError::BadRequest(reason) => HttpError::BadRequest(reason),
             ProblemError::NotFound(reason) => HttpError::NotFound(reason),
-            ProblemError::DBError(reason) => {
+            ProblemError::Internal(reason) => {
                 tracing::error!(domain = "problem", error.message = %reason, "internal error");
                 HttpError::Internal(reason)
             }
@@ -39,7 +39,7 @@ impl ToHttpError for SolutionError {
             SolutionError::Forbidden(reason) => HttpError::Forbidden(reason),
             SolutionError::NotFound(reason) => HttpError::NotFound(reason),
             SolutionError::Conflict(reason) => HttpError::Conflict(reason),
-            SolutionError::DBError(reason) => {
+            SolutionError::Internal(reason) => {
                 tracing::error!(domain = "solution", error.message = %reason, "internal error");
                 HttpError::Internal(reason)
             }
@@ -65,7 +65,7 @@ impl ToHttpError for UserError {
                 message: reason,
                 error_code: "REQUIRES_RECENT_LOGIN",
             },
-            UserError::DBError(reason) => {
+            UserError::Internal(reason) => {
                 tracing::error!(domain = "user", error.message = %reason, "internal error");
                 HttpError::Internal(reason)
             }
@@ -78,7 +78,7 @@ impl ToHttpError for ContestError {
         match self {
             ContestError::BadRequest(reason) => HttpError::BadRequest(reason),
             ContestError::NotFound(reason) => HttpError::NotFound(reason),
-            ContestError::DBError(reason) => {
+            ContestError::Internal(reason) => {
                 tracing::error!(domain = "contest", error.message = %reason, "internal error");
                 HttpError::Internal(reason)
             }

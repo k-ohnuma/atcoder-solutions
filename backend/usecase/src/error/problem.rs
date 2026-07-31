@@ -14,7 +14,7 @@ pub enum ProblemError {
     #[error("{0}")]
     BadRequest(String),
     #[error("{0}")]
-    DBError(String),
+    Internal(String),
     #[error("{0}")]
     NotFound(String),
 }
@@ -23,14 +23,14 @@ impl From<RepositoryError> for ProblemError {
     fn from(value: RepositoryError) -> Self {
         match value {
             RepositoryError::NotFound(msg) => ProblemError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::UniqueViolation(msg) => ProblemError::DBError(msg),
-            RepositoryError::ForeignKeyViolation(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::Connection(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::Query(msg) => ProblemError::DBError(msg.to_string()),
-            RepositoryError::Unexpected(msg) => ProblemError::DBError(msg.to_string()),
+            RepositoryError::TransactionError(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::UniqueViolation(msg) => ProblemError::Internal(msg),
+            RepositoryError::ForeignKeyViolation(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::NotNullViolation(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::CheckViolation(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::Connection(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::Query(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::Unexpected(msg) => ProblemError::Internal(msg.to_string()),
         }
     }
 }

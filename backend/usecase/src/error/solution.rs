@@ -8,7 +8,7 @@ pub enum SolutionError {
     #[error("{0}")]
     Forbidden(String),
     #[error("{0}")]
-    DBError(String),
+    Internal(String),
     #[error("{0}")]
     NotFound(String),
     #[error("{0}")]
@@ -19,14 +19,14 @@ impl From<RepositoryError> for SolutionError {
     fn from(value: RepositoryError) -> Self {
         match value {
             RepositoryError::NotFound(msg) => SolutionError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => SolutionError::DBError(msg.to_string()),
+            RepositoryError::TransactionError(msg) => SolutionError::Internal(msg.to_string()),
             RepositoryError::UniqueViolation(msg) => SolutionError::Conflict(msg),
-            RepositoryError::ForeignKeyViolation(msg) => SolutionError::DBError(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => SolutionError::DBError(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => SolutionError::DBError(msg.to_string()),
-            RepositoryError::Connection(msg) => SolutionError::DBError(msg.to_string()),
-            RepositoryError::Query(msg) => SolutionError::DBError(msg.to_string()),
-            RepositoryError::Unexpected(msg) => SolutionError::DBError(msg.to_string()),
+            RepositoryError::ForeignKeyViolation(msg) => SolutionError::Internal(msg.to_string()),
+            RepositoryError::NotNullViolation(msg) => SolutionError::Internal(msg.to_string()),
+            RepositoryError::CheckViolation(msg) => SolutionError::Internal(msg.to_string()),
+            RepositoryError::Connection(msg) => SolutionError::Internal(msg.to_string()),
+            RepositoryError::Query(msg) => SolutionError::Internal(msg.to_string()),
+            RepositoryError::Unexpected(msg) => SolutionError::Internal(msg.to_string()),
         }
     }
 }
