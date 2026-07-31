@@ -14,11 +14,15 @@ use domain::{
 };
 use usecase::{
     error::SolutionError,
-    model::solution::{update::UpdateSolutionInput, update_comment::UpdateCommentInput},
+    model::solution::{
+        create_comment::CreateCommentInput, update::UpdateSolutionInput,
+        update_comment::UpdateCommentInput,
+    },
     solution::{
-        delete::DeleteSolutionUsecase, delete_comment::DeleteCommentUsecase,
-        unvote::UnvoteSolutionUsecase, update::UpdateSolutionUsecase,
-        update_comment::UpdateCommentUsecase, vote::VoteSolutionUsecase,
+        create_comment::CreateCommentUsecase, delete::DeleteSolutionUsecase,
+        delete_comment::DeleteCommentUsecase, unvote::UnvoteSolutionUsecase,
+        update::UpdateSolutionUsecase, update_comment::UpdateCommentUsecase,
+        vote::VoteSolutionUsecase,
     },
 };
 use uuid::Uuid;
@@ -253,7 +257,7 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
 }
 
 #[tokio::test]
-async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
+async fn vote_returns_not_found_when_solution_not_found() -> Result<()> {
     let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
@@ -264,13 +268,13 @@ async fn vote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
-        .expect_err("should be bad request");
-    assert!(matches!(err, SolutionError::BadRequest(_)));
+        .expect_err("should be not found");
+    assert!(matches!(err, SolutionError::NotFound(_)));
     Ok(())
 }
 
 #[tokio::test]
-async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
+async fn unvote_returns_not_found_when_solution_not_found() -> Result<()> {
     let repository = Arc::new(GateRepository {
         solution_exists: false,
         comment_exists: true,
@@ -281,8 +285,28 @@ async fn unvote_returns_bad_request_when_solution_not_found() -> Result<()> {
     let err = uc
         .run("uid".to_string(), Uuid::now_v7())
         .await
-        .expect_err("should be bad request");
-    assert!(matches!(err, SolutionError::BadRequest(_)));
+        .expect_err("should be not found");
+    assert!(matches!(err, SolutionError::NotFound(_)));
+    Ok(())
+}
+
+#[tokio::test]
+async fn create_comment_returns_not_found_when_solution_not_found() -> Result<()> {
+    let repository = Arc::new(GateRepository {
+        solution_exists: false,
+        comment_exists: true,
+        solution_owner: "owner".to_string(),
+        comment_owner: "owner".to_string(),
+    });
+    let uc = CreateCommentUsecase::new(repository);
+    let input = CreateCommentInput {
+        user_id: "uid".to_string(),
+        solution_id: Uuid::now_v7(),
+        body_md: "body".to_string(),
+    };
+
+    let err = uc.run(input).await.err().expect("should be not found");
+    assert!(matches!(err, SolutionError::NotFound(_)));
     Ok(())
 }
 

@@ -15,7 +15,7 @@ impl VoteSolutionUsecase {
     pub async fn run(&self, user_id: String, solution_id: Uuid) -> Result<(), SolutionError> {
         let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
-            return Err(SolutionError::BadRequest("solution not found".to_string()));
+            return Err(SolutionError::NotFound("solution not found".to_string()));
         }
 
         self.repository.vote_solution(&user_id, solution_id).await?;

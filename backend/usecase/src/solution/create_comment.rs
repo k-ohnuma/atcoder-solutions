@@ -22,7 +22,7 @@ impl CreateCommentUsecase {
 
         let exists = self.repository.solution_exists(input.solution_id).await?;
         if !exists {
-            return Err(SolutionError::BadRequest("solution not found".to_string()));
+            return Err(SolutionError::NotFound("solution not found".to_string()));
         }
 
         let comment = self
