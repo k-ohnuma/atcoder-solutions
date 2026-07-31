@@ -56,6 +56,24 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user_row.try_into()?)
     }
 
+    async fn user_name_exists(&self, user_name: &str) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM users
+                    WHERE user_name = $1
+                ) AS "exists!"
+            "#,
+            user_name
+        )
+        .fetch_one(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        Ok(rec.exists)
+    }
+
     async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
         let result = sqlx::query!(
             r#"

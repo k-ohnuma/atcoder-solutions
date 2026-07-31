@@ -44,7 +44,7 @@ pub async fn create_solution_handler(
     let repo = CreateSolutionUsecase::new(
         registry.id_provider_port(),
         registry.solution_tx_manager(),
-        registry.solution_repository(),
+        registry.problem_repository(),
     );
     let input = from_req_for_input(user_id, req);
     let res = repo.run(input).await.into_api_result()?;
@@ -82,7 +82,10 @@ pub async fn get_solutions_by_problems_id_handler(
     Path(problem_id): Path<String>,
     ApiQuery(req): ApiQuery<GetSolutionsByProblemIdRequest>,
 ) -> ApiResult<Vec<GetSolutionsByProblemIdResponse>> {
-    let uc = GetSolutionsByProblemIdUsecase::new(registry.solution_repository());
+    let uc = GetSolutionsByProblemIdUsecase::new(
+        registry.solution_repository(),
+        registry.problem_repository(),
+    );
     let input = GetSolutionsByProblemIdInput::try_new(problem_id, req.sort_by, req.limit)
         .into_api_result()?;
     let solutions = uc.run(input).await.into_api_result()?;
@@ -112,7 +115,10 @@ pub async fn get_solutions_by_user_name_handler(
     Path(user_name): Path<String>,
     ApiQuery(req): ApiQuery<GetSolutionsByUserNameRequest>,
 ) -> ApiResult<Vec<GetSolutionsByUserNameResponse>> {
-    let uc = GetSolutionsByUserNameUsecase::new(registry.solution_repository());
+    let uc = GetSolutionsByUserNameUsecase::new(
+        registry.solution_repository(),
+        registry.user_repository(),
+    );
     let input = GetSolutionsByUserNameInput::try_new(user_name, req.sort_by).into_api_result()?;
 
     let solutions = uc.run(input).await.into_api_result()?;

@@ -341,24 +341,6 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(rows.into_iter().map(UserSolutionListItem::from).collect())
     }
 
-    async fn user_name_exists(&self, user_name: &str) -> Result<bool, RepositoryError> {
-        let rec = sqlx::query!(
-            r#"
-                SELECT EXISTS(
-                    SELECT 1
-                    FROM users
-                    WHERE user_name = $1
-                ) AS "exists!"
-            "#,
-            user_name
-        )
-        .fetch_one(self.db.inner_ref())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(rec.exists)
-    }
-
     async fn get_solution_votes_count(&self, solution_id: Uuid) -> Result<i64, RepositoryError> {
         let rec = sqlx::query!(
             r#"
@@ -501,23 +483,5 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .map_err(map_sqlx_error)?;
 
         Ok(rec.user_name)
-    }
-
-    async fn problem_exists(&self, problem_id: &str) -> Result<bool, RepositoryError> {
-        let rec = sqlx::query!(
-            r#"
-                SELECT EXISTS(
-                    SELECT 1
-                    FROM problems
-                    WHERE id = $1
-                ) AS "exists!"
-            "#,
-            problem_id
-        )
-        .fetch_one(self.db.inner_ref())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(rec.exists)
     }
 }

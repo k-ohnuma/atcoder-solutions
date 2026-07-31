@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::SolutionRepository;
+use domain::ports::repository::{problem::ProblemRepository, solution::SolutionRepository};
 
 use crate::{
     error::SolutionError,
@@ -10,7 +10,8 @@ use crate::{
 
 #[derive(new)]
 pub struct GetSolutionsByProblemIdUsecase {
-    repository: Arc<dyn SolutionRepository>,
+    solution_repository: Arc<dyn SolutionRepository>,
+    problem_repository: Arc<dyn ProblemRepository>,
 }
 
 impl GetSolutionsByProblemIdUsecase {
@@ -18,13 +19,16 @@ impl GetSolutionsByProblemIdUsecase {
         &self,
         input: GetSolutionsByProblemIdInput,
     ) -> Result<Vec<SolutionListItemOutput>, SolutionError> {
-        let exists = self.repository.problem_exists(&input.problem_id).await?;
+        let exists = self
+            .problem_repository
+            .problem_exists(&input.problem_id)
+            .await?;
         if !exists {
             return Err(SolutionError::NotFound("problem not found".to_string()));
         }
 
         let items = self
-            .repository
+            .solution_repository
             .get_solutions_by_problem_id(input.problem_id, input.sort, input.limit)
             .await?;
         Ok(items

@@ -132,10 +132,6 @@ impl SolutionRepository for GateRepository {
         Ok(vec![])
     }
 
-    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
-        Ok(false)
-    }
-
     async fn get_solution_votes_count(&self, _solution_id: Uuid) -> Result<i64, RepositoryError> {
         Ok(0)
     }
@@ -173,10 +169,6 @@ impl SolutionRepository for GateRepository {
 
     async fn get_user_name_by_id(&self, _user_id: &str) -> Result<String, RepositoryError> {
         Ok("name".to_string())
-    }
-
-    async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
-        Ok(true)
     }
 }
 

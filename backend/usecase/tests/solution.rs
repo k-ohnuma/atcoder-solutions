@@ -5,7 +5,13 @@ use async_trait::async_trait;
 use chrono::Utc;
 use domain::{
     error::repository::RepositoryError,
-    ports::repository::solution::SolutionRepository,
+    model::{
+        problem::{ContestSeries, Problem},
+        user::User,
+    },
+    ports::repository::{
+        problem::ProblemRepository, solution::SolutionRepository, user::UserRepository,
+    },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
@@ -23,21 +29,25 @@ use usecase::{
 use uuid::Uuid;
 
 struct DummySolutionRepository {
-    problem_exists: bool,
-    user_exists: bool,
     last_problem_sort: Mutex<Option<SolutionListSort>>,
     last_user_sort: Mutex<Option<SolutionListSort>>,
 }
 
 impl DummySolutionRepository {
-    fn new(problem_exists: bool, user_exists: bool) -> Self {
+    fn new() -> Self {
         Self {
-            problem_exists,
-            user_exists,
             last_problem_sort: Mutex::new(None),
             last_user_sort: Mutex::new(None),
         }
     }
+}
+
+struct DummyProblemRepository {
+    exists: bool,
+}
+
+struct DummyUserRepository {
+    exists: bool,
 }
 
 #[async_trait]
@@ -162,10 +172,6 @@ impl SolutionRepository for DummySolutionRepository {
         }])
     }
 
-    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
-        Ok(self.user_exists)
-    }
-
     async fn get_solution_votes_count(&self, _solution_id: Uuid) -> Result<i64, RepositoryError> {
         Ok(0)
     }
@@ -204,9 +210,92 @@ impl SolutionRepository for DummySolutionRepository {
     async fn get_user_name_by_id(&self, _user_id: &str) -> Result<String, RepositoryError> {
         Ok(String::new())
     }
+}
+
+#[async_trait]
+impl ProblemRepository for DummyProblemRepository {
+    async fn create_records(&self, _problems: Vec<Problem>) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn get_problem_ids_with_difficulty(
+        &self,
+        _problem_ids: &[String],
+    ) -> Result<Vec<String>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_problems_by_contest_series(
+        &self,
+        _series: ContestSeries,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_contest_codes_by_series(
+        &self,
+        _series: ContestSeries,
+        _limit: i64,
+        _offset: i64,
+    ) -> Result<Vec<String>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_problems_by_contest_codes(
+        &self,
+        _contest_codes: &[String],
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn search_problems_by_contest_series(
+        &self,
+        _series: ContestSeries,
+        _query: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
+        Err(RepositoryError::NotFound(problem_id.to_string()))
+    }
 
     async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
-        Ok(self.problem_exists)
+        Ok(self.exists)
+    }
+
+    async fn get_problems_by_contest(
+        &self,
+        _contest: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+}
+
+#[async_trait]
+impl UserRepository for DummyUserRepository {
+    async fn create_user(&self, _user: User) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
+        Err(RepositoryError::NotFound(uid.to_string()))
+    }
+
+    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
+        Ok(self.exists)
+    }
+
+    async fn delete_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn revoke_tokens_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn is_token_revoked(&self, _uid: &str, _issued_at: i64) -> Result<bool, RepositoryError> {
+        Ok(false)
     }
 }
 
@@ -222,8 +311,9 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> Result<()> {
-    let repository = Arc::new(DummySolutionRepository::new(false, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(repository);
+    let repository = Arc::new(DummySolutionRepository::new());
+    let problem_repository = Arc::new(DummyProblemRepository { exists: false });
+    let uc = GetSolutionsByProblemIdUsecase::new(repository, problem_repository);
     let input =
         GetSolutionsByProblemIdInput::try_new("abc100_a".to_string(), None, None).expect("valid");
 
@@ -239,8 +329,9 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_passes_sort_to_repository() -> Result<()> {
-    let repository = Arc::new(DummySolutionRepository::new(true, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(repository.clone());
+    let repository = Arc::new(DummySolutionRepository::new());
+    let problem_repository = Arc::new(DummyProblemRepository { exists: true });
+    let uc = GetSolutionsByProblemIdUsecase::new(repository.clone(), problem_repository);
     let input = GetSolutionsByProblemIdInput::try_new(
         "abc100_a".to_string(),
         Some("votes".to_string()),
@@ -259,7 +350,7 @@ async fn get_solutions_by_problem_id_passes_sort_to_repository() -> Result<()> {
 
 #[tokio::test]
 async fn get_latest_solutions_returns_items() -> Result<()> {
-    let repository = Arc::new(DummySolutionRepository::new(true, true));
+    let repository = Arc::new(DummySolutionRepository::new());
     let uc = GetLatestSolutionsUsecase::new(repository);
     let input = GetLatestSolutionsInput::try_new(None, Some(10)).expect("valid");
 
@@ -272,8 +363,9 @@ async fn get_latest_solutions_returns_items() -> Result<()> {
 
 #[tokio::test]
 async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Result<()> {
-    let repository = Arc::new(DummySolutionRepository::new(true, false));
-    let uc = GetSolutionsByUserNameUsecase::new(repository);
+    let repository = Arc::new(DummySolutionRepository::new());
+    let user_repository = Arc::new(DummyUserRepository { exists: false });
+    let uc = GetSolutionsByUserNameUsecase::new(repository, user_repository);
     let input = GetSolutionsByUserNameInput::try_new("alice".to_string(), None).expect("valid");
 
     let err = uc
@@ -287,8 +379,9 @@ async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Resu
 
 #[tokio::test]
 async fn get_solutions_by_user_name_passes_sort_to_repository() -> Result<()> {
-    let repository = Arc::new(DummySolutionRepository::new(true, true));
-    let uc = GetSolutionsByUserNameUsecase::new(repository.clone());
+    let repository = Arc::new(DummySolutionRepository::new());
+    let user_repository = Arc::new(DummyUserRepository { exists: true });
+    let uc = GetSolutionsByUserNameUsecase::new(repository.clone(), user_repository);
     let input =
         GetSolutionsByUserNameInput::try_new("alice".to_string(), Some("votes".to_string()))
             .expect("valid");

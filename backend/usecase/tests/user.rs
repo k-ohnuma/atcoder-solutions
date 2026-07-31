@@ -75,6 +75,10 @@ impl UserRepository for DummyUserRepository {
         Err(RepositoryError::NotFound("Not found".into()))
     }
 
+    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
+        Ok(false)
+    }
+
     async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
         self.deleted_uids.lock().unwrap().push(uid.to_string());
         Ok(())

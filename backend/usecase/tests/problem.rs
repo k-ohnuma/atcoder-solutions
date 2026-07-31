@@ -173,6 +173,10 @@ impl ProblemRepository for DummyProblemRepository {
         Err(RepositoryError::NotFound(problem_id.to_string()))
     }
 
+    async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
+        Ok(false)
+    }
+
     async fn get_problems_by_contest(
         &self,
         _contest: &str,

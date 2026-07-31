@@ -3,7 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::ports::{
     external::id::IdProviderPort,
-    repository::solution::{SolutionRepository, tx::SolutionTxManager},
+    repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
 };
 use itertools::Itertools;
 use uuid::Uuid;
@@ -18,7 +18,7 @@ use crate::model::solution::create::{
 pub struct CreateSolutionUsecase {
     idp: Arc<dyn IdProviderPort>,
     txm: Arc<dyn SolutionTxManager>,
-    repository: Arc<dyn SolutionRepository>,
+    problem_repository: Arc<dyn ProblemRepository>,
 }
 
 impl CreateSolutionUsecase {
@@ -27,7 +27,10 @@ impl CreateSolutionUsecase {
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
 
-        let problem_exists = self.repository.problem_exists(&input.problem_id).await?;
+        let problem_exists = self
+            .problem_repository
+            .problem_exists(&input.problem_id)
+            .await?;
         if !problem_exists {
             return Err(SolutionError::BadRequest(
                 "problem_id not found".to_string(),
