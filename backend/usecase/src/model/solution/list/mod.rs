@@ -1,61 +1,12 @@
-use super::SolutionListSort;
+mod by_problem;
+mod by_user;
+mod latest;
+
 use crate::error::SolutionError;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetLatestSolutionsInput {
-    pub limit: Option<i32>,
-}
-
-impl GetLatestSolutionsInput {
-    pub fn try_new(sort_by: Option<String>, limit: Option<i32>) -> Result<Self, SolutionError> {
-        if matches!(sort_by.as_deref(), Some(v) if v != "latest") {
-            return Err(SolutionError::BadRequest(
-                "sort_by must be latest".to_string(),
-            ));
-        }
-        Ok(Self {
-            limit: validate_limit(limit)?,
-        })
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetSolutionsByProblemIdInput {
-    pub problem_id: String,
-    pub sort: SolutionListSort,
-    pub limit: Option<i32>,
-}
-
-impl GetSolutionsByProblemIdInput {
-    pub fn try_new(
-        problem_id: String,
-        sort_by: Option<String>,
-        limit: Option<i32>,
-    ) -> Result<Self, SolutionError> {
-        let problem_id = normalize_required_string(problem_id, "problem_id cannot be empty")?;
-        Ok(Self {
-            problem_id,
-            sort: parse_solution_list_sort(sort_by)?,
-            limit: validate_limit(limit)?,
-        })
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetSolutionsByUserNameInput {
-    pub user_name: String,
-    pub sort: SolutionListSort,
-}
-
-impl GetSolutionsByUserNameInput {
-    pub fn try_new(user_name: String, sort_by: Option<String>) -> Result<Self, SolutionError> {
-        let user_name = normalize_required_string(user_name, "user_name cannot be empty")?;
-        Ok(Self {
-            user_name,
-            sort: parse_solution_list_sort(sort_by)?,
-        })
-    }
-}
+pub use by_problem::GetSolutionsByProblemIdInput;
+pub use by_user::GetSolutionsByUserNameInput;
+pub use latest::GetLatestSolutionsInput;
 
 fn validate_limit(limit: Option<i32>) -> Result<Option<i32>, SolutionError> {
     match limit {
@@ -63,16 +14,6 @@ fn validate_limit(limit: Option<i32>) -> Result<Option<i32>, SolutionError> {
             "limit must be greater than 0".to_string(),
         )),
         _ => Ok(limit),
-    }
-}
-
-fn parse_solution_list_sort(sort_by: Option<String>) -> Result<SolutionListSort, SolutionError> {
-    match sort_by.as_deref() {
-        None | Some("latest") => Ok(SolutionListSort::Latest),
-        Some("votes") => Ok(SolutionListSort::Votes),
-        Some(_) => Err(SolutionError::BadRequest(
-            "sort_by must be one of: latest, votes".to_string(),
-        )),
     }
 }
 
