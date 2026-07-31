@@ -4,8 +4,6 @@ use crate::error::ContestError;
 
 pub mod output;
 
-pub use domain::read_model::contests::ContestListItem;
-
 #[derive(Clone, Copy)]
 pub struct GetContestsBySeriesInput {
     pub series: ContestSeries,

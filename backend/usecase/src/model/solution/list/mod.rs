@@ -27,10 +27,12 @@ fn normalize_required_string(value: String, error_message: &str) -> Result<Strin
 
 #[cfg(test)]
 mod tests {
+    use domain::read_model::solution::SolutionListSort;
+
     use super::{
         GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
     };
-    use crate::{error::SolutionError, model::solution::SolutionListSort};
+    use crate::error::SolutionError;
 
     #[test]
     fn latest_input_accepts_empty_or_latest_sort() {

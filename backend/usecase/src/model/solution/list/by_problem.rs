@@ -1,4 +1,6 @@
-use crate::{error::SolutionError, model::solution::SolutionListSort};
+use domain::read_model::solution::SolutionListSort;
+
+use crate::error::SolutionError;
 
 use super::{normalize_required_string, validate_limit};
 

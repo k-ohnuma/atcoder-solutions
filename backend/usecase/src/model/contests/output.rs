@@ -1,4 +1,4 @@
-use crate::model::contests::ContestListItem;
+use domain::read_model::contests::ContestListItem;
 
 pub struct ContestListItemOutput {
     pub code: String,

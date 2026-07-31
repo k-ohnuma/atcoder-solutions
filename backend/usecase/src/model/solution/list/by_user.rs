@@ -1,4 +1,6 @@
-use crate::{error::SolutionError, model::solution::SolutionListSort};
+use domain::read_model::solution::SolutionListSort;
+
+use crate::error::SolutionError;
 
 use super::{by_problem::parse_solution_list_sort, normalize_required_string};
 

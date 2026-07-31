@@ -1,9 +1,8 @@
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
-
-use crate::model::solution::{
+use domain::read_model::solution::{
     SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
 };
+use uuid::Uuid;
 
 pub struct SolutionListItemOutput {
     pub id: Uuid,
