@@ -3,7 +3,7 @@ use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
 use domain::ports::repository::solution::tx::{
-    SolutionRepositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork,
+    SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx,
 };
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -18,17 +18,17 @@ pub struct SolutionTransactionManager {
 
 #[async_trait]
 impl SolutionTxManager for SolutionTransactionManager {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWork>, RepositoryError> {
+    async fn begin(&self) -> Result<Box<dyn SolutionUnitOfWork>, RepositoryError> {
         let tx = self.db.inner_ref().begin().await.map_err(map_sqlx_error)?;
-        Ok(Box::new(SolutionUnitOfWork::new(tx)))
+        Ok(Box::new(SolutionUnitOfWorkImpl::new(tx)))
     }
 }
 
-pub struct SolutionUnitOfWork {
+pub struct SolutionUnitOfWorkImpl {
     tx: Transaction<'static, Postgres>,
 }
 
-impl SolutionUnitOfWork {
+impl SolutionUnitOfWorkImpl {
     fn new(tx: Transaction<'static, Postgres>) -> Self {
         Self { tx }
     }
@@ -38,7 +38,7 @@ impl SolutionUnitOfWork {
 }
 
 #[async_trait]
-impl UnitOfWork for SolutionUnitOfWork {
+impl SolutionUnitOfWork for SolutionUnitOfWorkImpl {
     fn solutions(&mut self) -> &mut dyn SolutionRepositoryTx {
         self
     }
@@ -56,7 +56,7 @@ impl UnitOfWork for SolutionUnitOfWork {
 }
 
 #[async_trait]
-impl SolutionRepositoryTx for SolutionUnitOfWork {
+impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
     async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError> {
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
@@ -126,7 +126,7 @@ impl SolutionRepositoryTx for SolutionUnitOfWork {
 }
 
 #[async_trait]
-impl TagRepositoryTx for SolutionUnitOfWork {
+impl TagRepositoryTx for SolutionUnitOfWorkImpl {
     async fn upsert(&mut self, names: &[String]) -> Result<Vec<Uuid>, RepositoryError> {
         if names.is_empty() {
             return Ok(vec![]);

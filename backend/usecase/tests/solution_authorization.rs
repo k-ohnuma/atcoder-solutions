@@ -6,7 +6,7 @@ use domain::{
     error::repository::RepositoryError,
     ports::repository::solution::{
         SolutionRepository,
-        tx::{SolutionRepositoryTx, SolutionTxManager, TagRepositoryTx, UnitOfWork},
+        tx::{SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx},
     },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
@@ -31,7 +31,7 @@ struct NeverCalledTxManager;
 
 #[async_trait]
 impl SolutionTxManager for NeverCalledTxManager {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWork>, RepositoryError> {
+    async fn begin(&self) -> Result<Box<dyn SolutionUnitOfWork>, RepositoryError> {
         Err(RepositoryError::Unexpected(
             "begin should not be called in this test path".to_string(),
         ))
@@ -393,7 +393,7 @@ struct _NoopUow {
 }
 
 #[async_trait]
-impl UnitOfWork for _NoopUow {
+impl SolutionUnitOfWork for _NoopUow {
     fn solutions(&mut self) -> &mut dyn SolutionRepositoryTx {
         &mut self.s
     }

@@ -27,7 +27,7 @@ pub trait TagRepositoryTx: Send + Sync {
 }
 
 #[async_trait]
-pub trait UnitOfWork: Send + Sync {
+pub trait SolutionUnitOfWork: Send + Sync {
     fn solutions(&mut self) -> &mut dyn SolutionRepositoryTx;
     fn tags(&mut self) -> &mut dyn TagRepositoryTx;
 
@@ -37,5 +37,5 @@ pub trait UnitOfWork: Send + Sync {
 
 #[async_trait]
 pub trait SolutionTxManager: Send + Sync {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWork>, RepositoryError>;
+    async fn begin(&self) -> Result<Box<dyn SolutionUnitOfWork>, RepositoryError>;
 }
