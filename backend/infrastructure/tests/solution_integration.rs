@@ -4,7 +4,7 @@ use domain::{
     error::repository::RepositoryError,
     model::{
         problem::{ContestSeries, Problem},
-        solution::Solution,
+        solution::{Solution, tags::Tags},
     },
     ports::repository::{
         problem::tx::ProblemTxManager,
@@ -93,7 +93,11 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
     let tx_mng = SolutionTransactionManager::new(conn);
     let mut uow = tx_mng.begin().await?;
 
-    let tags = vec!["dp".to_string(), "bitset".to_string(), "dp".to_string()];
+    let tags = Tags::try_new(vec![
+        "dp".to_string(),
+        "bitset".to_string(),
+        "dp".to_string(),
+    ])?;
 
     let tag_ids = uow.tags().upsert(&tags).await?;
     assert_eq!(tag_ids.len(), 2);
@@ -153,7 +157,11 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let cp = ConnectionPool::new(pool.to_owned());
     let tm = SolutionTransactionManager::new(cp);
     let mut uow = tm.begin().await.unwrap();
-    let tags = uow.tags().upsert(&["ok".into()]).await.unwrap();
+    let tags = uow
+        .tags()
+        .upsert(&Tags::try_new(vec!["ok".into()]).unwrap())
+        .await
+        .unwrap();
     let sol_id = Uuid::now_v7();
     let sol = Solution {
         id: sol_id,

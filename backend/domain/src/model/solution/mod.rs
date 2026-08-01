@@ -1,5 +1,7 @@
 use uuid::Uuid;
 
+pub mod tags;
+
 pub struct Solution {
     pub id: Uuid,
     pub title: String,

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::solution::tags::Tags;
 use domain::ports::{
     external::id::IdProviderPort,
     repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
@@ -10,10 +11,7 @@ use validator::Validate;
 
 use crate::{
     error::SolutionError,
-    model::solution::{
-        create::{CreateSolutionInput, from_create_solution_input_for_solution},
-        tags::normalize_tags,
-    },
+    model::solution::create::{CreateSolutionInput, from_create_solution_input_for_solution},
 };
 
 #[derive(new)]
@@ -39,7 +37,7 @@ impl CreateSolutionUsecase {
             ));
         }
 
-        let tags = normalize_tags(&input.tags)?;
+        let tags = Tags::try_new(input.tags.clone())?;
 
         let mut uow = self.txm.begin().await?;
         let uid = self.idp.new_solution_id();

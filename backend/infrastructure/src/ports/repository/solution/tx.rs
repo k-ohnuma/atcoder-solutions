@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
+use domain::model::solution::tags::Tags;
 use domain::ports::repository::solution::tx::{
     SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx,
 };
@@ -123,10 +124,14 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
 
 #[async_trait]
 impl TagRepositoryTx for SolutionUnitOfWorkImpl {
-    async fn upsert(&mut self, names: &[String]) -> Result<Vec<Uuid>, RepositoryError> {
-        if names.is_empty() {
+    async fn upsert(&mut self, tags: &Tags) -> Result<Vec<Uuid>, RepositoryError> {
+        if tags.is_empty() {
             return Ok(vec![]);
         }
+        let names = tags
+            .iter()
+            .map(|tag| tag.as_str().to_string())
+            .collect::<Vec<_>>();
         let rows = sqlx::query!(
             r#"
             WITH input(tag) AS (
@@ -144,7 +149,7 @@ impl TagRepositoryTx for SolutionUnitOfWorkImpl {
             FROM tags t
             JOIN input i ON t.name = i.tag
             "#,
-            names
+            &names
         )
         .fetch_all(self.conn())
         .await

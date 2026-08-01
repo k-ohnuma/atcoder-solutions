@@ -4,6 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
+    model::solution::tags::Tags,
     ports::repository::solution::{
         SolutionRepository,
         tx::{SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx},
@@ -381,7 +382,7 @@ impl SolutionRepositoryTx for _NoopSolutionRepo {
 struct _NoopTagRepo;
 #[async_trait]
 impl TagRepositoryTx for _NoopTagRepo {
-    async fn upsert(&mut self, _names: &[String]) -> Result<Vec<Uuid>, RepositoryError> {
+    async fn upsert(&mut self, _tags: &Tags) -> Result<Vec<Uuid>, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
 }

@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::solution::tags::Tags;
 use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    error::SolutionError,
-    model::solution::{tags::normalize_tags, update::UpdateSolutionInput},
+    error::SolutionError, model::solution::update::UpdateSolutionInput,
     solution::authorization::ensure_solution_owner,
 };
 
@@ -31,7 +31,7 @@ impl UpdateSolutionUsecase {
         )
         .await?;
 
-        let tags = normalize_tags(&input.tags)?;
+        let tags = Tags::try_new(input.tags.clone())?;
 
         let mut uow = self.txm.begin().await?;
         uow.solutions()

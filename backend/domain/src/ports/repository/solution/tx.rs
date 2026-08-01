@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::error::repository::RepositoryError;
-use crate::model::solution::Solution;
+use crate::model::solution::{Solution, tags::Tags};
 
 #[async_trait]
 pub trait SolutionRepositoryTx: Send + Sync {
@@ -23,7 +23,7 @@ pub trait SolutionRepositoryTx: Send + Sync {
 
 #[async_trait]
 pub trait TagRepositoryTx: Send + Sync {
-    async fn upsert(&mut self, names: &[String]) -> Result<Vec<Uuid>, RepositoryError>;
+    async fn upsert(&mut self, tags: &Tags) -> Result<Vec<Uuid>, RepositoryError>;
 }
 
 #[async_trait]
