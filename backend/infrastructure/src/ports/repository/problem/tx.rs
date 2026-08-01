@@ -54,59 +54,7 @@ impl ProblemUnitOfWork for ProblemUnitOfWorkImpl {
 
 #[async_trait]
 impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
-    async fn upsert_contest(
-        &mut self,
-        contest_code: &str,
-        series_code: &str,
-    ) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            INSERT INTO contests (code, series_code)
-            VALUES ($1, $2)
-            ON CONFLICT (code) DO UPDATE
-            SET series_code = EXCLUDED.series_code
-            "#,
-            contest_code,
-            series_code
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-        Ok(())
-    }
-
-    async fn upsert_problem(
-        &mut self,
-        problem_id: &str,
-        contest_code: &str,
-        problem_index: &str,
-        title: &str,
-        difficulty: Option<i32>,
-    ) -> Result<(), RepositoryError> {
-        sqlx::query!(
-            r#"
-            INSERT INTO problems (id, contest_code, problem_index, title, difficulty)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (id) DO UPDATE
-            SET
-                contest_code = EXCLUDED.contest_code,
-                problem_index = EXCLUDED.problem_index,
-                title = EXCLUDED.title,
-                difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)
-            "#,
-            problem_id,
-            contest_code,
-            problem_index,
-            title,
-            difficulty
-        )
-        .execute(self.conn())
-        .await
-        .map_err(map_sqlx_error)?;
-        Ok(())
-    }
-
-    async fn upsert_contests_bulk(
+    async fn upsert_contests(
         &mut self,
         contests: &[(String, String)],
     ) -> Result<(), RepositoryError> {
@@ -130,7 +78,7 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
         Ok(())
     }
 
-    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
+    async fn upsert_problems(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
         if problems.is_empty() {
             return Ok(());
         }

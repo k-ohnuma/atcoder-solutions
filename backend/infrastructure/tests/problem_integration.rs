@@ -1,15 +1,15 @@
 use anyhow::Result;
-use domain::model::problem::{ContestSeries, Problem};
-use domain::ports::repository::problem::ProblemRepository;
-use infrastructure::{database::ConnectionPool, ports::repository::problem::ProblemRepositoryImpl};
+use domain::{model::problem::Problem, ports::repository::problem::tx::ProblemTxManager};
+use infrastructure::{
+    database::ConnectionPool, ports::repository::problem::tx::ProblemTransactionManager,
+};
 use sqlx::PgPool;
 
-#[cfg(test)]
-pub async fn seed_contest_series(pool: &PgPool) -> Result<()> {
+async fn seed_contest_series(pool: &PgPool) -> Result<()> {
     for code in ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] {
         sqlx::query!(
             r#"INSERT INTO contest_series (code)
-               VALUES ($1) ON CONFLICT (code) DO NOTHING"#,
+               VALUES ($1) ON CONFLICT DO NOTHING"#,
             code
         )
         .execute(pool)
@@ -18,156 +18,80 @@ pub async fn seed_contest_series(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn create_records(pool: PgPool) -> Result<()> {
-    seed_contest_series(&pool).await?;
-
-    let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn);
-    let p1 = Problem {
-        id: "abc300_a".into(),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
-        difficulty: None,
-    };
-    let p2 = Problem {
-        id: "abc300_b".into(),
-        contest_code: "abc300".into(),
-        problem_index: "b".into(),
-        title: "B - Example".into(),
-        difficulty: None,
-    };
-
-    repo.create_records(vec![p1, p2]).await?;
-
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM contests")
-        .fetch_one(&pool)
-        .await?;
-
-    assert!(count == 1);
-
-    let (count,): (i64,) = sqlx::query_as("SELECT count(*) FROM problems")
-        .fetch_one(&pool)
-        .await?;
-    assert!(count == 2);
-
+async fn upsert_problem_data(
+    pool: &PgPool,
+    contests: &[(String, String)],
+    problems: &[Problem],
+) -> Result<()> {
+    let manager = ProblemTransactionManager::new(ConnectionPool::new(pool.clone()));
+    let mut uow = manager.begin().await?;
+    uow.problems().upsert_contests(contests).await?;
+    uow.problems().upsert_problems(problems).await?;
+    uow.commit().await?;
     Ok(())
 }
 
 #[sqlx::test(migrations = "./migrations")]
-async fn upsert_records(pool: PgPool) -> Result<()> {
+async fn upsert_problem_data_creates_contest_and_problems(pool: PgPool) -> Result<()> {
     seed_contest_series(&pool).await?;
 
-    let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn);
-    let p1 = Problem {
+    let contests = vec![("abc300".to_string(), "ABC".to_string())];
+    let problems = vec![
+        Problem {
+            id: "abc300_a".into(),
+            contest_code: "abc300".into(),
+            problem_index: "a".into(),
+            title: "A - Example".into(),
+            difficulty: None,
+        },
+        Problem {
+            id: "abc300_b".into(),
+            contest_code: "abc300".into(),
+            problem_index: "b".into(),
+            title: "B - Example".into(),
+            difficulty: None,
+        },
+    ];
+
+    upsert_problem_data(&pool, &contests, &problems).await?;
+
+    let contest_count = sqlx::query_scalar!("SELECT COUNT(*) FROM contests")
+        .fetch_one(&pool)
+        .await?
+        .unwrap_or(0);
+    let problem_count = sqlx::query_scalar!("SELECT COUNT(*) FROM problems")
+        .fetch_one(&pool)
+        .await?
+        .unwrap_or(0);
+
+    assert_eq!(contest_count, 1);
+    assert_eq!(problem_count, 2);
+    Ok(())
+}
+
+#[sqlx::test(migrations = "./migrations")]
+async fn upsert_problems_updates_existing_problem(pool: PgPool) -> Result<()> {
+    seed_contest_series(&pool).await?;
+
+    let contests = vec![("abc300".to_string(), "ABC".to_string())];
+    let problem = Problem {
         id: "abc300_a".into(),
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
         difficulty: None,
     };
-    repo.create_records(vec![p1.to_owned()]).await?;
-    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
-        .fetch_one(&pool)
-        .await?;
-    assert_eq!(title, "A - Example");
+    upsert_problem_data(&pool, &contests, std::slice::from_ref(&problem)).await?;
 
     let updated = Problem {
         title: "A - Example modified".into(),
-        ..p1
+        ..problem
     };
-    repo.create_records(vec![updated]).await?;
-    let (title,): (String,) = sqlx::query_as("SELECT title FROM problems WHERE id = 'abc300_a'")
+    upsert_problem_data(&pool, &contests, &[updated]).await?;
+
+    let title = sqlx::query_scalar!("SELECT title FROM problems WHERE id = 'abc300_a'")
         .fetch_one(&pool)
         .await?;
     assert_eq!(title, "A - Example modified");
-    Ok(())
-}
-
-#[sqlx::test(migrations = "./migrations")]
-async fn get_problems_by_contest_series(pool: PgPool) -> Result<()> {
-    seed_contest_series(&pool).await?;
-
-    let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn);
-    let p1 = Problem {
-        id: "abc300_a".into(),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
-        difficulty: None,
-    };
-    let p2 = Problem {
-        id: "abc300_b".into(),
-        contest_code: "abc300".into(),
-        problem_index: "b".into(),
-        title: "B - Example".into(),
-        difficulty: None,
-    };
-    let p3 = Problem {
-        id: "arc001_b".into(),
-        contest_code: "arc001".into(),
-        problem_index: "b".into(),
-        title: "B - Example2".into(),
-        difficulty: None,
-    };
-    let p4 = Problem {
-        id: "abc001_c".into(),
-        contest_code: "abc001".into(),
-        problem_index: "c".into(),
-        title: "C - 001".into(),
-        difficulty: None,
-    };
-
-    repo.create_records(vec![p1, p2, p3, p4]).await?;
-
-    let abcs = repo
-        .get_problems_by_contest_series(ContestSeries::ABC)
-        .await?;
-    let arcs = repo
-        .get_problems_by_contest_series(ContestSeries::ARC)
-        .await?;
-    assert!(abcs.len() == 3);
-    assert!(arcs.len() == 1);
-
-    println!("{:?}", abcs);
-
-    let ids: Vec<&str> = abcs.iter().map(|e| e.id.as_str()).collect();
-    assert_eq!(ids, vec!["abc300_a", "abc300_b", "abc001_c"]);
-
-    assert_eq!(arcs[0].id, "arc001_b");
-    Ok(())
-}
-
-#[sqlx::test(migrations = "./migrations")]
-async fn create_records_with_unknown_series_uses_other(pool: PgPool) -> Result<()> {
-    seed_contest_series(&pool).await?;
-
-    let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn);
-    let p1 = Problem {
-        id: "tessoku_a1".into(),
-        contest_code: "tessoku-book".into(),
-        problem_index: "a1".into(),
-        title: "A1 - Example".into(),
-        difficulty: None,
-    };
-
-    repo.create_records(vec![p1]).await?;
-
-    let (series_code,): (String,) =
-        sqlx::query_as("SELECT series_code FROM contests WHERE code = 'tessoku-book'")
-            .fetch_one(&pool)
-            .await?;
-    assert_eq!(series_code, "OTHER");
-
-    let (count,): (i64,) =
-        sqlx::query_as("SELECT COUNT(*) FROM problems WHERE contest_code = 'tessoku-book'")
-            .fetch_one(&pool)
-            .await?;
-    assert_eq!(count, 1);
-
     Ok(())
 }

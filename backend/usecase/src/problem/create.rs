@@ -86,7 +86,7 @@ impl ImportProblemsUsecase {
             contests = contests.len(),
             "problem import upserting contests"
         );
-        uow.problems().upsert_contests_bulk(&contests).await?;
+        uow.problems().upsert_contests(&contests).await?;
         info!(
             total = problems.len(),
             chunk_size = PROBLEM_UPSERT_CHUNK_SIZE,
@@ -94,7 +94,7 @@ impl ImportProblemsUsecase {
         );
 
         for (chunk_index, chunk) in problems.chunks(PROBLEM_UPSERT_CHUNK_SIZE).enumerate() {
-            uow.problems().upsert_problems_bulk(chunk).await?;
+            uow.problems().upsert_problems(chunk).await?;
             let processed = ((chunk_index + 1) * PROBLEM_UPSERT_CHUNK_SIZE).min(problems.len());
             info!(
                 chunk = chunk_index + 1,

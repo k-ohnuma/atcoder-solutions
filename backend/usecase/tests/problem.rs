@@ -34,8 +34,8 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
 struct TxCalls {
     contests: Vec<(String, String)>,
     problems: Vec<Problem>,
-    contests_bulk_calls: usize,
-    problems_bulk_calls: usize,
+    contest_upsert_calls: usize,
+    problem_upsert_calls: usize,
     commits: usize,
 }
 
@@ -45,50 +45,19 @@ struct DummyProblemUow {
 
 #[async_trait]
 impl ProblemRepositoryTx for DummyProblemUow {
-    async fn upsert_contest(
-        &mut self,
-        contest_code: &str,
-        series_code: &str,
-    ) -> Result<(), RepositoryError> {
-        self.shared
-            .lock()
-            .unwrap()
-            .contests
-            .push((contest_code.to_string(), series_code.to_string()));
-        Ok(())
-    }
-
-    async fn upsert_problem(
-        &mut self,
-        problem_id: &str,
-        contest_code: &str,
-        problem_index: &str,
-        title: &str,
-        difficulty: Option<i32>,
-    ) -> Result<(), RepositoryError> {
-        self.shared.lock().unwrap().problems.push(Problem {
-            id: problem_id.to_string(),
-            contest_code: contest_code.to_string(),
-            problem_index: problem_index.to_string(),
-            title: title.to_string(),
-            difficulty,
-        });
-        Ok(())
-    }
-
-    async fn upsert_contests_bulk(
+    async fn upsert_contests(
         &mut self,
         contests: &[(String, String)],
     ) -> Result<(), RepositoryError> {
         let mut calls = self.shared.lock().unwrap();
-        calls.contests_bulk_calls += 1;
+        calls.contest_upsert_calls += 1;
         calls.contests.extend(contests.iter().cloned());
         Ok(())
     }
 
-    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
+    async fn upsert_problems(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
         let mut calls = self.shared.lock().unwrap();
-        calls.problems_bulk_calls += 1;
+        calls.problem_upsert_calls += 1;
         calls.problems.extend(problems.iter().cloned());
         Ok(())
     }
@@ -127,21 +96,10 @@ struct DummyProblemRepository;
 
 #[async_trait]
 impl ProblemRepository for DummyProblemRepository {
-    async fn create_records(&self, _problems: Vec<Problem>) -> Result<(), RepositoryError> {
-        Ok(())
-    }
-
     async fn get_problem_ids_with_difficulty(
         &self,
         _problem_ids: &[String],
     ) -> Result<Vec<String>, RepositoryError> {
-        Ok(vec![])
-    }
-
-    async fn get_problems_by_contest_series(
-        &self,
-        _series: domain::model::problem::ContestSeries,
-    ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
 
@@ -210,6 +168,13 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
                 title: "AWC - Example".into(),
                 difficulty: None,
             },
+            Problem {
+                id: "tessoku_a1".into(),
+                contest_code: "tessoku-book".into(),
+                problem_index: "A1".into(),
+                title: "Tessoku - Example".into(),
+                difficulty: None,
+            },
         ],
     });
     let calls = Arc::new(Mutex::new(TxCalls::default()));
@@ -223,12 +188,17 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
 
     let calls = calls.lock().unwrap();
     assert_eq!(calls.commits, 1);
-    assert_eq!(calls.contests_bulk_calls, 1);
-    assert_eq!(calls.problems_bulk_calls, 1);
-    assert_eq!(calls.problems.len(), 3);
-    assert_eq!(calls.contests.len(), 2);
+    assert_eq!(calls.contest_upsert_calls, 1);
+    assert_eq!(calls.problem_upsert_calls, 1);
+    assert_eq!(calls.problems.len(), 4);
+    assert_eq!(calls.contests.len(), 3);
     assert!(calls.contests.contains(&("abc234".into(), "ABC".into())));
     assert!(calls.contests.contains(&("awc001".into(), "AWC".into())));
+    assert!(
+        calls
+            .contests
+            .contains(&("tessoku-book".into(), "OTHER".into()))
+    );
 
     let sent = &calls.problems[0];
     assert_eq!(sent.id, "abc234_a");

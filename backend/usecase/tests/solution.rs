@@ -206,29 +206,14 @@ impl SolutionRepository for DummySolutionRepository {
     async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<String, RepositoryError> {
         Ok(String::new())
     }
-
-    async fn get_user_name_by_id(&self, _user_id: &str) -> Result<String, RepositoryError> {
-        Ok(String::new())
-    }
 }
 
 #[async_trait]
 impl ProblemRepository for DummyProblemRepository {
-    async fn create_records(&self, _problems: Vec<Problem>) -> Result<(), RepositoryError> {
-        Ok(())
-    }
-
     async fn get_problem_ids_with_difficulty(
         &self,
         _problem_ids: &[String],
     ) -> Result<Vec<String>, RepositoryError> {
-        Ok(vec![])
-    }
-
-    async fn get_problems_by_contest_series(
-        &self,
-        _series: ContestSeries,
-    ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
 

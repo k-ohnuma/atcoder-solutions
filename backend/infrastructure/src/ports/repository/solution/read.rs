@@ -468,20 +468,4 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
         Ok(rec.user_id)
     }
-
-    async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError> {
-        let rec = sqlx::query!(
-            r#"
-                SELECT user_name
-                FROM users
-                WHERE id = $1
-            "#,
-            user_id
-        )
-        .fetch_one(self.db.inner_ref())
-        .await
-        .map_err(map_sqlx_error)?;
-
-        Ok(rec.user_name)
-    }
 }

@@ -2,9 +2,12 @@ use anyhow::Result;
 use domain::model::user::{Role, User};
 use domain::{
     error::repository::RepositoryError,
-    model::{problem::Problem, solution::Solution},
+    model::{
+        problem::{ContestSeries, Problem},
+        solution::Solution,
+    },
     ports::repository::{
-        problem::ProblemRepository,
+        problem::tx::ProblemTxManager,
         solution::{SolutionRepository, tx::SolutionTxManager},
         user::UserRepository,
     },
@@ -14,7 +17,7 @@ use infrastructure::ports::repository::user::UserRepositoryImpl;
 use infrastructure::{
     database::ConnectionPool,
     ports::repository::{
-        problem::ProblemRepositoryImpl,
+        problem::tx::ProblemTransactionManager,
         solution::{SolutionRepositoryImpl, tx::SolutionTransactionManager},
     },
 };
@@ -37,8 +40,15 @@ async fn seed_contest_series(pool: &PgPool) -> Result<()> {
 }
 
 #[cfg(test)]
-async fn seed_problem(problems_repo: &ProblemRepositoryImpl, problem: Problem) {
-    problems_repo.create_records(vec![problem]).await.unwrap()
+async fn seed_problem(problem_tx_manager: &ProblemTransactionManager, problem: Problem) {
+    let series =
+        ContestSeries::try_from(problem.contest_code.as_str()).unwrap_or(ContestSeries::OTHER);
+    let series_code: &str = series.into();
+    let contests = vec![(problem.contest_code.clone(), series_code.to_string())];
+    let mut uow = problem_tx_manager.begin().await.unwrap();
+    uow.problems().upsert_contests(&contests).await.unwrap();
+    uow.problems().upsert_problems(&[problem]).await.unwrap();
+    uow.commit().await.unwrap();
 }
 
 pub async fn seed_roles(pool: &PgPool) -> Result<()> {
@@ -62,7 +72,7 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
         id: "abc300_a".into(),
         contest_code: "abc300".into(),
@@ -122,7 +132,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
         id: "abc300_a".into(),
         contest_code: "abc300".into(),
@@ -223,7 +233,7 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let problems_repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let problems_repo = ProblemTransactionManager::new(conn.to_owned());
     seed_problem(
         &problems_repo,
         Problem {
@@ -292,7 +302,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let problems_repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let problems_repo = ProblemTransactionManager::new(conn.to_owned());
     seed_problem(
         &problems_repo,
         Problem {
@@ -363,7 +373,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let problems_repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let problems_repo = ProblemTransactionManager::new(conn.to_owned());
     seed_problem(
         &problems_repo,
         Problem {
@@ -450,7 +460,7 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
     seed_roles(&pool).await?;
 
     let conn = ConnectionPool::new(pool.clone());
-    let problems_repo = ProblemRepositoryImpl::new(conn.to_owned());
+    let problems_repo = ProblemTransactionManager::new(conn.to_owned());
     seed_problem(
         &problems_repo,
         Problem {

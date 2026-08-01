@@ -170,10 +170,6 @@ impl SolutionRepository for GateRepository {
     async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<String, RepositoryError> {
         Ok(self.comment_owner.clone())
     }
-
-    async fn get_user_name_by_id(&self, _user_id: &str) -> Result<String, RepositoryError> {
-        Ok("name".to_string())
-    }
 }
 
 #[tokio::test]

@@ -64,5 +64,4 @@ pub trait SolutionRepository: Send + Sync {
     async fn get_solution_user_id(&self, solution_id: Uuid) -> Result<String, RepositoryError>;
     async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError>;
     async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<String, RepositoryError>;
-    async fn get_user_name_by_id(&self, user_id: &str) -> Result<String, RepositoryError>;
 }
