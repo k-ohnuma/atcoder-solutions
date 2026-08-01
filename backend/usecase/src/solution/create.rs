@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::model::solution::tags::Tags;
+use domain::model::solution::{
+    Solution,
+    content::{SolutionBody, SolutionTitle, SubmitUrl},
+    tags::Tags,
+};
 use domain::ports::{
     external::id::IdProviderPort,
     repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
@@ -9,10 +13,7 @@ use domain::ports::{
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    error::SolutionError,
-    model::solution::create::{CreateSolutionInput, from_create_solution_input_for_solution},
-};
+use crate::{error::SolutionError, model::solution::create::CreateSolutionInput};
 
 #[derive(new)]
 pub struct CreateSolutionUsecase {
@@ -37,11 +38,21 @@ impl CreateSolutionUsecase {
             ));
         }
 
-        let tags = Tags::try_new(input.tags.clone())?;
+        let tags = Tags::try_new(input.tags)?;
+        let title = SolutionTitle::try_new(input.title)?;
+        let body = SolutionBody::try_new(input.body_md)?;
+        let submit_url = SubmitUrl::try_new(input.submit_url)?;
 
         let mut uow = self.txm.begin().await?;
         let uid = self.idp.new_solution_id();
-        let solution = from_create_solution_input_for_solution(uid, &input);
+        let solution = Solution::new(
+            uid,
+            input.problem_id,
+            input.user_id,
+            title,
+            body,
+            submit_url,
+        );
 
         let tag_ids = uow.tags().upsert(&tags).await?;
         let solution_id = uow.solutions().create(&solution).await?;

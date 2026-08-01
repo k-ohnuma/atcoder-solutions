@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
+use domain::model::solution::content::{SolutionBody, SolutionTitle, SubmitUrl};
 use domain::model::solution::tags::Tags;
 use domain::ports::repository::solution::tx::{
     SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx,
@@ -58,24 +59,24 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
                VALUES ($1,$2,$3,$4,$5,$6)"#,
-            solution.id,
-            solution.problem_id,
-            solution.user_id,
-            solution.body_md,
-            solution.submit_url,
-            solution.title
+            solution.id(),
+            solution.problem_id(),
+            solution.user_id(),
+            solution.body().as_str(),
+            solution.submit_url().as_str(),
+            solution.title().as_str()
         )
         .execute(self.conn())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(solution.id)
+        Ok(solution.id())
     }
     async fn update(
         &mut self,
         solution_id: Uuid,
-        title: &str,
-        body_md: &str,
-        submit_url: &str,
+        title: &SolutionTitle,
+        body: &SolutionBody,
+        submit_url: &SubmitUrl,
     ) -> Result<(), RepositoryError> {
         sqlx::query!(
             r#"
@@ -84,9 +85,9 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
             WHERE id = $1
             "#,
             solution_id,
-            title,
-            body_md,
-            submit_url
+            title.as_str(),
+            body.as_str(),
+            submit_url.as_str()
         )
         .execute(self.conn())
         .await

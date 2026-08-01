@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::model::solution::tags::Tags;
+use domain::model::solution::{
+    content::{SolutionBody, SolutionTitle, SubmitUrl},
+    tags::Tags,
+};
 use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 use uuid::Uuid;
 use validator::Validate;
@@ -31,16 +34,14 @@ impl UpdateSolutionUsecase {
         )
         .await?;
 
-        let tags = Tags::try_new(input.tags.clone())?;
+        let tags = Tags::try_new(input.tags)?;
+        let title = SolutionTitle::try_new(input.title)?;
+        let body = SolutionBody::try_new(input.body_md)?;
+        let submit_url = SubmitUrl::try_new(input.submit_url)?;
 
         let mut uow = self.txm.begin().await?;
         uow.solutions()
-            .update(
-                input.solution_id,
-                &input.title,
-                &input.body_md,
-                &input.submit_url,
-            )
+            .update(input.solution_id, &title, &body, &submit_url)
             .await?;
 
         let tag_ids = uow.tags().upsert(&tags).await?;

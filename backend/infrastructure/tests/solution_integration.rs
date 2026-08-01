@@ -4,7 +4,11 @@ use domain::{
     error::repository::RepositoryError,
     model::{
         problem::{ContestSeries, Problem},
-        solution::{Solution, tags::Tags},
+        solution::{
+            Solution,
+            content::{SolutionBody, SolutionTitle, SubmitUrl},
+            tags::Tags,
+        },
     },
     ports::repository::{
         problem::tx::ProblemTxManager,
@@ -49,6 +53,24 @@ async fn seed_problem(problem_tx_manager: &ProblemTransactionManager, problem: P
     uow.problems().upsert_contests(&contests).await.unwrap();
     uow.problems().upsert_problems(&[problem]).await.unwrap();
     uow.commit().await.unwrap();
+}
+
+fn solution(
+    id: Uuid,
+    title: &str,
+    problem_id: &str,
+    user_id: &str,
+    body: &str,
+    submit_url: &str,
+) -> Solution {
+    Solution::new(
+        id,
+        problem_id.to_string(),
+        user_id.to_string(),
+        SolutionTitle::try_new(title.to_string()).expect("valid title"),
+        SolutionBody::try_new(body.to_string()).expect("valid body"),
+        SubmitUrl::try_new(submit_url.to_string()).expect("valid submit URL"),
+    )
 }
 
 pub async fn seed_roles(pool: &PgPool) -> Result<()> {
@@ -104,14 +126,14 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
 
     let sol_id = Uuid::now_v7();
 
-    let solution = Solution {
-        id: sol_id,
-        title: "title".into(),
-        problem_id: "abc300_a".into(),
-        user_id: "id".into(),
-        body_md: "# midashi ## what is dp?".into(),
-        submit_url: "https://localhost:3000/solution".into(),
-    };
+    let solution = solution(
+        sol_id,
+        "title",
+        "abc300_a",
+        "id",
+        "# midashi ## what is dp?",
+        "https://localhost:3000/solution",
+    );
 
     uow.solutions().create(&solution).await?;
 
@@ -163,14 +185,14 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
         .await
         .unwrap();
     let sol_id = Uuid::now_v7();
-    let sol = Solution {
-        id: sol_id,
-        title: "title".into(),
-        problem_id: "abc300_a".into(),
-        user_id: "id".into(),
-        body_md: "X".into(),
-        submit_url: "https://exapmle.com".into(),
-    };
+    let sol = solution(
+        sol_id,
+        "title",
+        "abc300_a",
+        "id",
+        "X",
+        "https://exapmle.com",
+    );
     uow.solutions().create(&sol).await.unwrap();
     uow.solutions().replace_tags(sol_id, &tags).await.unwrap();
 
@@ -206,14 +228,7 @@ async fn create_solution_only(
     let tx_mng = SolutionTransactionManager::new(conn);
     let mut uow = tx_mng.begin().await?;
     let solution_id = Uuid::now_v7();
-    let solution = Solution {
-        id: solution_id,
-        title: title.to_string(),
-        problem_id: problem_id.to_string(),
-        user_id: user_id.to_string(),
-        body_md: "body".to_string(),
-        submit_url: String::new(),
-    };
+    let solution = solution(solution_id, title, problem_id, user_id, "body", "");
     uow.solutions().create(&solution).await?;
     uow.commit().await?;
     Ok(solution_id)
@@ -444,14 +459,14 @@ async fn create_solution_with_missing_problem_returns_unexpected_error(pool: PgP
 
     let tx_mng = SolutionTransactionManager::new(conn);
     let mut uow = tx_mng.begin().await?;
-    let solution = Solution {
-        id: Uuid::now_v7(),
-        title: "title".to_string(),
-        problem_id: "missing_problem".to_string(),
-        user_id: "author".to_string(),
-        body_md: "body".to_string(),
-        submit_url: String::new(),
-    };
+    let solution = solution(
+        Uuid::now_v7(),
+        "title",
+        "missing_problem",
+        "author",
+        "body",
+        "",
+    );
 
     let err = uow
         .solutions()

@@ -2,7 +2,11 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::error::repository::RepositoryError;
-use crate::model::solution::{Solution, tags::Tags};
+use crate::model::solution::{
+    Solution,
+    content::{SolutionBody, SolutionTitle, SubmitUrl},
+    tags::Tags,
+};
 
 #[async_trait]
 pub trait SolutionRepositoryTx: Send + Sync {
@@ -10,9 +14,9 @@ pub trait SolutionRepositoryTx: Send + Sync {
     async fn update(
         &mut self,
         solution_id: Uuid,
-        title: &str,
-        body_md: &str,
-        submit_url: &str,
+        title: &SolutionTitle,
+        body: &SolutionBody,
+        submit_url: &SubmitUrl,
     ) -> Result<(), RepositoryError>;
     async fn replace_tags(
         &mut self,

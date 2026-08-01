@@ -4,7 +4,10 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
-    model::solution::tags::Tags,
+    model::solution::{
+        content::{SolutionBody, SolutionTitle, SubmitUrl},
+        tags::Tags,
+    },
     ports::repository::solution::{
         SolutionRepository,
         tx::{SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx},
@@ -364,9 +367,9 @@ impl SolutionRepositoryTx for _NoopSolutionRepo {
     async fn update(
         &mut self,
         _solution_id: Uuid,
-        _title: &str,
-        _body_md: &str,
-        _submit_url: &str,
+        _title: &SolutionTitle,
+        _body: &SolutionBody,
+        _submit_url: &SubmitUrl,
     ) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
