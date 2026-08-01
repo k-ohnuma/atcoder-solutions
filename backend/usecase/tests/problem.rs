@@ -73,10 +73,6 @@ impl ProblemUnitOfWork for DummyProblemUow {
         self.shared.lock().unwrap().commits += 1;
         Ok(())
     }
-
-    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError> {
-        Ok(())
-    }
 }
 
 struct DummyProblemTxManager {

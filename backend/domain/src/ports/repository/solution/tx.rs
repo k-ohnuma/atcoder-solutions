@@ -6,7 +6,7 @@ use crate::model::solution::Solution;
 
 #[async_trait]
 pub trait SolutionRepositoryTx: Send + Sync {
-    async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError>;
+    async fn create(&mut self, solution: &Solution) -> Result<Uuid, RepositoryError>;
     async fn update(
         &mut self,
         solution_id: Uuid,
@@ -17,7 +17,7 @@ pub trait SolutionRepositoryTx: Send + Sync {
     async fn replace_tags(
         &mut self,
         solution_id: Uuid,
-        tag_id: &[Uuid],
+        tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError>;
 }
 
@@ -32,7 +32,6 @@ pub trait SolutionUnitOfWork: Send + Sync {
     fn tags(&mut self) -> &mut dyn TagRepositoryTx;
 
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError>;
-    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError>;
 }
 
 #[async_trait]

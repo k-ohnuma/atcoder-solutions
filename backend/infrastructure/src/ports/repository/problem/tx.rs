@@ -45,11 +45,6 @@ impl ProblemUnitOfWork for ProblemUnitOfWorkImpl {
         self.tx.commit().await.map_err(map_sqlx_error)?;
         Ok(())
     }
-
-    async fn rollback(mut self: Box<Self>) -> Result<(), RepositoryError> {
-        self.tx.rollback().await.map_err(map_sqlx_error)?;
-        Ok(())
-    }
 }
 
 #[async_trait]

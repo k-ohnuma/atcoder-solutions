@@ -356,7 +356,7 @@ struct _NoopSolutionRepo;
 impl SolutionRepositoryTx for _NoopSolutionRepo {
     async fn create(
         &mut self,
-        _s: &domain::model::solution::Solution,
+        _solution: &domain::model::solution::Solution,
     ) -> Result<Uuid, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
@@ -372,7 +372,7 @@ impl SolutionRepositoryTx for _NoopSolutionRepo {
     async fn replace_tags(
         &mut self,
         _solution_id: Uuid,
-        _tag_id: &[Uuid],
+        _tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
@@ -401,10 +401,6 @@ impl SolutionUnitOfWork for _NoopUow {
         &mut self.t
     }
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError> {
-        let _ = self;
-        Ok(())
-    }
-    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError> {
         let _ = self;
         Ok(())
     }

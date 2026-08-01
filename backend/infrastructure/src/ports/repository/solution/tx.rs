@@ -49,29 +49,25 @@ impl SolutionUnitOfWork for SolutionUnitOfWorkImpl {
         self.tx.commit().await.map_err(map_sqlx_error)?;
         Ok(())
     }
-    async fn rollback(mut self: Box<Self>) -> Result<(), RepositoryError> {
-        self.tx.rollback().await.map_err(map_sqlx_error)?;
-        Ok(())
-    }
 }
 
 #[async_trait]
 impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
-    async fn create(&mut self, s: &Solution) -> Result<Uuid, RepositoryError> {
+    async fn create(&mut self, solution: &Solution) -> Result<Uuid, RepositoryError> {
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
                VALUES ($1,$2,$3,$4,$5,$6)"#,
-            s.id,
-            s.problem_id,
-            s.user_id,
-            s.body_md,
-            s.submit_url,
-            s.title
+            solution.id,
+            solution.problem_id,
+            solution.user_id,
+            solution.body_md,
+            solution.submit_url,
+            solution.title
         )
         .execute(self.conn())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(s.id)
+        Ok(solution.id)
     }
     async fn update(
         &mut self,

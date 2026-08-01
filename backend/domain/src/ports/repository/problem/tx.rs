@@ -16,7 +16,6 @@ pub trait ProblemRepositoryTx: Send + Sync {
 pub trait ProblemUnitOfWork: Send + Sync {
     fn problems(&mut self) -> &mut dyn ProblemRepositoryTx;
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError>;
-    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError>;
 }
 
 #[async_trait]
