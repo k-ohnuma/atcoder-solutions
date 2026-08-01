@@ -23,14 +23,10 @@ impl From<RepositoryError> for UserError {
     fn from(value: RepositoryError) -> Self {
         match value {
             RepositoryError::NotFound(msg) => UserError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::UniqueViolation(msg) => UserError::UserNameAlreadyExists(msg),
-            RepositoryError::ForeignKeyViolation(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::Connection(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::Query(msg) => UserError::Internal(msg.to_string()),
-            RepositoryError::Unexpected(msg) => UserError::Internal(msg.to_string()),
+            RepositoryError::Conflict(msg) => UserError::UserNameAlreadyExists(msg),
+            RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
+                UserError::Internal(msg)
+            }
         }
     }
 }

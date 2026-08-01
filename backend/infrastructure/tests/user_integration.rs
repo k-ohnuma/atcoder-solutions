@@ -74,7 +74,7 @@ async fn create_user_conflict_on_username_returns_conflict_error(pool: PgPool) -
     let err = repo.create_user(u2).await.expect_err("should conflict");
 
     match err {
-        RepositoryError::UniqueViolation(msg) => {
+        RepositoryError::Conflict(msg) => {
             assert!(
                 msg.contains("alice"),
                 "message should mention user_name, got: {msg}"
@@ -106,7 +106,7 @@ async fn create_user_same_id_is_db_error_not_conflict(pool: PgPool) -> Result<()
     let err = repo.create_user(u2).await.expect_err("pk(id) should error");
 
     match err {
-        RepositoryError::UniqueViolation(_msg) => {}
+        RepositoryError::Conflict(_msg) => {}
         other => panic!("expected unique value violation, got {:?}", other),
     }
     let count = sqlx::query_scalar!("SELECT COUNT(*) FROM users WHERE id = $1", "same-id")

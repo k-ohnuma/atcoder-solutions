@@ -32,7 +32,7 @@ impl UserRepository for UserRepositoryImpl {
         .map_err(map_sqlx_error)?;
 
         if inserted.is_none() {
-            return Err(RepositoryError::UniqueViolation(format!(
+            return Err(RepositoryError::Conflict(format!(
                 "user_name: {}",
                 user.user_name
             )));

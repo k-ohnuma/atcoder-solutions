@@ -16,10 +16,10 @@ pub fn map_sqlx_error(err: sqlx::Error) -> RepositoryError {
     match err {
         sqlx::Error::RowNotFound => RepositoryError::NotFound(err.to_string()),
         sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => {
-            RepositoryError::Connection(err.to_string())
+            RepositoryError::Unavailable(err.to_string())
         }
         sqlx::Error::Database(db_err) => map_database_error(&*db_err),
-        _ => RepositoryError::Query(err.to_string()),
+        _ => RepositoryError::Unexpected(err.to_string()),
     }
 }
 
@@ -31,11 +31,8 @@ fn map_database_error(db_err: &dyn DatabaseError) -> RepositoryError {
     );
 
     match db_err.code().as_deref() {
-        Some("23505") => RepositoryError::UniqueViolation(db_err.message().to_string()),
-        Some("23503") => RepositoryError::ForeignKeyViolation(db_err.message().to_string()),
-        Some("23502") => RepositoryError::NotNullViolation(db_err.message().to_string()),
-        Some("23514") => RepositoryError::CheckViolation(db_err.message().to_string()),
-        _ => RepositoryError::Query(db_err.message().to_string()),
+        Some("23505") => RepositoryError::Conflict(db_err.message().to_string()),
+        _ => RepositoryError::Unexpected(db_err.message().to_string()),
     }
 }
 

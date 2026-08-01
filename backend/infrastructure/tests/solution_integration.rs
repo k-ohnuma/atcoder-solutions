@@ -412,7 +412,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
 }
 
 #[sqlx::test(migrations = "./migrations")]
-async fn create_solution_with_missing_problem_returns_fk_violation(pool: PgPool) -> Result<()> {
+async fn create_solution_with_missing_problem_returns_unexpected_error(pool: PgPool) -> Result<()> {
     seed_roles(&pool).await?;
     let conn = ConnectionPool::new(pool.clone());
     let user_repo = UserRepositoryImpl::new(conn.to_owned());
@@ -440,7 +440,7 @@ async fn create_solution_with_missing_problem_returns_fk_violation(pool: PgPool)
         .create(&solution)
         .await
         .expect_err("fk violation expected");
-    assert!(matches!(err, RepositoryError::ForeignKeyViolation(_)));
+    assert!(matches!(err, RepositoryError::Unexpected(_)));
     Ok(())
 }
 

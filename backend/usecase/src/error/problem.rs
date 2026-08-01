@@ -23,14 +23,9 @@ impl From<RepositoryError> for ProblemError {
     fn from(value: RepositoryError) -> Self {
         match value {
             RepositoryError::NotFound(msg) => ProblemError::NotFound(msg),
-            RepositoryError::TransactionError(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::UniqueViolation(msg) => ProblemError::Internal(msg),
-            RepositoryError::ForeignKeyViolation(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::NotNullViolation(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::CheckViolation(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::Connection(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::Query(msg) => ProblemError::Internal(msg.to_string()),
-            RepositoryError::Unexpected(msg) => ProblemError::Internal(msg.to_string()),
+            RepositoryError::Conflict(msg)
+            | RepositoryError::Unavailable(msg)
+            | RepositoryError::Unexpected(msg) => ProblemError::Internal(msg),
         }
     }
 }
