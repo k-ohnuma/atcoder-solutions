@@ -56,10 +56,11 @@ impl SolutionUnitOfWork for SolutionUnitOfWorkImpl {
 #[async_trait]
 impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
     async fn create(&mut self, solution: &Solution) -> Result<Uuid, RepositoryError> {
+        let solution_id = solution.id().into_uuid();
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
                VALUES ($1,$2,$3,$4,$5,$6)"#,
-            solution.id(),
+            solution_id,
             solution.problem_id(),
             solution.user_id(),
             solution.body().as_str(),
@@ -69,7 +70,7 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
         .execute(self.conn())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(solution.id())
+        Ok(solution_id)
     }
     async fn update(
         &mut self,

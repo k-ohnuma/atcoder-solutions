@@ -7,6 +7,7 @@ use domain::{
         solution::{
             Solution,
             content::{SolutionBody, SolutionTitle, SubmitUrl},
+            id::SolutionId,
             tags::Tags,
         },
     },
@@ -64,7 +65,7 @@ fn solution(
     submit_url: &str,
 ) -> Solution {
     Solution::new(
-        id,
+        SolutionId::new(id),
         problem_id.to_string(),
         user_id.to_string(),
         SolutionTitle::try_new(title.to_string()).expect("valid title"),

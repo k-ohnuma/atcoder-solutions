@@ -44,9 +44,9 @@ impl CreateSolutionUsecase {
         let submit_url = SubmitUrl::try_new(input.submit_url)?;
 
         let mut uow = self.txm.begin().await?;
-        let uid = self.idp.new_solution_id();
+        let solution_id = self.idp.new_solution_id();
         let solution = Solution::new(
-            uid,
+            solution_id,
             input.problem_id,
             input.user_id,
             title,
@@ -55,12 +55,14 @@ impl CreateSolutionUsecase {
         );
 
         let tag_ids = uow.tags().upsert(&tags).await?;
-        let solution_id = uow.solutions().create(&solution).await?;
+        let persisted_solution_id = uow.solutions().create(&solution).await?;
 
-        uow.solutions().replace_tags(solution_id, &tag_ids).await?;
+        uow.solutions()
+            .replace_tags(persisted_solution_id, &tag_ids)
+            .await?;
 
         uow.commit().await?;
 
-        Ok(uid)
+        Ok(solution_id.into_uuid())
     }
 }

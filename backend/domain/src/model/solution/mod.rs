@@ -1,12 +1,12 @@
-use uuid::Uuid;
-
 pub mod content;
+pub mod id;
 pub mod tags;
 
 use content::{SolutionBody, SolutionTitle, SubmitUrl};
+use id::SolutionId;
 
 pub struct Solution {
-    id: Uuid,
+    id: SolutionId,
     problem_id: String,
     user_id: String,
     title: SolutionTitle,
@@ -16,7 +16,7 @@ pub struct Solution {
 
 impl Solution {
     pub fn new(
-        id: Uuid,
+        id: SolutionId,
         problem_id: String,
         user_id: String,
         title: SolutionTitle,
@@ -33,7 +33,7 @@ impl Solution {
         }
     }
 
-    pub fn id(&self) -> Uuid {
+    pub fn id(&self) -> SolutionId {
         self.id
     }
 
