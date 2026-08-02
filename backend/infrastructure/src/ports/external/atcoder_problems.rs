@@ -4,7 +4,8 @@ use async_trait::async_trait;
 use domain::{
     error::external::ExternalError,
     model::problem::{
-        Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+        Problem, contest_code::ContestCode, difficulty::Difficulty, id::ProblemId,
+        index::ProblemIndex, title::ProblemTitle,
     },
     ports::external::atcoder_problems::AtcoderProblemsPort,
 };
@@ -91,7 +92,10 @@ impl AtcoderProblemsClient {
         }
     }
 
-    async fn fetch_difficulty(&self, problem_id: &str) -> Result<Option<i32>, ExternalError> {
+    async fn fetch_difficulty(
+        &self,
+        problem_id: &str,
+    ) -> Result<Option<Difficulty>, ExternalError> {
         let resp = self
             .client
             .get(self.difficulty_endpoint.as_str())
@@ -112,7 +116,7 @@ impl AtcoderProblemsClient {
                 map_reqwest_error(e)
             }
         })?;
-        Ok(payload.difficulty)
+        Ok(payload.difficulty.map(Difficulty::new))
     }
 }
 
@@ -143,7 +147,10 @@ impl AtcoderProblemsPort for AtcoderProblemsClient {
             .map_err(|error| ExternalError::InvalidJson(error.to_string()))?)
     }
 
-    async fn fetch_difficulty(&self, problem_id: &ProblemId) -> Result<Option<i32>, ExternalError> {
+    async fn fetch_difficulty(
+        &self,
+        problem_id: &ProblemId,
+    ) -> Result<Option<Difficulty>, ExternalError> {
         self.fetch_difficulty(problem_id.as_str())
             .await
             .inspect_err(|error| {
@@ -298,7 +305,7 @@ mod tests {
             .fetch_difficulty("abc323_e")
             .await
             .expect("should be success");
-        assert_eq!(got, Some(1279));
+        assert_eq!(got.map(|difficulty| difficulty.value()), Some(1279));
     }
 
     #[tokio::test]

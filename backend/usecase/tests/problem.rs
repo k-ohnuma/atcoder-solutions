@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::model::problem::{
-    contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+    contest_code::ContestCode, difficulty::Difficulty, id::ProblemId, index::ProblemIndex,
+    title::ProblemTitle,
 };
 use domain::{
     error::{external::ExternalError, repository::RepositoryError},
@@ -31,7 +32,7 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
     async fn fetch_difficulty(
         &self,
         _problem_id: &ProblemId,
-    ) -> Result<Option<i32>, ExternalError> {
+    ) -> Result<Option<Difficulty>, ExternalError> {
         Ok(None)
     }
 }

@@ -1,10 +1,13 @@
 use async_trait::async_trait;
 
 use crate::error::external::ExternalError;
-use crate::model::problem::{Problem, id::ProblemId};
+use crate::model::problem::{Problem, difficulty::Difficulty, id::ProblemId};
 
 #[async_trait]
 pub trait AtcoderProblemsPort: Send + Sync {
     async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError>;
-    async fn fetch_difficulty(&self, problem_id: &ProblemId) -> Result<Option<i32>, ExternalError>;
+    async fn fetch_difficulty(
+        &self,
+        problem_id: &ProblemId,
+    ) -> Result<Option<Difficulty>, ExternalError>;
 }

@@ -19,7 +19,12 @@ export function ProblemSolutionsHeader({ problem }: ProblemSolutionsHeaderProps)
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{problem.id}</Badge>
           <h1 className="text-lg font-semibold md:text-xl">{problem.title} の解説一覧</h1>
-          <DifficultyBadge problemIndex={problem.problemIndex} difficulty={difficulty} label={difficulty ?? "N/A"} />
+          <DifficultyBadge
+            problemIndex={problem.problemIndex}
+            difficulty={difficulty}
+            difficultyBand={problem.difficultyBand}
+            label={difficulty ?? "N/A"}
+          />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">

@@ -8,7 +8,11 @@ export function ProblemCard({ problem }: { problem: Problem }) {
       href={`/problems/${problem.id}`}
       className="block rounded-md border bg-background px-3 py-2 transition-colors hover:bg-accent"
     >
-      <DifficultyBadge problemIndex={problem.problemIndex} difficulty={problem.difficulty} />
+      <DifficultyBadge
+        problemIndex={problem.problemIndex}
+        difficulty={problem.difficulty}
+        difficultyBand={problem.difficultyBand}
+      />
       <p className="text-sm font-medium">{problem.title}</p>
     </Link>
   );

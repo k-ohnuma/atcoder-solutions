@@ -2,11 +2,13 @@ use strum::Display;
 use thiserror::Error;
 
 pub mod contest_code;
+pub mod difficulty;
 pub mod id;
 pub mod index;
 pub mod title;
 
 use contest_code::ContestCode;
+use difficulty::Difficulty;
 use id::ProblemId;
 use index::ProblemIndex;
 use title::ProblemTitle;
@@ -17,7 +19,7 @@ pub struct Problem {
     pub contest_code: ContestCode,
     pub problem_index: ProblemIndex,
     pub title: ProblemTitle,
-    pub difficulty: Option<i32>,
+    pub difficulty: Option<Difficulty>,
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Display)]

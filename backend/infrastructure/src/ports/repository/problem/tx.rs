@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::problem::Problem,
+    model::problem::{Problem, difficulty::Difficulty},
     ports::repository::problem::tx::{ProblemRepositoryTx, ProblemTxManager, ProblemUnitOfWork},
 };
 use sqlx::{Postgres, QueryBuilder, Transaction};
@@ -87,7 +87,7 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
                 .push_bind(problem.contest_code.as_str())
                 .push_bind(problem.problem_index.as_str())
                 .push_bind(problem.title.as_str())
-                .push_bind(problem.difficulty);
+                .push_bind(problem.difficulty.map(Difficulty::value));
         });
         query_builder.push(
             " ON CONFLICT (id) DO UPDATE SET contest_code = EXCLUDED.contest_code, problem_index = EXCLUDED.problem_index, title = EXCLUDED.title, difficulty = COALESCE(EXCLUDED.difficulty, problems.difficulty)",

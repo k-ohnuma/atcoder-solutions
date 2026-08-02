@@ -1,8 +1,8 @@
 // 使う想定ではないがdocがわりにDB型明記しておく
 use chrono::{DateTime, Utc};
 use domain::model::problem::{
-    ContestSeries, Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex,
-    title::ProblemTitle,
+    ContestSeries, Problem, contest_code::ContestCode, difficulty::Difficulty, id::ProblemId,
+    index::ProblemIndex, title::ProblemTitle,
 };
 
 pub struct ProblemRow {
@@ -27,7 +27,7 @@ impl TryFrom<ProblemRow> for Problem {
             contest_code: ContestCode::try_new(value.contest_code)?,
             problem_index: ProblemIndex::try_new(value.problem_index)?,
             title: ProblemTitle::try_new(value.title)?,
-            difficulty: value.difficulty,
+            difficulty: value.difficulty.map(Difficulty::new),
         })
     }
 }
