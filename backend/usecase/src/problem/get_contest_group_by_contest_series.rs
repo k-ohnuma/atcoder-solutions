@@ -114,14 +114,15 @@ mod tests {
         assert_eq!(groups.len(), 2);
         assert_eq!(groups[0].contest_id, "abc300");
         assert_eq!(groups[0].problems.len(), 2);
-        assert_eq!(groups[0].problems[0].id, "abc300_b");
+        assert_eq!(groups[0].problems[0].id.as_str(), "abc300_b");
         assert_eq!(groups[1].contest_id, "abc299");
-        assert_eq!(groups[1].problems[0].id, "abc299_a");
+        assert_eq!(groups[1].problems[0].id.as_str(), "abc299_a");
     }
 
     fn problem(id: &str, contest_code: &str, problem_index: &str) -> Problem {
         Problem {
-            id: id.to_string(),
+            id: domain::model::problem::id::ProblemId::try_new(id.to_string())
+                .expect("valid problem ID"),
             contest_code: contest_code.to_string(),
             problem_index: problem_index.to_string(),
             title: id.to_string(),

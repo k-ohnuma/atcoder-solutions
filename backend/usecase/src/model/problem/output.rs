@@ -1,7 +1,7 @@
-use domain::model::problem::Problem;
+use domain::model::problem::{Problem, id::ProblemId};
 
 pub struct ProblemOutput {
-    pub id: String,
+    pub id: ProblemId,
     pub contest_code: String,
     pub problem_index: String,
     pub title: String,

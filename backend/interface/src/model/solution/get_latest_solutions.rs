@@ -37,9 +37,9 @@ impl From<SolutionListItemOutput> for GetLatestSolutionsResponse {
         } = value;
 
         Self {
-            id,
+            id: id.into_uuid(),
             title,
-            problem_id,
+            problem_id: problem_id.into_string(),
             user_id,
             user_name,
             votes_count,

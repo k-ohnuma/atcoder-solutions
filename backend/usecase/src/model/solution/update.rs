@@ -1,11 +1,11 @@
-use uuid::Uuid;
+use domain::model::solution::id::SolutionId;
 use validator::{Validate, ValidationError};
 
 #[derive(Validate)]
 pub struct UpdateSolutionInput {
     #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
     pub user_id: String,
-    pub solution_id: Uuid,
+    pub solution_id: SolutionId,
     pub title: String,
     pub body_md: String,
     pub submit_url: String,

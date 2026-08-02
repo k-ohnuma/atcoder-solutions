@@ -10,7 +10,6 @@ use domain::ports::{
     external::id::IdProviderPort,
     repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
 };
-use uuid::Uuid;
 use validator::Validate;
 
 use crate::{error::SolutionError, model::solution::create::CreateSolutionInput};
@@ -23,7 +22,10 @@ pub struct CreateSolutionUsecase {
 }
 
 impl CreateSolutionUsecase {
-    pub async fn run(&self, input: CreateSolutionInput) -> Result<Uuid, SolutionError> {
+    pub async fn run(
+        &self,
+        input: CreateSolutionInput,
+    ) -> Result<domain::model::solution::id::SolutionId, SolutionError> {
         input
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
@@ -63,6 +65,6 @@ impl CreateSolutionUsecase {
 
         uow.commit().await?;
 
-        Ok(solution_id.into_uuid())
+        Ok(solution_id)
     }
 }

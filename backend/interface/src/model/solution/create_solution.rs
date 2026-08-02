@@ -1,3 +1,4 @@
+use domain::model::solution::id::SolutionId;
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::create::CreateSolutionInput;
 use uuid::Uuid;
@@ -12,15 +13,18 @@ pub struct CreateSolutionRequest {
     tags: Vec<String>,
 }
 
-pub fn from_req_for_input(user_id: String, req: CreateSolutionRequest) -> CreateSolutionInput {
-    CreateSolutionInput {
+pub fn from_req_for_input(
+    user_id: String,
+    req: CreateSolutionRequest,
+) -> Result<CreateSolutionInput, usecase::error::SolutionError> {
+    CreateSolutionInput::try_new(
         user_id,
-        title: req.title,
-        problem_id: req.problem_id,
-        body_md: req.body_md,
-        submit_url: req.submit_url,
-        tags: req.tags,
-    }
+        req.problem_id,
+        req.title,
+        req.body_md,
+        req.submit_url,
+        req.tags,
+    )
 }
 
 #[derive(Serialize)]
@@ -29,9 +33,11 @@ pub struct CreateSolutionResponse {
     solution_id: Uuid,
 }
 
-impl From<Uuid> for CreateSolutionResponse {
-    fn from(value: Uuid) -> Self {
-        Self { solution_id: value }
+impl From<SolutionId> for CreateSolutionResponse {
+    fn from(value: SolutionId) -> Self {
+        Self {
+            solution_id: value.into_uuid(),
+        }
     }
 }
 
@@ -52,16 +58,16 @@ mod tests {
             "tags": ["dp", "graph"]
         });
         let req: CreateSolutionRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), req);
+        let input = from_req_for_input("uid".to_string(), req).expect("valid input");
         assert_eq!(input.user_id, "uid");
-        assert_eq!(input.problem_id, "abc100_a");
+        assert_eq!(input.problem_id.as_str(), "abc100_a");
         assert_eq!(input.tags.len(), 2);
     }
 
     #[test]
     fn serialize_create_solution_response_as_camel_case() {
         let id = Uuid::now_v7();
-        let resp = CreateSolutionResponse::from(id);
+        let resp = CreateSolutionResponse::from(domain::model::solution::id::SolutionId::new(id));
         let v = serde_json::to_value(resp).expect("serialize");
         let got = v
             .get("solutionId")

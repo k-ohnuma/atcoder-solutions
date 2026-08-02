@@ -46,7 +46,7 @@ pub async fn create_solution_handler(
         registry.solution_tx_manager(),
         registry.problem_repository(),
     );
-    let input = from_req_for_input(user_id, req);
+    let input = from_req_for_input(user_id, req).into_api_result()?;
     let res = repo.run(input).await.into_api_result()?;
 
     Ok(ApiResponse::ok(res.into()))
@@ -62,7 +62,7 @@ pub async fn update_solution_handler(
         registry.solution_tx_manager(),
         registry.solution_repository(),
     );
-    let input = from_req_for_update_solution(user.uid, solution_id, req);
+    let input = from_req_for_update_solution(user.uid, solution_id.into(), req);
     let updated_id = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(updated_id.into()))
 }
@@ -73,7 +73,10 @@ pub async fn delete_solution_handler(
     AuthUser(user): AuthUser,
 ) -> ApiResult<DeleteSolutionResponse> {
     let uc = DeleteSolutionUsecase::new(registry.solution_repository());
-    let deleted_id = uc.run(user.uid, solution_id).await.into_api_result()?;
+    let deleted_id = uc
+        .run(user.uid, solution_id.into())
+        .await
+        .into_api_result()?;
     Ok(ApiResponse::ok(deleted_id.into()))
 }
 
@@ -134,6 +137,6 @@ pub async fn get_solution_by_solution_id_handler(
     Path(solution_id): Path<Uuid>,
 ) -> ApiResult<GetSolutionBySolutionIdResponse> {
     let uc = GetSolutionBySolutionIdUsecase::new(registry.solution_repository());
-    let solution = uc.run(solution_id).await.into_api_result()?;
+    let solution = uc.run(solution_id.into()).await.into_api_result()?;
     Ok(ApiResponse::ok(solution.into()))
 }

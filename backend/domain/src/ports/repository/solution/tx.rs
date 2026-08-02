@@ -5,22 +5,23 @@ use crate::error::repository::RepositoryError;
 use crate::model::solution::{
     Solution,
     content::{SolutionBody, SolutionTitle, SubmitUrl},
+    id::SolutionId,
     tags::Tags,
 };
 
 #[async_trait]
 pub trait SolutionRepositoryTx: Send + Sync {
-    async fn create(&mut self, solution: &Solution) -> Result<Uuid, RepositoryError>;
+    async fn create(&mut self, solution: &Solution) -> Result<SolutionId, RepositoryError>;
     async fn update(
         &mut self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         title: &SolutionTitle,
         body: &SolutionBody,
         submit_url: &SubmitUrl,
     ) -> Result<(), RepositoryError>;
     async fn replace_tags(
         &mut self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError>;
 }

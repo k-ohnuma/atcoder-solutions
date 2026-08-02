@@ -71,7 +71,7 @@ mod tests {
         let input = GetSolutionsByProblemIdInput::try_new(" abc100_a ".to_string(), None, Some(20))
             .expect("valid");
 
-        assert_eq!(input.problem_id, "abc100_a");
+        assert_eq!(input.problem_id.as_str(), "abc100_a");
         assert!(matches!(input.sort, SolutionListSort::Latest));
         assert_eq!(input.limit, Some(20));
     }
@@ -92,7 +92,7 @@ mod tests {
     fn problem_id_input_rejects_blank_problem_id() {
         assert!(matches!(
             GetSolutionsByProblemIdInput::try_new("   ".to_string(), None, None),
-            Err(SolutionError::BadRequest(message)) if message == "problem_id cannot be empty"
+            Err(SolutionError::BadRequest(message)) if message == "problemId cannot be empty"
         ));
     }
 

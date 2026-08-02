@@ -1,6 +1,6 @@
 // 使う想定ではないがdocがわりにDB型明記しておく
 use chrono::{DateTime, Utc};
-use domain::model::problem::ContestSeries;
+use domain::model::problem::{ContestSeries, Problem, id::ProblemId};
 
 pub struct ProblemRow {
     // abc001_a
@@ -13,6 +13,20 @@ pub struct ProblemRow {
     pub title: String,
     // atcoder difficulty
     pub difficulty: Option<i32>,
+}
+
+impl TryFrom<ProblemRow> for Problem {
+    type Error = domain::error::problem::ProblemValidationError;
+
+    fn try_from(value: ProblemRow) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: ProblemId::try_new(value.id)?,
+            contest_code: value.contest_code,
+            problem_index: value.problem_index,
+            title: value.title,
+            difficulty: value.difficulty,
+        })
+    }
 }
 
 pub struct ContestRow {

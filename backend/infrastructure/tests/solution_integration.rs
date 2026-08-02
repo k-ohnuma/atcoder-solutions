@@ -3,7 +3,7 @@ use domain::model::user::{Role, User};
 use domain::{
     error::repository::RepositoryError,
     model::{
-        problem::{ContestSeries, Problem},
+        problem::{ContestSeries, Problem, id::ProblemId},
         solution::{
             Solution,
             content::{SolutionBody, SolutionTitle, SubmitUrl},
@@ -29,6 +29,10 @@ use infrastructure::{
 use sqlx::PgPool;
 use tokio::time::{Duration, sleep};
 use uuid::Uuid;
+
+fn problem_id(value: &str) -> ProblemId {
+    ProblemId::try_new(value.to_string()).expect("valid problem ID")
+}
 
 #[cfg(test)]
 async fn seed_contest_series(pool: &PgPool) -> Result<()> {
@@ -66,7 +70,8 @@ fn solution(
 ) -> Solution {
     Solution::new(
         SolutionId::new(id),
-        problem_id.to_string(),
+        domain::model::problem::id::ProblemId::try_new(problem_id.to_string())
+            .expect("valid problem id"),
         user_id.to_string(),
         SolutionTitle::try_new(title.to_string()).expect("valid title"),
         SolutionBody::try_new(body.to_string()).expect("valid body"),
@@ -97,7 +102,7 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
-        id: "abc300_a".into(),
+        id: problem_id("abc300_a"),
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
@@ -138,8 +143,12 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
 
     uow.solutions().create(&solution).await?;
 
-    uow.solutions().replace_tags(sol_id, &tag_ids).await?;
-    uow.solutions().replace_tags(sol_id, &tag_ids).await?;
+    uow.solutions()
+        .replace_tags(sol_id.into(), &tag_ids)
+        .await?;
+    uow.solutions()
+        .replace_tags(sol_id.into(), &tag_ids)
+        .await?;
 
     uow.commit().await?;
 
@@ -161,7 +170,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
-        id: "abc300_a".into(),
+        id: problem_id("abc300_a"),
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),
@@ -195,14 +204,17 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
         "https://exapmle.com",
     );
     uow.solutions().create(&sol).await.unwrap();
-    uow.solutions().replace_tags(sol_id, &tags).await.unwrap();
+    uow.solutions()
+        .replace_tags(sol_id.into(), &tags)
+        .await
+        .unwrap();
 
     let mut bad = tags.clone();
     // 存在していないUUIDを突っ込む
     bad.push(Uuid::now_v7());
 
     uow.solutions()
-        .replace_tags(sol_id, &bad)
+        .replace_tags(sol_id.into(), &bad)
         .await
         .expect_err("should fail");
 
@@ -261,7 +273,7 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     seed_problem(
         &problems_repo,
         Problem {
-            id: "abc300_a".into(),
+            id: problem_id("abc300_a"),
             contest_code: "abc300".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
@@ -300,19 +312,27 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     let service = SolutionRepositoryImpl::new(conn);
 
     let latest = service
-        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Latest, None)
+        .get_solutions_by_problem_id(
+            domain::model::problem::id::ProblemId::try_new("abc300_a".to_string())?,
+            SolutionListSort::Latest,
+            None,
+        )
         .await?;
     assert_eq!(latest.len(), 2);
-    assert_eq!(latest[0].id, new_solution_id);
-    assert_eq!(latest[1].id, old_solution_id);
+    assert_eq!(latest[0].id, new_solution_id.into());
+    assert_eq!(latest[1].id, old_solution_id.into());
 
     let votes = service
-        .get_solutions_by_problem_id("abc300_a".to_string(), SolutionListSort::Votes, None)
+        .get_solutions_by_problem_id(
+            domain::model::problem::id::ProblemId::try_new("abc300_a".to_string())?,
+            SolutionListSort::Votes,
+            None,
+        )
         .await?;
     assert_eq!(votes.len(), 2);
-    assert_eq!(votes[0].id, old_solution_id);
+    assert_eq!(votes[0].id, old_solution_id.into());
     assert_eq!(votes[0].votes_count, 2);
-    assert_eq!(votes[1].id, new_solution_id);
+    assert_eq!(votes[1].id, new_solution_id.into());
     assert_eq!(votes[1].votes_count, 1);
 
     Ok(())
@@ -330,7 +350,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
     seed_problem(
         &problems_repo,
         Problem {
-            id: "abc300_a".into(),
+            id: problem_id("abc300_a"),
             contest_code: "abc300".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
@@ -341,7 +361,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
     seed_problem(
         &problems_repo,
         Problem {
-            id: "abc300_b".into(),
+            id: problem_id("abc300_b"),
             contest_code: "abc300".into(),
             problem_index: "b".into(),
             title: "B - Example".into(),
@@ -379,10 +399,10 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
         .await?;
 
     assert_eq!(rows.len(), 2);
-    assert_eq!(rows[0].problem_id, "abc300_b");
+    assert_eq!(rows[0].problem_id.as_str(), "abc300_b");
     assert_eq!(rows[0].problem_title, "B - Example");
     assert_eq!(rows[0].votes_count, 2);
-    assert_eq!(rows[1].problem_id, "abc300_a");
+    assert_eq!(rows[1].problem_id.as_str(), "abc300_a");
     assert_eq!(rows[1].problem_title, "A - Example");
     assert_eq!(rows[1].votes_count, 1);
 
@@ -401,7 +421,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
     seed_problem(
         &problems_repo,
         Problem {
-            id: "abc301_a".into(),
+            id: problem_id("abc301_a"),
             contest_code: "abc301".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
@@ -435,12 +455,16 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
 
     let service = SolutionRepositoryImpl::new(conn);
     let rows = service
-        .get_solutions_by_problem_id("abc301_a".to_string(), SolutionListSort::Votes, None)
+        .get_solutions_by_problem_id(
+            domain::model::problem::id::ProblemId::try_new("abc301_a".to_string())?,
+            SolutionListSort::Votes,
+            None,
+        )
         .await?;
 
     assert_eq!(rows.len(), 2);
-    assert_eq!(rows[0].id, newer);
-    assert_eq!(rows[1].id, older);
+    assert_eq!(rows[0].id, newer.into());
+    assert_eq!(rows[1].id, older.into());
 
     Ok(())
 }
@@ -488,7 +512,7 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
     seed_problem(
         &problems_repo,
         Problem {
-            id: "abc302_a".into(),
+            id: problem_id("abc302_a"),
             contest_code: "abc302".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),

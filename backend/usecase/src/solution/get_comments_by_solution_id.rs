@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::SolutionRepository;
-use uuid::Uuid;
+use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
 
 use crate::{error::SolutionError, model::solution::output::CommentOutput};
 
@@ -12,7 +11,7 @@ pub struct GetCommentsBySolutionIdUsecase {
 }
 
 impl GetCommentsBySolutionIdUsecase {
-    pub async fn run(&self, solution_id: Uuid) -> Result<Vec<CommentOutput>, SolutionError> {
+    pub async fn run(&self, solution_id: SolutionId) -> Result<Vec<CommentOutput>, SolutionError> {
         let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));

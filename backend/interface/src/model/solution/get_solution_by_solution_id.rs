@@ -38,9 +38,9 @@ impl From<SolutionOutput> for GetSolutionBySolutionIdResponse {
         } = value;
 
         Self {
-            id,
+            id: id.into_uuid(),
             title,
-            problem_id,
+            problem_id: problem_id.into_string(),
             contest_code,
             problem_title,
             user_id,

@@ -4,12 +4,12 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::problem::{ContestSeries, Problem},
+    model::problem::{ContestSeries, Problem, id::ProblemId},
     ports::repository::problem::ProblemRepository,
 };
 
-use crate::database::ConnectionPool;
 use crate::error::map_sqlx_error;
+use crate::{database::ConnectionPool, model::problems::ProblemRow};
 
 #[derive(new)]
 pub struct ProblemRepositoryImpl {
@@ -20,12 +20,16 @@ pub struct ProblemRepositoryImpl {
 impl ProblemRepository for ProblemRepositoryImpl {
     async fn get_problem_ids_with_difficulty(
         &self,
-        problem_ids: &[String],
-    ) -> Result<Vec<String>, RepositoryError> {
+        problem_ids: &[ProblemId],
+    ) -> Result<Vec<ProblemId>, RepositoryError> {
         if problem_ids.is_empty() {
             return Ok(vec![]);
         }
 
+        let problem_ids = problem_ids
+            .iter()
+            .map(|problem_id| problem_id.as_str().to_string())
+            .collect::<Vec<_>>();
         let rows = sqlx::query_scalar!(
             r#"
             SELECT id
@@ -33,13 +37,18 @@ impl ProblemRepository for ProblemRepositoryImpl {
             WHERE id = ANY($1)
               AND difficulty IS NOT NULL
             "#,
-            problem_ids
+            &problem_ids
         )
         .fetch_all(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(rows)
+        rows.into_iter()
+            .map(|id| {
+                ProblemId::try_new(id)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
     async fn get_contest_codes_by_series(
@@ -77,7 +86,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         }
 
         let problems = sqlx::query_as!(
-            Problem,
+            ProblemRow,
             r#"
             SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
@@ -90,7 +99,13 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(problems)
+        problems
+            .into_iter()
+            .map(|problem| {
+                Problem::try_from(problem)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
     async fn search_problems_by_contest_series(
@@ -100,7 +115,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
     ) -> Result<Vec<Problem>, RepositoryError> {
         let query = query.to_lowercase();
         let problems = sqlx::query_as!(
-            Problem,
+            ProblemRow,
             r#"
             WITH matched_contests AS (
                 SELECT c.code
@@ -129,12 +144,19 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(problems)
+        problems
+            .into_iter()
+            .map(|problem| {
+                Problem::try_from(problem)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
-    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
+    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
+        let problem_id = problem_id.as_str();
         let problem = sqlx::query_as!(
-            Problem,
+            ProblemRow,
             r#"
             SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
@@ -147,10 +169,11 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .map_err(map_sqlx_error)?
         .ok_or_else(|| RepositoryError::NotFound(problem_id.to_string()))?;
 
-        Ok(problem)
+        Problem::try_from(problem).map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
-    async fn problem_exists(&self, problem_id: &str) -> Result<bool, RepositoryError> {
+    async fn problem_exists(&self, problem_id: &ProblemId) -> Result<bool, RepositoryError> {
+        let problem_id = problem_id.as_str();
         let rec = sqlx::query!(
             r#"
                 SELECT EXISTS(
@@ -172,8 +195,8 @@ impl ProblemRepository for ProblemRepositoryImpl {
         &self,
         contest: &str,
     ) -> Result<Vec<Problem>, RepositoryError> {
-        let problems: Vec<Problem> = sqlx::query_as!(
-            Problem,
+        let problems = sqlx::query_as!(
+            ProblemRow,
             r#"
             SELECT p.id, p.contest_code, p.problem_index, p.title, p.difficulty
             FROM problems p
@@ -186,6 +209,12 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .fetch_all(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(problems)
+        problems
+            .into_iter()
+            .map(|problem| {
+                Problem::try_from(problem)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 }

@@ -16,7 +16,7 @@ pub struct ProblemResponse {
 impl From<ProblemOutput> for ProblemResponse {
     fn from(value: ProblemOutput) -> Self {
         Self {
-            id: value.id,
+            id: value.id.into_string(),
             contest_code: value.contest_code,
             problem_index: value.problem_index,
             title: value.title,

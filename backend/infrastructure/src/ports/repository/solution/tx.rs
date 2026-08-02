@@ -2,8 +2,11 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::error::repository::RepositoryError;
 use domain::model::solution::Solution;
-use domain::model::solution::content::{SolutionBody, SolutionTitle, SubmitUrl};
 use domain::model::solution::tags::Tags;
+use domain::model::solution::{
+    content::{SolutionBody, SolutionTitle, SubmitUrl},
+    id::SolutionId,
+};
 use domain::ports::repository::solution::tx::{
     SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx,
 };
@@ -55,13 +58,13 @@ impl SolutionUnitOfWork for SolutionUnitOfWorkImpl {
 
 #[async_trait]
 impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
-    async fn create(&mut self, solution: &Solution) -> Result<Uuid, RepositoryError> {
+    async fn create(&mut self, solution: &Solution) -> Result<SolutionId, RepositoryError> {
         let solution_id = solution.id().into_uuid();
         sqlx::query!(
             r#"INSERT INTO solutions (id, problem_id, user_id, body_md, submit_url, title)
                VALUES ($1,$2,$3,$4,$5,$6)"#,
             solution_id,
-            solution.problem_id(),
+            solution.problem_id().as_str(),
             solution.user_id(),
             solution.body().as_str(),
             solution.submit_url().as_str(),
@@ -70,15 +73,16 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
         .execute(self.conn())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(solution_id)
+        Ok(SolutionId::new(solution_id))
     }
     async fn update(
         &mut self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         title: &SolutionTitle,
         body: &SolutionBody,
         submit_url: &SubmitUrl,
     ) -> Result<(), RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         sqlx::query!(
             r#"
             UPDATE solutions
@@ -97,9 +101,10 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
     }
     async fn replace_tags(
         &mut self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         sqlx::query!(
             "DELETE FROM solution_tags WHERE solution_id = $1 AND NOT (tag_id = ANY($2))",
             solution_id,

@@ -1,9 +1,13 @@
 use strum::Display;
 use thiserror::Error;
 
+pub mod id;
+
+use id::ProblemId;
+
 #[derive(Clone, Debug)]
 pub struct Problem {
-    pub id: String,
+    pub id: ProblemId,
     pub contest_code: String,
     pub problem_index: String,
     pub title: String,

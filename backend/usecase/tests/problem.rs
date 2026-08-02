@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use async_trait::async_trait;
+use domain::model::problem::id::ProblemId;
 use domain::{
     error::{external::ExternalError, repository::RepositoryError},
     model::problem::Problem,
@@ -25,7 +26,10 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
         Ok(self.item.to_owned())
     }
 
-    async fn fetch_difficulty(&self, _problem_id: &str) -> Result<Option<i32>, ExternalError> {
+    async fn fetch_difficulty(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<i32>, ExternalError> {
         Ok(None)
     }
 }
@@ -94,8 +98,8 @@ struct DummyProblemRepository;
 impl ProblemRepository for DummyProblemRepository {
     async fn get_problem_ids_with_difficulty(
         &self,
-        _problem_ids: &[String],
-    ) -> Result<Vec<String>, RepositoryError> {
+        _problem_ids: &[ProblemId],
+    ) -> Result<Vec<ProblemId>, RepositoryError> {
         Ok(vec![])
     }
 
@@ -123,11 +127,11 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
-    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
-        Err(RepositoryError::NotFound(problem_id.to_string()))
+    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
+        Err(RepositoryError::NotFound(problem_id.as_str().to_string()))
     }
 
-    async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
+    async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
@@ -144,28 +148,28 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
     let port = Arc::new(DummyAtcoderProblemsPort {
         item: vec![
             Problem {
-                id: "abc234_a".into(),
+                id: ProblemId::try_new("abc234_a".to_string())?,
                 contest_code: "abc234".into(),
                 problem_index: "A".into(),
                 title: "A - Example".into(),
                 difficulty: None,
             },
             Problem {
-                id: "abc234_b".into(),
+                id: ProblemId::try_new("abc234_b".to_string())?,
                 contest_code: "abc234".into(),
                 problem_index: "B".into(),
                 title: "B - Example".into(),
                 difficulty: None,
             },
             Problem {
-                id: "awc001_a".into(),
+                id: ProblemId::try_new("awc001_a".to_string())?,
                 contest_code: "awc001".into(),
                 problem_index: "A".into(),
                 title: "AWC - Example".into(),
                 difficulty: None,
             },
             Problem {
-                id: "tessoku_a1".into(),
+                id: ProblemId::try_new("tessoku_a1".to_string())?,
                 contest_code: "tessoku-book".into(),
                 problem_index: "A1".into(),
                 title: "Tessoku - Example".into(),
@@ -197,7 +201,7 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
     );
 
     let sent = &calls.problems[0];
-    assert_eq!(sent.id, "abc234_a");
+    assert_eq!(sent.id.as_str(), "abc234_a");
     assert_eq!(sent.title, "A - Example");
     Ok(())
 }

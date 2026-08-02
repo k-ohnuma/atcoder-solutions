@@ -35,7 +35,7 @@ pub async fn create_comment_handler(
     let uc = CreateCommentUsecase::new(registry.solution_repository());
     let input = CreateCommentInput {
         user_id: user.uid,
-        solution_id,
+        solution_id: solution_id.into(),
         body_md: req.body_md,
     };
     let created = uc.run(input).await.into_api_result()?;
@@ -69,7 +69,7 @@ pub async fn get_comments_by_solution_id_handler(
     Path(solution_id): Path<Uuid>,
 ) -> ApiResult<Vec<GetCommentsBySolutionIdResponse>> {
     let uc = GetCommentsBySolutionIdUsecase::new(registry.solution_repository());
-    let comments = uc.run(solution_id).await.into_api_result()?;
+    let comments = uc.run(solution_id.into()).await.into_api_result()?;
     let ret: Vec<_> = comments
         .into_iter()
         .map(GetCommentsBySolutionIdResponse::from)

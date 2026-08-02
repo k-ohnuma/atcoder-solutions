@@ -6,6 +6,7 @@ use domain::{
     error::repository::RepositoryError,
     model::solution::{
         content::{SolutionBody, SolutionTitle, SubmitUrl},
+        id::SolutionId,
         tags::Tags,
     },
     ports::repository::solution::{
@@ -52,14 +53,14 @@ struct GateRepository {
 
 #[async_trait]
 impl SolutionRepository for GateRepository {
-    async fn delete_solution(&self, _solution_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_solution(&self, _solution_id: SolutionId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
     async fn vote_solution(
         &self,
         _user_id: &str,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
     }
@@ -67,7 +68,7 @@ impl SolutionRepository for GateRepository {
     async fn unvote_solution(
         &self,
         _user_id: &str,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
     }
@@ -79,7 +80,7 @@ impl SolutionRepository for GateRepository {
     async fn create_comment(
         &self,
         user_id: &str,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
@@ -102,7 +103,7 @@ impl SolutionRepository for GateRepository {
             id: Uuid::now_v7(),
             user_id: self.comment_owner.clone(),
             user_name: "name".to_string(),
-            solution_id: Uuid::now_v7(),
+            solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
@@ -118,7 +119,7 @@ impl SolutionRepository for GateRepository {
 
     async fn get_solutions_by_problem_id(
         &self,
-        _problem_id: String,
+        _problem_id: domain::model::problem::id::ProblemId,
         _sort: SolutionListSort,
         _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
@@ -127,7 +128,7 @@ impl SolutionRepository for GateRepository {
 
     async fn get_solution_by_solution_id(
         &self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<SolutionDetails, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
@@ -140,30 +141,36 @@ impl SolutionRepository for GateRepository {
         Ok(vec![])
     }
 
-    async fn get_solution_votes_count(&self, _solution_id: Uuid) -> Result<i64, RepositoryError> {
+    async fn get_solution_votes_count(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<i64, RepositoryError> {
         Ok(0)
     }
 
     async fn has_user_voted_solution(
         &self,
         _user_id: String,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn solution_exists(&self, _solution_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn solution_exists(&self, _solution_id: SolutionId) -> Result<bool, RepositoryError> {
         Ok(self.solution_exists)
     }
 
     async fn get_comments_by_solution_id(
         &self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<Vec<SolutionComment>, RepositoryError> {
         Ok(vec![])
     }
 
-    async fn get_solution_user_id(&self, _solution_id: Uuid) -> Result<String, RepositoryError> {
+    async fn get_solution_user_id(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<String, RepositoryError> {
         Ok(self.solution_owner.clone())
     }
 
@@ -188,7 +195,7 @@ async fn update_solution_forbidden_for_non_owner() -> Result<()> {
     let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
         user_id: "attacker".to_string(),
-        solution_id: Uuid::now_v7(),
+        solution_id: Uuid::now_v7().into(),
         title: "title".to_string(),
         body_md: "body".to_string(),
         submit_url: String::new(),
@@ -211,7 +218,7 @@ async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
     let uc = DeleteSolutionUsecase::new(repository);
 
     let err = uc
-        .run("attacker".to_string(), Uuid::now_v7())
+        .run("attacker".to_string(), Uuid::now_v7().into())
         .await
         .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
@@ -266,7 +273,7 @@ async fn vote_returns_not_found_when_solution_not_found() -> Result<()> {
     });
     let uc = VoteSolutionUsecase::new(repository);
     let err = uc
-        .run("uid".to_string(), Uuid::now_v7())
+        .run("uid".to_string(), Uuid::now_v7().into())
         .await
         .expect_err("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
@@ -283,7 +290,7 @@ async fn unvote_returns_not_found_when_solution_not_found() -> Result<()> {
     });
     let uc = UnvoteSolutionUsecase::new(repository);
     let err = uc
-        .run("uid".to_string(), Uuid::now_v7())
+        .run("uid".to_string(), Uuid::now_v7().into())
         .await
         .expect_err("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
@@ -301,7 +308,7 @@ async fn create_comment_returns_not_found_when_solution_not_found() -> Result<()
     let uc = CreateCommentUsecase::new(repository);
     let input = CreateCommentInput {
         user_id: "uid".to_string(),
-        solution_id: Uuid::now_v7(),
+        solution_id: Uuid::now_v7().into(),
         body_md: "body".to_string(),
     };
 
@@ -322,7 +329,7 @@ async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()
     let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
         user_id: "owner".to_string(),
-        solution_id: Uuid::now_v7(),
+        solution_id: Uuid::now_v7().into(),
         title: "title".to_string(),
         body_md: "body".to_string(),
         submit_url: String::new(),
@@ -361,12 +368,12 @@ impl SolutionRepositoryTx for _NoopSolutionRepo {
     async fn create(
         &mut self,
         _solution: &domain::model::solution::Solution,
-    ) -> Result<Uuid, RepositoryError> {
+    ) -> Result<SolutionId, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
     async fn update(
         &mut self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
         _title: &SolutionTitle,
         _body: &SolutionBody,
         _submit_url: &SubmitUrl,
@@ -375,7 +382,7 @@ impl SolutionRepositoryTx for _NoopSolutionRepo {
     }
     async fn replace_tags(
         &mut self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
         _tag_ids: &[Uuid],
     ) -> Result<(), RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))

@@ -37,18 +37,18 @@ impl ImportProblemsUsecase {
             .get_problem_ids_with_difficulty(all_problem_ids.as_slice())
             .await?
             .into_iter()
-            .collect::<HashSet<String>>();
+            .collect::<HashSet<_>>();
 
         let mut difficulty_fetch_target_count = 0usize;
         for problem in &mut problems {
-            if existing_difficulty_problem_ids.contains(problem.id.as_str()) {
+            if existing_difficulty_problem_ids.contains(&problem.id) {
                 continue;
             }
 
             difficulty_fetch_target_count += 1;
             match self
                 .atcoder_problems_port
-                .fetch_difficulty(problem.id.as_str())
+                .fetch_difficulty(&problem.id)
                 .await
             {
                 Ok(difficulty) => {
@@ -56,7 +56,7 @@ impl ImportProblemsUsecase {
                 }
                 Err(error) => {
                     warn!(
-                        problem_id = problem.id,
+                        problem_id = problem.id.as_str(),
                         error = ?error,
                         "failed to fetch problem difficulty. keep null and continue"
                     );

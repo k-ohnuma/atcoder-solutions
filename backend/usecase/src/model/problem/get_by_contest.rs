@@ -1,4 +1,5 @@
 use crate::error::ProblemError;
+use domain::model::problem::id::ProblemId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetProblemsByContestInput {
@@ -21,19 +22,13 @@ impl GetProblemsByContestInput {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetProblemByIdInput {
-    pub problem_id: String,
+    pub problem_id: ProblemId,
 }
 
 impl GetProblemByIdInput {
     pub fn try_new(problem_id: String) -> Result<Self, ProblemError> {
-        let problem_id = problem_id.trim();
-        if problem_id.is_empty() {
-            return Err(ProblemError::BadRequest(
-                "problemId cannot be empty".to_string(),
-            ));
-        }
         Ok(Self {
-            problem_id: problem_id.to_string(),
+            problem_id: ProblemId::try_new(problem_id)?,
         })
     }
 }
@@ -62,7 +57,7 @@ mod tests {
     fn problem_id_input_normalizes_problem_id() {
         let input = GetProblemByIdInput::try_new(" abc001_a ".to_string()).expect("valid");
 
-        assert_eq!(input.problem_id, "abc001_a");
+        assert_eq!(input.problem_id.as_str(), "abc001_a");
     }
 
     #[test]

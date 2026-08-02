@@ -37,9 +37,9 @@ impl From<SolutionListItemOutput> for GetSolutionsByProblemIdResponse {
         } = value;
 
         Self {
-            id,
+            id: id.into_uuid(),
             title,
-            problem_id,
+            problem_id: problem_id.into_string(),
             user_id,
             user_name,
             votes_count,
@@ -74,9 +74,10 @@ mod tests {
         let id = Uuid::now_v7();
         let now = Utc::now();
         let dto = SolutionListItemOutput {
-            id,
+            id: id.into(),
             title: "title".to_string(),
-            problem_id: "abc100_a".to_string(),
+            problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
+                .expect("valid problem ID"),
             user_id: "uid".to_string(),
             user_name: "name".to_string(),
             votes_count: 42,

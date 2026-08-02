@@ -21,7 +21,7 @@ impl From<CommentOutput> for GetCommentsBySolutionIdResponse {
             id: value.id,
             user_id: value.user_id,
             user_name: value.user_name,
-            solution_id: value.solution_id,
+            solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,
             created_at: value.created_at,
             updated_at: value.updated_at,

@@ -1,9 +1,16 @@
 use anyhow::Result;
-use domain::{model::problem::Problem, ports::repository::problem::tx::ProblemTxManager};
+use domain::{
+    model::problem::{Problem, id::ProblemId},
+    ports::repository::problem::tx::ProblemTxManager,
+};
 use infrastructure::{
     database::ConnectionPool, ports::repository::problem::tx::ProblemTransactionManager,
 };
 use sqlx::PgPool;
+
+fn problem_id(value: &str) -> ProblemId {
+    ProblemId::try_new(value.to_string()).expect("valid problem ID")
+}
 
 async fn seed_contest_series(pool: &PgPool) -> Result<()> {
     for code in ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] {
@@ -38,14 +45,14 @@ async fn upsert_problem_data_creates_contest_and_problems(pool: PgPool) -> Resul
     let contests = vec![("abc300".to_string(), "ABC".to_string())];
     let problems = vec![
         Problem {
-            id: "abc300_a".into(),
+            id: problem_id("abc300_a"),
             contest_code: "abc300".into(),
             problem_index: "a".into(),
             title: "A - Example".into(),
             difficulty: None,
         },
         Problem {
-            id: "abc300_b".into(),
+            id: problem_id("abc300_b"),
             contest_code: "abc300".into(),
             problem_index: "b".into(),
             title: "B - Example".into(),
@@ -75,7 +82,7 @@ async fn upsert_problems_updates_existing_problem(pool: PgPool) -> Result<()> {
 
     let contests = vec![("abc300".to_string(), "ABC".to_string())];
     let problem = Problem {
-        id: "abc300_a".into(),
+        id: problem_id("abc300_a"),
         contest_code: "abc300".into(),
         problem_index: "a".into(),
         title: "A - Example".into(),

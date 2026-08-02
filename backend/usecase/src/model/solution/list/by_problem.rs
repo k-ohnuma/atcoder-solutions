@@ -1,12 +1,12 @@
-use domain::read_model::solution::SolutionListSort;
+use domain::{model::problem::id::ProblemId, read_model::solution::SolutionListSort};
 
 use crate::error::SolutionError;
 
-use super::{normalize_required_string, validate_limit};
+use super::validate_limit;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetSolutionsByProblemIdInput {
-    pub problem_id: String,
+    pub problem_id: ProblemId,
     pub sort: SolutionListSort,
     pub limit: Option<i32>,
 }
@@ -17,7 +17,7 @@ impl GetSolutionsByProblemIdInput {
         sort_by: Option<String>,
         limit: Option<i32>,
     ) -> Result<Self, SolutionError> {
-        let problem_id = normalize_required_string(problem_id, "problem_id cannot be empty")?;
+        let problem_id = ProblemId::try_new(problem_id)?;
         Ok(Self {
             problem_id,
             sort: parse_solution_list_sort(sort_by)?,

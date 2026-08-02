@@ -38,9 +38,9 @@ impl From<UserSolutionListItemOutput> for GetSolutionsByUserNameResponse {
         } = value;
 
         Self {
-            id,
+            id: id.into_uuid(),
             title,
-            problem_id,
+            problem_id: problem_id.into_string(),
             problem_title,
             user_id,
             user_name,
@@ -74,9 +74,10 @@ mod tests {
         let id = Uuid::now_v7();
         let now = Utc::now();
         let dto = UserSolutionListItemOutput {
-            id,
+            id: id.into(),
             title: "title".to_string(),
-            problem_id: "abc100_a".to_string(),
+            problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
+                .expect("valid problem ID"),
             problem_title: "A - Sample".to_string(),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),

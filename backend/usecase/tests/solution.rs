@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Utc;
+use domain::model::{problem::id::ProblemId, solution::id::SolutionId};
 use domain::{
     error::repository::RepositoryError,
     model::{
@@ -52,14 +53,14 @@ struct DummyUserRepository {
 
 #[async_trait]
 impl SolutionRepository for DummySolutionRepository {
-    async fn delete_solution(&self, _solution_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_solution(&self, _solution_id: SolutionId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
     async fn vote_solution(
         &self,
         _user_id: &str,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
     }
@@ -67,7 +68,7 @@ impl SolutionRepository for DummySolutionRepository {
     async fn unvote_solution(
         &self,
         _user_id: &str,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
     }
@@ -79,7 +80,7 @@ impl SolutionRepository for DummySolutionRepository {
     async fn create_comment(
         &self,
         user_id: &str,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
@@ -102,7 +103,7 @@ impl SolutionRepository for DummySolutionRepository {
             id: Uuid::now_v7(),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
-            solution_id: Uuid::now_v7(),
+            solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -114,9 +115,9 @@ impl SolutionRepository for DummySolutionRepository {
         _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![SolutionListItem {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             title: "latest".to_string(),
-            problem_id: "abc100_a".to_string(),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
             votes_count: 1,
@@ -127,15 +128,15 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn get_solutions_by_problem_id(
         &self,
-        _problem_id: String,
+        _problem_id: ProblemId,
         sort: SolutionListSort,
         _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             title: "t".to_string(),
-            problem_id: "abc100_a".to_string(),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
             votes_count: 3,
@@ -146,7 +147,7 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn get_solution_by_solution_id(
         &self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<SolutionDetails, RepositoryError> {
         Err(RepositoryError::Unexpected(
             "not used in this test".to_string(),
@@ -160,9 +161,9 @@ impl SolutionRepository for DummySolutionRepository {
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
         *self.last_user_sort.lock().unwrap() = Some(sort);
         Ok(vec![UserSolutionListItem {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             title: "t".to_string(),
-            problem_id: "abc100_a".to_string(),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             problem_title: "A - Sample".to_string(),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
@@ -172,30 +173,36 @@ impl SolutionRepository for DummySolutionRepository {
         }])
     }
 
-    async fn get_solution_votes_count(&self, _solution_id: Uuid) -> Result<i64, RepositoryError> {
+    async fn get_solution_votes_count(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<i64, RepositoryError> {
         Ok(0)
     }
 
     async fn has_user_voted_solution(
         &self,
         _user_id: String,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn solution_exists(&self, _solution_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn solution_exists(&self, _solution_id: SolutionId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
     async fn get_comments_by_solution_id(
         &self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<Vec<SolutionComment>, RepositoryError> {
         Ok(vec![])
     }
 
-    async fn get_solution_user_id(&self, _solution_id: Uuid) -> Result<String, RepositoryError> {
+    async fn get_solution_user_id(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<String, RepositoryError> {
         Ok(String::new())
     }
 
@@ -212,8 +219,8 @@ impl SolutionRepository for DummySolutionRepository {
 impl ProblemRepository for DummyProblemRepository {
     async fn get_problem_ids_with_difficulty(
         &self,
-        _problem_ids: &[String],
-    ) -> Result<Vec<String>, RepositoryError> {
+        _problem_ids: &[ProblemId],
+    ) -> Result<Vec<ProblemId>, RepositoryError> {
         Ok(vec![])
     }
 
@@ -241,11 +248,11 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
-    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
-        Err(RepositoryError::NotFound(problem_id.to_string()))
+    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
+        Err(RepositoryError::NotFound(problem_id.as_str().to_string()))
     }
 
-    async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
+    async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {
         Ok(self.exists)
     }
 

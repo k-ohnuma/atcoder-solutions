@@ -2,7 +2,8 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use domain::{
-    error::external::ExternalError, model::problem::Problem,
+    error::external::ExternalError,
+    model::problem::{Problem, id::ProblemId},
     ports::external::atcoder_problems::AtcoderProblemsPort,
 };
 use reqwest::Client;
@@ -47,18 +48,20 @@ fn problem_index_from_problem(problem_id: &str, contest_id: &str, problem_index:
         .unwrap_or_else(|| problem_index.to_string())
 }
 
-impl From<ApiProblem> for Problem {
-    fn from(value: ApiProblem) -> Self {
+impl TryFrom<ApiProblem> for Problem {
+    type Error = domain::error::problem::ProblemValidationError;
+
+    fn try_from(value: ApiProblem) -> Result<Self, Self::Error> {
         let contest_code = contest_code_from_problem(&value.id, &value.contest_id);
         let problem_index =
             problem_index_from_problem(&value.id, &value.contest_id, &value.problem_index);
-        Self {
-            id: value.id,
+        Ok(Self {
+            id: ProblemId::try_new(value.id)?,
             contest_code,
             problem_index,
             title: value.name,
             difficulty: None,
-        }
+        })
     }
 }
 
@@ -133,15 +136,16 @@ impl AtcoderProblemsPort for AtcoderProblemsClient {
         })?;
         Ok(json
             .into_iter()
-            .map(Problem::from)
-            .collect::<Vec<Problem>>())
+            .map(Problem::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| ExternalError::InvalidJson(error.to_string()))?)
     }
 
-    async fn fetch_difficulty(&self, problem_id: &str) -> Result<Option<i32>, ExternalError> {
-        self.fetch_difficulty(problem_id)
+    async fn fetch_difficulty(&self, problem_id: &ProblemId) -> Result<Option<i32>, ExternalError> {
+        self.fetch_difficulty(problem_id.as_str())
             .await
             .inspect_err(|error| {
-                warn!(problem_id, error = ?error, "difficulty fetch failed");
+                warn!(problem_id = problem_id.as_str(), error = ?error, "difficulty fetch failed");
             })
     }
 }
@@ -184,7 +188,7 @@ mod tests {
         assert_eq!(got.len(), 3);
 
         let p1 = &got[0];
-        assert_eq!(p1.id, "abc234_a");
+        assert_eq!(p1.id.as_str(), "abc234_a");
         assert_eq!(p1.contest_code, "abc234");
         assert_eq!(p1.problem_index, "A");
         assert_eq!(p1.title, "Weird Function");
@@ -224,14 +228,15 @@ mod tests {
 
     #[test]
     fn api_problem_conversion_uses_original_contest_code_and_index_from_problem_id() {
-        let problem = Problem::from(ApiProblem {
+        let problem = Problem::try_from(ApiProblem {
             id: "abc395_a".into(),
             contest_id: "adt_easy_20250430_3".into(),
             problem_index: "B".into(),
             name: "Strictly Increasing?".into(),
-        });
+        })
+        .expect("valid problem");
 
-        assert_eq!(problem.id, "abc395_a");
+        assert_eq!(problem.id.as_str(), "abc395_a");
         assert_eq!(problem.contest_code, "abc395");
         assert_eq!(problem.problem_index, "A");
         assert_eq!(problem.title, "Strictly Increasing?");

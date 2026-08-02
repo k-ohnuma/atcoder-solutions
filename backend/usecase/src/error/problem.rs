@@ -1,4 +1,6 @@
-use domain::error::{external::ExternalError, repository::RepositoryError};
+use domain::error::{
+    external::ExternalError, problem::ProblemValidationError, repository::RepositoryError,
+};
 use thiserror::Error;
 
 #[derive(thiserror::Error, Debug)]
@@ -27,5 +29,11 @@ impl From<RepositoryError> for ProblemError {
             | RepositoryError::Unavailable(msg)
             | RepositoryError::Unexpected(msg) => ProblemError::Internal(msg),
         }
+    }
+}
+
+impl From<ProblemValidationError> for ProblemError {
+    fn from(value: ProblemValidationError) -> Self {
+        ProblemError::BadRequest(value.to_string())
     }
 }

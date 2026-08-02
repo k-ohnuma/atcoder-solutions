@@ -3,10 +3,10 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::model::solution::{
     content::{SolutionBody, SolutionTitle, SubmitUrl},
+    id::SolutionId,
     tags::Tags,
 };
 use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
-use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
@@ -21,7 +21,7 @@ pub struct UpdateSolutionUsecase {
 }
 
 impl UpdateSolutionUsecase {
-    pub async fn run(&self, input: UpdateSolutionInput) -> Result<Uuid, SolutionError> {
+    pub async fn run(&self, input: UpdateSolutionInput) -> Result<SolutionId, SolutionError> {
         input
             .validate()
             .map_err(|e| SolutionError::BadRequest(e.to_string()))?;

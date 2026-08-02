@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
+    model::{problem::id::ProblemId, solution::id::SolutionId},
     ports::repository::solution::SolutionRepository,
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
@@ -13,7 +14,8 @@ use crate::error::map_sqlx_error;
 use crate::{
     database::ConnectionPool,
     model::solution::{
-        SolutionCommentViewRaw, SolutionListItemViewRaw, UserSolutionListItemViewRaw,
+        SolutionCommentViewRaw, SolutionDetailsViewRaw, SolutionListItemViewRaw,
+        UserSolutionListItemViewRaw,
     },
 };
 
@@ -24,7 +26,8 @@ pub struct SolutionRepositoryImpl {
 
 #[async_trait]
 impl SolutionRepository for SolutionRepositoryImpl {
-    async fn delete_solution(&self, solution_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_solution(&self, solution_id: SolutionId) -> Result<(), RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         sqlx::query!(
             r#"
             DELETE FROM solutions
@@ -39,7 +42,12 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(())
     }
 
-    async fn vote_solution(&self, user_id: &str, solution_id: Uuid) -> Result<(), RepositoryError> {
+    async fn vote_solution(
+        &self,
+        user_id: &str,
+        solution_id: SolutionId,
+    ) -> Result<(), RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         sqlx::query!(
             r#"
             INSERT INTO solution_votes (user_id, solution_id)
@@ -59,8 +67,9 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn unvote_solution(
         &self,
         user_id: &str,
-        solution_id: Uuid,
+        solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         sqlx::query!(
             r#"
             DELETE FROM solution_votes
@@ -79,9 +88,10 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn create_comment(
         &self,
         user_id: &str,
-        solution_id: Uuid,
+        solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let comment = sqlx::query_as!(
             SolutionCommentViewRaw,
             r#"
@@ -177,12 +187,18 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(solutions.into_iter().map(SolutionListItem::from).collect())
+        solutions
+            .into_iter()
+            .map(|solution| {
+                SolutionListItem::try_from(solution)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
     async fn get_solutions_by_problem_id(
         &self,
-        problem_id: String,
+        problem_id: ProblemId,
         sort: SolutionListSort,
         limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
@@ -234,14 +250,21 @@ impl SolutionRepository for SolutionRepositoryImpl {
             }
         };
 
-        Ok(solutions.into_iter().map(SolutionListItem::from).collect())
+        solutions
+            .into_iter()
+            .map(|solution| {
+                SolutionListItem::try_from(solution)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
     async fn get_solution_by_solution_id(
         &self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
     ) -> Result<SolutionDetails, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let solution = sqlx::query_as!(
-            SolutionDetails,
+            SolutionDetailsViewRaw,
             r#"
                 SELECT
                     s.id,
@@ -284,7 +307,8 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(solution)
+        SolutionDetails::try_from(solution)
+            .map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
     async fn get_solutions_by_user_name(
@@ -338,10 +362,19 @@ impl SolutionRepository for SolutionRepositoryImpl {
             }
         };
 
-        Ok(rows.into_iter().map(UserSolutionListItem::from).collect())
+        rows.into_iter()
+            .map(|solution| {
+                UserSolutionListItem::try_from(solution)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
-    async fn get_solution_votes_count(&self, solution_id: Uuid) -> Result<i64, RepositoryError> {
+    async fn get_solution_votes_count(
+        &self,
+        solution_id: SolutionId,
+    ) -> Result<i64, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
                 SELECT COUNT(*) AS "count!" FROM solution_votes
@@ -359,8 +392,9 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn has_user_voted_solution(
         &self,
         user_id: String,
-        solution_id: Uuid,
+        solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
                 SELECT EXISTS(
@@ -379,7 +413,8 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(rec.exists)
     }
 
-    async fn solution_exists(&self, solution_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn solution_exists(&self, solution_id: SolutionId) -> Result<bool, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
                 SELECT EXISTS(
@@ -399,8 +434,9 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn get_comments_by_solution_id(
         &self,
-        solution_id: Uuid,
+        solution_id: SolutionId,
     ) -> Result<Vec<SolutionComment>, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let comments = sqlx::query_as!(
             SolutionCommentViewRaw,
             r#"
@@ -419,7 +455,11 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(comments.into_iter().map(SolutionComment::from).collect())
     }
 
-    async fn get_solution_user_id(&self, solution_id: Uuid) -> Result<String, RepositoryError> {
+    async fn get_solution_user_id(
+        &self,
+        solution_id: SolutionId,
+    ) -> Result<String, RepositoryError> {
+        let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
                 SELECT user_id

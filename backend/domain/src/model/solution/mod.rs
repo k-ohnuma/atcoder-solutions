@@ -2,12 +2,13 @@ pub mod content;
 pub mod id;
 pub mod tags;
 
+use crate::model::problem::id::ProblemId;
 use content::{SolutionBody, SolutionTitle, SubmitUrl};
 use id::SolutionId;
 
 pub struct Solution {
     id: SolutionId,
-    problem_id: String,
+    problem_id: ProblemId,
     user_id: String,
     title: SolutionTitle,
     body: SolutionBody,
@@ -17,7 +18,7 @@ pub struct Solution {
 impl Solution {
     pub fn new(
         id: SolutionId,
-        problem_id: String,
+        problem_id: ProblemId,
         user_id: String,
         title: SolutionTitle,
         body: SolutionBody,
@@ -37,7 +38,7 @@ impl Solution {
         self.id
     }
 
-    pub fn problem_id(&self) -> &str {
+    pub fn problem_id(&self) -> &ProblemId {
         &self.problem_id
     }
 

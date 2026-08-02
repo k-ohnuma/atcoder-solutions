@@ -1,11 +1,11 @@
-use domain::ports::repository::solution::SolutionRepository;
+use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
 use uuid::Uuid;
 
 use crate::error::SolutionError;
 
 pub async fn ensure_solution_owner(
     repository: &dyn SolutionRepository,
-    solution_id: Uuid,
+    solution_id: SolutionId,
     user_id: &str,
     forbidden_message: &str,
 ) -> Result<(), SolutionError> {

@@ -9,7 +9,7 @@ use validator::Validate;
 fn comment_body_length_boundaries() -> Result<()> {
     let ok_create = CreateCommentInput {
         user_id: "uid".to_string(),
-        solution_id: Uuid::now_v7(),
+        solution_id: Uuid::now_v7().into(),
         body_md: "a".repeat(2000),
     };
     assert!(ok_create.validate().is_ok());
