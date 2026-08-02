@@ -3,7 +3,10 @@ use domain::model::user::{Role, User};
 use domain::{
     error::repository::RepositoryError,
     model::{
-        problem::{ContestSeries, Problem, id::ProblemId},
+        problem::{
+            ContestSeries, Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex,
+            title::ProblemTitle,
+        },
         solution::{
             Solution,
             content::{SolutionBody, SolutionTitle, SubmitUrl},
@@ -34,6 +37,18 @@ fn problem_id(value: &str) -> ProblemId {
     ProblemId::try_new(value.to_string()).expect("valid problem ID")
 }
 
+fn contest_code(value: &str) -> ContestCode {
+    ContestCode::try_new(value.to_string()).expect("valid contest code")
+}
+
+fn problem_index(value: &str) -> ProblemIndex {
+    ProblemIndex::try_new(value.to_string()).expect("valid problem index")
+}
+
+fn problem_title(value: &str) -> ProblemTitle {
+    ProblemTitle::try_new(value.to_string()).expect("valid problem title")
+}
+
 #[cfg(test)]
 async fn seed_contest_series(pool: &PgPool) -> Result<()> {
     for code in ["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"] {
@@ -53,7 +68,10 @@ async fn seed_problem(problem_tx_manager: &ProblemTransactionManager, problem: P
     let series =
         ContestSeries::try_from(problem.contest_code.as_str()).unwrap_or(ContestSeries::OTHER);
     let series_code: &str = series.into();
-    let contests = vec![(problem.contest_code.clone(), series_code.to_string())];
+    let contests = vec![(
+        problem.contest_code.as_str().to_string(),
+        series_code.to_string(),
+    )];
     let mut uow = problem_tx_manager.begin().await.unwrap();
     uow.problems().upsert_contests(&contests).await.unwrap();
     uow.problems().upsert_problems(&[problem]).await.unwrap();
@@ -103,9 +121,9 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
     let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
         id: problem_id("abc300_a"),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
+        contest_code: contest_code("abc300"),
+        problem_index: problem_index("a"),
+        title: problem_title("A - Example"),
         difficulty: None,
     };
     seed_problem(&repo, p1).await;
@@ -171,9 +189,9 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
     let repo = ProblemTransactionManager::new(conn.to_owned());
     let p1 = Problem {
         id: problem_id("abc300_a"),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
+        contest_code: contest_code("abc300"),
+        problem_index: problem_index("a"),
+        title: problem_title("A - Example"),
         difficulty: None,
     };
     seed_problem(&repo, p1).await;
@@ -274,9 +292,9 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
         &problems_repo,
         Problem {
             id: problem_id("abc300_a"),
-            contest_code: "abc300".into(),
-            problem_index: "a".into(),
-            title: "A - Example".into(),
+            contest_code: contest_code("abc300"),
+            problem_index: problem_index("a"),
+            title: problem_title("A - Example"),
             difficulty: None,
         },
     )
@@ -351,9 +369,9 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
         &problems_repo,
         Problem {
             id: problem_id("abc300_a"),
-            contest_code: "abc300".into(),
-            problem_index: "a".into(),
-            title: "A - Example".into(),
+            contest_code: contest_code("abc300"),
+            problem_index: problem_index("a"),
+            title: problem_title("A - Example"),
             difficulty: None,
         },
     )
@@ -362,9 +380,9 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
         &problems_repo,
         Problem {
             id: problem_id("abc300_b"),
-            contest_code: "abc300".into(),
-            problem_index: "b".into(),
-            title: "B - Example".into(),
+            contest_code: contest_code("abc300"),
+            problem_index: problem_index("b"),
+            title: problem_title("B - Example"),
             difficulty: None,
         },
     )
@@ -400,10 +418,10 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
 
     assert_eq!(rows.len(), 2);
     assert_eq!(rows[0].problem_id.as_str(), "abc300_b");
-    assert_eq!(rows[0].problem_title, "B - Example");
+    assert_eq!(rows[0].problem_title.as_str(), "B - Example");
     assert_eq!(rows[0].votes_count, 2);
     assert_eq!(rows[1].problem_id.as_str(), "abc300_a");
-    assert_eq!(rows[1].problem_title, "A - Example");
+    assert_eq!(rows[1].problem_title.as_str(), "A - Example");
     assert_eq!(rows[1].votes_count, 1);
 
     Ok(())
@@ -422,9 +440,9 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
         &problems_repo,
         Problem {
             id: problem_id("abc301_a"),
-            contest_code: "abc301".into(),
-            problem_index: "a".into(),
-            title: "A - Example".into(),
+            contest_code: contest_code("abc301"),
+            problem_index: problem_index("a"),
+            title: problem_title("A - Example"),
             difficulty: None,
         },
     )
@@ -513,9 +531,9 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
         &problems_repo,
         Problem {
             id: problem_id("abc302_a"),
-            contest_code: "abc302".into(),
-            problem_index: "a".into(),
-            title: "A - Example".into(),
+            contest_code: contest_code("abc302"),
+            problem_index: problem_index("a"),
+            title: problem_title("A - Example"),
             difficulty: None,
         },
     )

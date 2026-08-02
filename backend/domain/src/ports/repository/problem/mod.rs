@@ -3,7 +3,7 @@ pub mod tx;
 use async_trait::async_trait;
 
 use crate::error::repository::RepositoryError;
-use crate::model::problem::{ContestSeries, Problem, id::ProblemId};
+use crate::model::problem::{ContestSeries, Problem, contest_code::ContestCode, id::ProblemId};
 
 #[async_trait]
 pub trait ProblemRepository: Send + Sync {
@@ -16,10 +16,10 @@ pub trait ProblemRepository: Send + Sync {
         series: ContestSeries,
         limit: i64,
         offset: i64,
-    ) -> Result<Vec<String>, RepositoryError>;
+    ) -> Result<Vec<ContestCode>, RepositoryError>;
     async fn get_problems_by_contest_codes(
         &self,
-        contest_codes: &[String],
+        contest_codes: &[ContestCode],
     ) -> Result<Vec<Problem>, RepositoryError>;
     async fn search_problems_by_contest_series(
         &self,
@@ -28,6 +28,8 @@ pub trait ProblemRepository: Send + Sync {
     ) -> Result<Vec<Problem>, RepositoryError>;
     async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError>;
     async fn problem_exists(&self, problem_id: &ProblemId) -> Result<bool, RepositoryError>;
-    async fn get_problems_by_contest(&self, contest: &str)
-    -> Result<Vec<Problem>, RepositoryError>;
+    async fn get_problems_by_contest(
+        &self,
+        contest: &ContestCode,
+    ) -> Result<Vec<Problem>, RepositoryError>;
 }

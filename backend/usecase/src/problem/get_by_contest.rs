@@ -23,16 +23,7 @@ impl GetProblemsByContestUsecase {
             .get_problems_by_contest(&input.contest)
             .await
             .map_err(ProblemError::from)?;
-        pbs.sort_by(|a, b| {
-            let apid = a.problem_index.to_lowercase();
-            let bpid = b.problem_index.to_lowercase();
-            if apid == "ex" {
-                return std::cmp::Ordering::Greater;
-            } else if bpid == "ex" {
-                return std::cmp::Ordering::Less;
-            }
-            apid.cmp(&bpid)
-        });
+        pbs.sort_by(|a, b| a.problem_index.cmp_for_display(&b.problem_index));
 
         Ok(pbs.into_iter().map(ProblemOutput::from).collect())
     }

@@ -1,6 +1,9 @@
 // 使う想定ではないがdocがわりにDB型明記しておく
 use chrono::{DateTime, Utc};
-use domain::model::problem::{ContestSeries, Problem, id::ProblemId};
+use domain::model::problem::{
+    ContestSeries, Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex,
+    title::ProblemTitle,
+};
 
 pub struct ProblemRow {
     // abc001_a
@@ -21,9 +24,9 @@ impl TryFrom<ProblemRow> for Problem {
     fn try_from(value: ProblemRow) -> Result<Self, Self::Error> {
         Ok(Self {
             id: ProblemId::try_new(value.id)?,
-            contest_code: value.contest_code,
-            problem_index: value.problem_index,
-            title: value.title,
+            contest_code: ContestCode::try_new(value.contest_code)?,
+            problem_index: ProblemIndex::try_new(value.problem_index)?,
+            title: ProblemTitle::try_new(value.title)?,
             difficulty: value.difficulty,
         })
     }

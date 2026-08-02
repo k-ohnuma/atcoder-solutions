@@ -1,5 +1,8 @@
 use chrono::{DateTime, Utc};
-use domain::model::{problem::id::ProblemId, solution::id::SolutionId};
+use domain::model::{
+    problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
+    solution::id::SolutionId,
+};
 use domain::read_model::solution::{
     SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
 };
@@ -20,8 +23,8 @@ pub struct SolutionOutput {
     pub id: SolutionId,
     pub title: String,
     pub problem_id: ProblemId,
-    pub contest_code: String,
-    pub problem_title: String,
+    pub contest_code: ContestCode,
+    pub problem_title: ProblemTitle,
     pub user_id: String,
     pub user_name: String,
     pub tags: Vec<String>,
@@ -35,7 +38,7 @@ pub struct UserSolutionListItemOutput {
     pub id: SolutionId,
     pub title: String,
     pub problem_id: ProblemId,
-    pub problem_title: String,
+    pub problem_title: ProblemTitle,
     pub user_id: String,
     pub user_name: String,
     pub votes_count: i64,

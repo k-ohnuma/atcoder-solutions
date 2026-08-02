@@ -3,7 +3,9 @@ use std::time::Duration;
 use async_trait::async_trait;
 use domain::{
     error::external::ExternalError,
-    model::problem::{Problem, id::ProblemId},
+    model::problem::{
+        Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+    },
     ports::external::atcoder_problems::AtcoderProblemsPort,
 };
 use reqwest::Client;
@@ -57,9 +59,9 @@ impl TryFrom<ApiProblem> for Problem {
             problem_index_from_problem(&value.id, &value.contest_id, &value.problem_index);
         Ok(Self {
             id: ProblemId::try_new(value.id)?,
-            contest_code,
-            problem_index,
-            title: value.name,
+            contest_code: ContestCode::try_new(contest_code)?,
+            problem_index: ProblemIndex::try_new(problem_index)?,
+            title: ProblemTitle::try_new(value.name)?,
             difficulty: None,
         })
     }
@@ -189,9 +191,9 @@ mod tests {
 
         let p1 = &got[0];
         assert_eq!(p1.id.as_str(), "abc234_a");
-        assert_eq!(p1.contest_code, "abc234");
-        assert_eq!(p1.problem_index, "A");
-        assert_eq!(p1.title, "Weird Function");
+        assert_eq!(p1.contest_code.as_str(), "abc234");
+        assert_eq!(p1.problem_index.as_str(), "A");
+        assert_eq!(p1.title.as_str(), "Weird Function");
         assert_eq!(p1.difficulty, None);
     }
 
@@ -237,9 +239,9 @@ mod tests {
         .expect("valid problem");
 
         assert_eq!(problem.id.as_str(), "abc395_a");
-        assert_eq!(problem.contest_code, "abc395");
-        assert_eq!(problem.problem_index, "A");
-        assert_eq!(problem.title, "Strictly Increasing?");
+        assert_eq!(problem.contest_code.as_str(), "abc395");
+        assert_eq!(problem.problem_index.as_str(), "A");
+        assert_eq!(problem.title.as_str(), "Strictly Increasing?");
         assert_eq!(problem.difficulty, None);
     }
 

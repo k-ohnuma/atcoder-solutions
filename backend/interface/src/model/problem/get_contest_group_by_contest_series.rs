@@ -28,7 +28,7 @@ pub struct ContestGroupPageResponse {
 impl From<ContestProblemGroupOutput> for ContestProblemGroupResponse {
     fn from(value: ContestProblemGroupOutput) -> Self {
         Self {
-            contest_id: value.contest_id,
+            contest_id: value.contest_id.into_string(),
             problems: value
                 .problems
                 .into_iter()

@@ -41,7 +41,7 @@ impl From<UserSolutionListItemOutput> for GetSolutionsByUserNameResponse {
             id: id.into_uuid(),
             title,
             problem_id: problem_id.into_string(),
-            problem_title,
+            problem_title: problem_title.into_string(),
             user_id,
             user_name,
             votes_count,
@@ -78,7 +78,10 @@ mod tests {
             title: "title".to_string(),
             problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
                 .expect("valid problem ID"),
-            problem_title: "A - Sample".to_string(),
+            problem_title: domain::model::problem::title::ProblemTitle::try_new(
+                "A - Sample".to_string(),
+            )
+            .expect("valid problem title"),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
             votes_count: 7,

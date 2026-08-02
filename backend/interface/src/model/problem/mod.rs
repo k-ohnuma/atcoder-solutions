@@ -17,9 +17,9 @@ impl From<ProblemOutput> for ProblemResponse {
     fn from(value: ProblemOutput) -> Self {
         Self {
             id: value.id.into_string(),
-            contest_code: value.contest_code,
-            problem_index: value.problem_index,
-            title: value.title,
+            contest_code: value.contest_code.into_string(),
+            problem_index: value.problem_index.into_string(),
+            title: value.title.into_string(),
             difficulty: value.difficulty,
         }
     }

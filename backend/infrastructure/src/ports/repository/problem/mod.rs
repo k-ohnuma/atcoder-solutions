@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::problem::{ContestSeries, Problem, id::ProblemId},
+    model::problem::{ContestSeries, Problem, contest_code::ContestCode, id::ProblemId},
     ports::repository::problem::ProblemRepository,
 };
 
@@ -56,7 +56,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
         series: ContestSeries,
         limit: i64,
         offset: i64,
-    ) -> Result<Vec<String>, RepositoryError> {
+    ) -> Result<Vec<ContestCode>, RepositoryError> {
         let contest_codes = sqlx::query_scalar!(
             r#"
             SELECT c.code
@@ -74,17 +74,27 @@ impl ProblemRepository for ProblemRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(contest_codes)
+        contest_codes
+            .into_iter()
+            .map(|code| {
+                ContestCode::try_new(code)
+                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+            })
+            .collect()
     }
 
     async fn get_problems_by_contest_codes(
         &self,
-        contest_codes: &[String],
+        contest_codes: &[ContestCode],
     ) -> Result<Vec<Problem>, RepositoryError> {
         if contest_codes.is_empty() {
             return Ok(vec![]);
         }
 
+        let contest_codes = contest_codes
+            .iter()
+            .map(|code| code.as_str().to_string())
+            .collect::<Vec<_>>();
         let problems = sqlx::query_as!(
             ProblemRow,
             r#"
@@ -93,7 +103,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
             WHERE p.contest_code = ANY($1)
             ORDER BY p.contest_code DESC
             "#,
-            contest_codes
+            &contest_codes
         )
         .fetch_all(self.db.inner_ref())
         .await
@@ -193,7 +203,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
 
     async fn get_problems_by_contest(
         &self,
-        contest: &str,
+        contest: &ContestCode,
     ) -> Result<Vec<Problem>, RepositoryError> {
         let problems = sqlx::query_as!(
             ProblemRow,
@@ -204,7 +214,7 @@ impl ProblemRepository for ProblemRepositoryImpl {
             JOIN contest_series s ON s.code = c.series_code
             WHERE p.contest_code = $1
             "#,
-            contest.to_ascii_lowercase()
+            contest.as_str().to_ascii_lowercase()
         )
         .fetch_all(self.db.inner_ref())
         .await

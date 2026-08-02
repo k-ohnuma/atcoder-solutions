@@ -1,7 +1,10 @@
 use chrono::{DateTime, Utc};
 use domain::{
     error::problem::ProblemValidationError,
-    model::{problem::id::ProblemId, solution::id::SolutionId},
+    model::{
+        problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
+        solution::id::SolutionId,
+    },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
     },
@@ -79,7 +82,7 @@ impl TryFrom<UserSolutionListItemViewRaw> for UserSolutionListItem {
             id: SolutionId::new(id),
             title,
             problem_id: ProblemId::try_new(problem_id)?,
-            problem_title,
+            problem_title: ProblemTitle::try_new(problem_title)?,
             user_id,
             user_name,
             votes_count,
@@ -146,8 +149,8 @@ impl TryFrom<SolutionDetailsViewRaw> for SolutionDetails {
             id: SolutionId::new(value.id),
             title: value.title,
             problem_id: ProblemId::try_new(value.problem_id)?,
-            contest_code: value.contest_code,
-            problem_title: value.problem_title,
+            contest_code: ContestCode::try_new(value.contest_code)?,
+            problem_title: ProblemTitle::try_new(value.problem_title)?,
             user_id: value.user_id,
             user_name: value.user_name,
             tags: value.tags,

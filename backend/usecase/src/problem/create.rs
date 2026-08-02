@@ -76,7 +76,10 @@ impl ImportProblemsUsecase {
                 let series = ContestSeries::try_from(problem.contest_code.as_str())
                     .unwrap_or(ContestSeries::OTHER);
                 let series_code: &str = series.into();
-                (problem.contest_code.clone(), series_code.to_string())
+                (
+                    problem.contest_code.as_str().to_string(),
+                    series_code.to_string(),
+                )
             })
             .collect::<HashSet<(String, String)>>();
 

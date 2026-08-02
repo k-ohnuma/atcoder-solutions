@@ -55,16 +55,7 @@ impl GetContestGroupByContestSeriesUsecase {
             )
         };
 
-        pbs.sort_by(|a, b| {
-            let apid = a.problem_index.to_lowercase();
-            let bpid = b.problem_index.to_lowercase();
-            if apid == "ex" {
-                return std::cmp::Ordering::Greater;
-            } else if bpid == "ex" {
-                return std::cmp::Ordering::Less;
-            }
-            apid.cmp(&bpid)
-        });
+        pbs.sort_by(|a, b| a.problem_index.cmp_for_display(&b.problem_index));
 
         let groups = group_problems_by_contest(pbs);
         let total_contest_count = groups.len();
@@ -112,10 +103,10 @@ mod tests {
         ]);
 
         assert_eq!(groups.len(), 2);
-        assert_eq!(groups[0].contest_id, "abc300");
+        assert_eq!(groups[0].contest_id.as_str(), "abc300");
         assert_eq!(groups[0].problems.len(), 2);
         assert_eq!(groups[0].problems[0].id.as_str(), "abc300_b");
-        assert_eq!(groups[1].contest_id, "abc299");
+        assert_eq!(groups[1].contest_id.as_str(), "abc299");
         assert_eq!(groups[1].problems[0].id.as_str(), "abc299_a");
     }
 
@@ -123,9 +114,16 @@ mod tests {
         Problem {
             id: domain::model::problem::id::ProblemId::try_new(id.to_string())
                 .expect("valid problem ID"),
-            contest_code: contest_code.to_string(),
-            problem_index: problem_index.to_string(),
-            title: id.to_string(),
+            contest_code: domain::model::problem::contest_code::ContestCode::try_new(
+                contest_code.to_string(),
+            )
+            .expect("valid contest code"),
+            problem_index: domain::model::problem::index::ProblemIndex::try_new(
+                problem_index.to_string(),
+            )
+            .expect("valid problem index"),
+            title: domain::model::problem::title::ProblemTitle::try_new(id.to_string())
+                .expect("valid problem title"),
             difficulty: None,
         }
     }

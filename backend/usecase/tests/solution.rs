@@ -3,7 +3,10 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Utc;
-use domain::model::{problem::id::ProblemId, solution::id::SolutionId};
+use domain::model::{
+    problem::{contest_code::ContestCode, id::ProblemId},
+    solution::id::SolutionId,
+};
 use domain::{
     error::repository::RepositoryError,
     model::{
@@ -164,7 +167,10 @@ impl SolutionRepository for DummySolutionRepository {
             id: Uuid::now_v7().into(),
             title: "t".to_string(),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
-            problem_title: "A - Sample".to_string(),
+            problem_title: domain::model::problem::title::ProblemTitle::try_new(
+                "A - Sample".to_string(),
+            )
+            .expect("valid problem title"),
             user_id: "uid".to_string(),
             user_name: "alice".to_string(),
             votes_count: 5,
@@ -229,13 +235,13 @@ impl ProblemRepository for DummyProblemRepository {
         _series: ContestSeries,
         _limit: i64,
         _offset: i64,
-    ) -> Result<Vec<String>, RepositoryError> {
+    ) -> Result<Vec<ContestCode>, RepositoryError> {
         Ok(vec![])
     }
 
     async fn get_problems_by_contest_codes(
         &self,
-        _contest_codes: &[String],
+        _contest_codes: &[ContestCode],
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -258,7 +264,7 @@ impl ProblemRepository for DummyProblemRepository {
 
     async fn get_problems_by_contest(
         &self,
-        _contest: &str,
+        _contest: &ContestCode,
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -380,7 +386,7 @@ async fn get_solutions_by_user_name_passes_sort_to_repository() -> Result<()> {
 
     let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
-    assert_eq!(result[0].problem_title, "A - Sample");
+    assert_eq!(result[0].problem_title.as_str(), "A - Sample");
 
     let sort = *repository.last_user_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));

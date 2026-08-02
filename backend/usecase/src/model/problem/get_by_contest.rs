@@ -1,21 +1,15 @@
 use crate::error::ProblemError;
-use domain::model::problem::id::ProblemId;
+use domain::model::problem::{contest_code::ContestCode, id::ProblemId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetProblemsByContestInput {
-    pub contest: String,
+    pub contest: ContestCode,
 }
 
 impl GetProblemsByContestInput {
     pub fn try_new(contest: String) -> Result<Self, ProblemError> {
-        let contest = contest.trim();
-        if contest.is_empty() {
-            return Err(ProblemError::BadRequest(
-                "contestCode cannot be empty".to_string(),
-            ));
-        }
         Ok(Self {
-            contest: contest.to_string(),
+            contest: ContestCode::try_new(contest)?,
         })
     }
 }
@@ -42,7 +36,7 @@ mod tests {
     fn contest_input_normalizes_contest_code() {
         let input = GetProblemsByContestInput::try_new(" abc001 ".to_string()).expect("valid");
 
-        assert_eq!(input.contest, "abc001");
+        assert_eq!(input.contest.as_str(), "abc001");
     }
 
     #[test]

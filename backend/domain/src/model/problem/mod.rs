@@ -1,16 +1,22 @@
 use strum::Display;
 use thiserror::Error;
 
+pub mod contest_code;
 pub mod id;
+pub mod index;
+pub mod title;
 
+use contest_code::ContestCode;
 use id::ProblemId;
+use index::ProblemIndex;
+use title::ProblemTitle;
 
 #[derive(Clone, Debug)]
 pub struct Problem {
     pub id: ProblemId,
-    pub contest_code: String,
-    pub problem_index: String,
-    pub title: String,
+    pub contest_code: ContestCode,
+    pub problem_index: ProblemIndex,
+    pub title: ProblemTitle,
     pub difficulty: Option<i32>,
 }
 

@@ -84,9 +84,9 @@ impl ProblemRepositoryTx for ProblemUnitOfWorkImpl {
 
         query_builder.push_values(problems.iter(), |mut b, problem| {
             b.push_bind(problem.id.as_str())
-                .push_bind(&problem.contest_code)
-                .push_bind(&problem.problem_index)
-                .push_bind(&problem.title)
+                .push_bind(problem.contest_code.as_str())
+                .push_bind(problem.problem_index.as_str())
+                .push_bind(problem.title.as_str())
                 .push_bind(problem.difficulty);
         });
         query_builder.push(

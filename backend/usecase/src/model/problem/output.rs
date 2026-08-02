@@ -1,15 +1,17 @@
-use domain::model::problem::{Problem, id::ProblemId};
+use domain::model::problem::{
+    Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+};
 
 pub struct ProblemOutput {
     pub id: ProblemId,
-    pub contest_code: String,
-    pub problem_index: String,
-    pub title: String,
+    pub contest_code: ContestCode,
+    pub problem_index: ProblemIndex,
+    pub title: ProblemTitle,
     pub difficulty: Option<i32>,
 }
 
 pub struct ContestProblemGroupOutput {
-    pub contest_id: String,
+    pub contest_id: ContestCode,
     pub problems: Vec<ProblemOutput>,
 }
 

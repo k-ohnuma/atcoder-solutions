@@ -2,7 +2,9 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use async_trait::async_trait;
-use domain::model::problem::id::ProblemId;
+use domain::model::problem::{
+    contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+};
 use domain::{
     error::{external::ExternalError, repository::RepositoryError},
     model::problem::Problem,
@@ -108,13 +110,13 @@ impl ProblemRepository for DummyProblemRepository {
         _series: domain::model::problem::ContestSeries,
         _limit: i64,
         _offset: i64,
-    ) -> Result<Vec<String>, RepositoryError> {
+    ) -> Result<Vec<ContestCode>, RepositoryError> {
         Ok(vec![])
     }
 
     async fn get_problems_by_contest_codes(
         &self,
-        _contest_codes: &[String],
+        _contest_codes: &[ContestCode],
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -137,7 +139,7 @@ impl ProblemRepository for DummyProblemRepository {
 
     async fn get_problems_by_contest(
         &self,
-        _contest: &str,
+        _contest: &ContestCode,
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -149,30 +151,30 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
         item: vec![
             Problem {
                 id: ProblemId::try_new("abc234_a".to_string())?,
-                contest_code: "abc234".into(),
-                problem_index: "A".into(),
-                title: "A - Example".into(),
+                contest_code: ContestCode::try_new("abc234".to_string())?,
+                problem_index: ProblemIndex::try_new("A".to_string())?,
+                title: ProblemTitle::try_new("A - Example".to_string())?,
                 difficulty: None,
             },
             Problem {
                 id: ProblemId::try_new("abc234_b".to_string())?,
-                contest_code: "abc234".into(),
-                problem_index: "B".into(),
-                title: "B - Example".into(),
+                contest_code: ContestCode::try_new("abc234".to_string())?,
+                problem_index: ProblemIndex::try_new("B".to_string())?,
+                title: ProblemTitle::try_new("B - Example".to_string())?,
                 difficulty: None,
             },
             Problem {
                 id: ProblemId::try_new("awc001_a".to_string())?,
-                contest_code: "awc001".into(),
-                problem_index: "A".into(),
-                title: "AWC - Example".into(),
+                contest_code: ContestCode::try_new("awc001".to_string())?,
+                problem_index: ProblemIndex::try_new("A".to_string())?,
+                title: ProblemTitle::try_new("AWC - Example".to_string())?,
                 difficulty: None,
             },
             Problem {
                 id: ProblemId::try_new("tessoku_a1".to_string())?,
-                contest_code: "tessoku-book".into(),
-                problem_index: "A1".into(),
-                title: "Tessoku - Example".into(),
+                contest_code: ContestCode::try_new("tessoku-book".to_string())?,
+                problem_index: ProblemIndex::try_new("A1".to_string())?,
+                title: ProblemTitle::try_new("Tessoku - Example".to_string())?,
                 difficulty: None,
             },
         ],
@@ -202,6 +204,6 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
 
     let sent = &calls.problems[0];
     assert_eq!(sent.id.as_str(), "abc234_a");
-    assert_eq!(sent.title, "A - Example");
+    assert_eq!(sent.title.as_str(), "A - Example");
     Ok(())
 }

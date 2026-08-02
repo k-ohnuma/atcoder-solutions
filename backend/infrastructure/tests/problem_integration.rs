@@ -1,6 +1,8 @@
 use anyhow::Result;
 use domain::{
-    model::problem::{Problem, id::ProblemId},
+    model::problem::{
+        Problem, contest_code::ContestCode, id::ProblemId, index::ProblemIndex, title::ProblemTitle,
+    },
     ports::repository::problem::tx::ProblemTxManager,
 };
 use infrastructure::{
@@ -10,6 +12,18 @@ use sqlx::PgPool;
 
 fn problem_id(value: &str) -> ProblemId {
     ProblemId::try_new(value.to_string()).expect("valid problem ID")
+}
+
+fn contest_code(value: &str) -> ContestCode {
+    ContestCode::try_new(value.to_string()).expect("valid contest code")
+}
+
+fn problem_index(value: &str) -> ProblemIndex {
+    ProblemIndex::try_new(value.to_string()).expect("valid problem index")
+}
+
+fn problem_title(value: &str) -> ProblemTitle {
+    ProblemTitle::try_new(value.to_string()).expect("valid problem title")
 }
 
 async fn seed_contest_series(pool: &PgPool) -> Result<()> {
@@ -46,16 +60,16 @@ async fn upsert_problem_data_creates_contest_and_problems(pool: PgPool) -> Resul
     let problems = vec![
         Problem {
             id: problem_id("abc300_a"),
-            contest_code: "abc300".into(),
-            problem_index: "a".into(),
-            title: "A - Example".into(),
+            contest_code: contest_code("abc300"),
+            problem_index: problem_index("a"),
+            title: problem_title("A - Example"),
             difficulty: None,
         },
         Problem {
             id: problem_id("abc300_b"),
-            contest_code: "abc300".into(),
-            problem_index: "b".into(),
-            title: "B - Example".into(),
+            contest_code: contest_code("abc300"),
+            problem_index: problem_index("b"),
+            title: problem_title("B - Example"),
             difficulty: None,
         },
     ];
@@ -83,15 +97,15 @@ async fn upsert_problems_updates_existing_problem(pool: PgPool) -> Result<()> {
     let contests = vec![("abc300".to_string(), "ABC".to_string())];
     let problem = Problem {
         id: problem_id("abc300_a"),
-        contest_code: "abc300".into(),
-        problem_index: "a".into(),
-        title: "A - Example".into(),
+        contest_code: contest_code("abc300"),
+        problem_index: problem_index("a"),
+        title: problem_title("A - Example"),
         difficulty: None,
     };
     upsert_problem_data(&pool, &contests, std::slice::from_ref(&problem)).await?;
 
     let updated = Problem {
-        title: "A - Example modified".into(),
+        title: problem_title("A - Example modified"),
         ..problem
     };
     upsert_problem_data(&pool, &contests, &[updated]).await?;
