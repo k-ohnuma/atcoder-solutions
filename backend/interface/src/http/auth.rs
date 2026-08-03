@@ -83,7 +83,7 @@ impl FromRequestParts<Registry> for AdminUser {
         let AuthUser(principal) = AuthUser::from_request_parts(parts, state).await?;
         let user = state
             .user_repository()
-            .find_by_uid(principal.uid.as_str())
+            .find_by_uid(&principal.uid)
             .await
             .map_err(|error| {
                 AuthRejection::Unavailable(format!("failed to load authenticated user: {error}"))

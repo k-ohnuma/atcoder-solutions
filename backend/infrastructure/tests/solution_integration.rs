@@ -1,5 +1,5 @@
 use anyhow::Result;
-use domain::model::user::{Role, User};
+use domain::model::user::{Role, User, id::UserId};
 use domain::{
     error::repository::RepositoryError,
     model::{
@@ -35,6 +35,10 @@ use uuid::Uuid;
 
 fn problem_id(value: &str) -> ProblemId {
     ProblemId::try_new(value.to_string()).expect("valid problem ID")
+}
+
+fn make_user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
 }
 
 fn contest_code(value: &str) -> ContestCode {
@@ -90,7 +94,7 @@ fn solution(
         SolutionId::new(id),
         domain::model::problem::id::ProblemId::try_new(problem_id.to_string())
             .expect("valid problem id"),
-        user_id.to_string(),
+        make_user_id(user_id),
         SolutionTitle::try_new(title.to_string()).expect("valid title"),
         SolutionBody::try_new(body.to_string()).expect("valid body"),
         SubmitUrl::try_new(submit_url.to_string()).expect("valid submit URL"),
@@ -130,7 +134,7 @@ async fn create_solution_records(pool: PgPool) -> Result<()> {
 
     let repo = UserRepositoryImpl::new(conn.to_owned());
     let user = User {
-        id: "id".into(),
+        id: make_user_id("id"),
         user_name: "name".into(),
         role: Role::default(),
     };
@@ -198,7 +202,7 @@ async fn create_solution_transaction_error(pool: PgPool) -> Result<()> {
 
     let repo = UserRepositoryImpl::new(conn.to_owned());
     let user = User {
-        id: "id".into(),
+        id: make_user_id("id"),
         user_name: "name".into(),
         role: Role::default(),
     };
@@ -310,7 +314,7 @@ async fn get_solutions_by_problem_id_sorts_latest_and_votes(pool: PgPool) -> Res
     ] {
         user_repo
             .create_user(User {
-                id: id.to_string(),
+                id: make_user_id(id),
                 user_name: name.to_string(),
                 role: Role::default(),
             })
@@ -397,7 +401,7 @@ async fn get_solutions_by_user_name_votes_returns_problem_title_and_vote_count(
     ] {
         user_repo
             .create_user(User {
-                id: id.to_string(),
+                id: make_user_id(id),
                 user_name: name.to_string(),
                 role: Role::default(),
             })
@@ -457,7 +461,7 @@ async fn get_solutions_by_problem_id_votes_tie_breaks_by_created_at_desc(
     ] {
         user_repo
             .create_user(User {
-                id: id.to_string(),
+                id: make_user_id(id),
                 user_name: name.to_string(),
                 role: Role::default(),
             })
@@ -494,7 +498,7 @@ async fn create_solution_with_missing_problem_returns_unexpected_error(pool: PgP
     let user_repo = UserRepositoryImpl::new(conn.to_owned());
     user_repo
         .create_user(User {
-            id: "author".to_string(),
+            id: make_user_id("author"),
             user_name: "author".to_string(),
             role: Role::default(),
         })
@@ -542,14 +546,14 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
     let user_repo = UserRepositoryImpl::new(conn.to_owned());
     user_repo
         .create_user(User {
-            id: "author".to_string(),
+            id: make_user_id("author"),
             user_name: "author".to_string(),
             role: Role::default(),
         })
         .await?;
     user_repo
         .create_user(User {
-            id: "viewer".to_string(),
+            id: make_user_id("viewer"),
             user_name: "viewer".to_string(),
             role: Role::default(),
         })
@@ -587,7 +591,7 @@ async fn deleting_user_cascades_solutions_comments_and_votes(pool: PgPool) -> Re
     assert_eq!(comment_count_before, 1);
     assert_eq!(vote_count_before, 1);
 
-    user_repo.delete_by_uid("author").await?;
+    user_repo.delete_by_uid(&make_user_id("author")).await?;
 
     let solution_count_after = sqlx::query_scalar!("SELECT COUNT(*) FROM solutions")
         .fetch_one(&pool)

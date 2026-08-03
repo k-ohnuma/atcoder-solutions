@@ -1,12 +1,11 @@
-use domain::model::problem::id::ProblemId;
-use validator::{Validate, ValidationError};
+use domain::model::{problem::id::ProblemId, user::id::UserId};
+use validator::Validate;
 
 use crate::error::SolutionError;
 
 #[derive(Validate)]
 pub struct CreateSolutionInput {
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
-    pub user_id: String,
+    pub user_id: UserId,
     pub title: String,
     pub problem_id: ProblemId,
     pub body_md: String,
@@ -16,7 +15,7 @@ pub struct CreateSolutionInput {
 
 impl CreateSolutionInput {
     pub fn try_new(
-        user_id: String,
+        user_id: UserId,
         problem_id: String,
         title: String,
         body_md: String,
@@ -32,11 +31,4 @@ impl CreateSolutionInput {
             tags,
         })
     }
-}
-
-fn validate_not_blank(value: &str) -> Result<(), ValidationError> {
-    if value.trim().is_empty() {
-        return Err(ValidationError::new("blank"));
-    }
-    Ok(())
 }

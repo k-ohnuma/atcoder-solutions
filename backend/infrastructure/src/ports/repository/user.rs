@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use derive_new::new;
 use domain::{
-    error::repository::RepositoryError, model::user::User, ports::repository::user::UserRepository,
+    error::repository::RepositoryError,
+    model::user::{User, id::UserId},
+    ports::repository::user::UserRepository,
 };
 use sqlx::Row;
 
@@ -23,7 +25,7 @@ impl UserRepository for UserRepositoryImpl {
             ON CONFLICT (user_name) DO NOTHING
             RETURNING id
             "#,
-            user.id,
+            user.id.as_str(),
             user.role.to_string(),
             user.user_name,
         )
@@ -39,7 +41,7 @@ impl UserRepository for UserRepositoryImpl {
         }
         Ok(())
     }
-    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
+    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError> {
         let user_row = sqlx::query_as!(
             UserRow,
             r#"
@@ -47,7 +49,7 @@ impl UserRepository for UserRepositoryImpl {
             FROM users
             WHERE id = $1
             "#,
-            uid,
+            uid.as_str(),
         )
         .fetch_one(self.db.inner_ref())
         .await
@@ -74,13 +76,13 @@ impl UserRepository for UserRepositoryImpl {
         Ok(rec.exists)
     }
 
-    async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
+    async fn delete_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError> {
         let result = sqlx::query!(
             r#"
             DELETE FROM users
             WHERE id = $1
             "#,
-            uid
+            uid.as_str()
         )
         .execute(self.db.inner_ref())
         .await
@@ -89,13 +91,13 @@ impl UserRepository for UserRepositoryImpl {
         if result.rows_affected() == 0 {
             return Err(RepositoryError::NotFound(format!(
                 "user not found: {}",
-                uid
+                uid.as_str()
             )));
         }
         Ok(())
     }
 
-    async fn revoke_tokens_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
+    async fn revoke_tokens_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError> {
         let result = sqlx::query(
             r#"
             UPDATE users
@@ -103,7 +105,7 @@ impl UserRepository for UserRepositoryImpl {
             WHERE id = $1
             "#,
         )
-        .bind(uid)
+        .bind(uid.as_str())
         .execute(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
@@ -111,13 +113,17 @@ impl UserRepository for UserRepositoryImpl {
         if result.rows_affected() == 0 {
             return Err(RepositoryError::NotFound(format!(
                 "user not found: {}",
-                uid
+                uid.as_str()
             )));
         }
         Ok(())
     }
 
-    async fn is_token_revoked(&self, uid: &str, issued_at: i64) -> Result<bool, RepositoryError> {
+    async fn is_token_revoked(
+        &self,
+        uid: &UserId,
+        issued_at: i64,
+    ) -> Result<bool, RepositoryError> {
         let revoked = sqlx::query(
             r#"
             SELECT COALESCE(
@@ -128,7 +134,7 @@ impl UserRepository for UserRepositoryImpl {
             WHERE id = $1
             "#,
         )
-        .bind(uid)
+        .bind(uid.as_str())
         .bind(issued_at)
         .fetch_optional(self.db.inner_ref())
         .await

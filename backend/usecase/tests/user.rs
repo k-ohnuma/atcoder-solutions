@@ -4,12 +4,16 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
-    model::user::{Role, User},
+    model::user::{Role, User, id::UserId},
     ports::{
         external::auth::{AuthError, CreatedIdentity, IdentityProviderPort},
         repository::user::UserRepository,
     },
 };
+
+fn user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
+}
 use usecase::{
     error::UserError,
     model::user::create::CreateUserInput,
@@ -34,16 +38,19 @@ impl IdentityProviderPort for DummyIdentityProvider {
     ) -> Result<CreatedIdentity, AuthError> {
         if email == "conflict@example.com" {
             return Ok(CreatedIdentity {
-                uid: "conflict".into(),
+                uid: user_id("conflict"),
             });
         }
         Ok(CreatedIdentity {
-            uid: "valid".into(),
+            uid: user_id("valid"),
         })
     }
 
-    async fn delete_user(&self, uid: &str) -> Result<(), AuthError> {
-        self.deleted_uids.lock().unwrap().push(uid.to_string());
+    async fn delete_user(&self, uid: &UserId) -> Result<(), AuthError> {
+        self.deleted_uids
+            .lock()
+            .unwrap()
+            .push(uid.as_str().to_string());
         Ok(())
     }
 }
@@ -64,10 +71,10 @@ impl UserRepository for DummyUserRepository {
         self.calls.lock().unwrap().push(user);
         Ok(())
     }
-    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
-        if uid == "valid id" {
+    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError> {
+        if uid.as_str() == "valid id" {
             return Ok(User {
-                id: uid.into(),
+                id: uid.clone(),
                 role: Role::default(),
                 user_name: "valid user".into(),
             });
@@ -79,16 +86,23 @@ impl UserRepository for DummyUserRepository {
         Ok(false)
     }
 
-    async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
-        self.deleted_uids.lock().unwrap().push(uid.to_string());
+    async fn delete_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError> {
+        self.deleted_uids
+            .lock()
+            .unwrap()
+            .push(uid.as_str().to_string());
         Ok(())
     }
 
-    async fn revoke_tokens_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
-    async fn is_token_revoked(&self, _uid: &str, _issued_at: i64) -> Result<bool, RepositoryError> {
+    async fn is_token_revoked(
+        &self,
+        _uid: &UserId,
+        _issued_at: i64,
+    ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 }
@@ -121,7 +135,7 @@ async fn usecase_create_user_ok() -> Result<()> {
 
     assert!(matches!(m, Role::User));
     assert_eq!(user.user_name, "user_name");
-    assert_eq!(user.id, "valid");
+    assert_eq!(user.id.as_str(), "valid");
 
     Ok(())
 }
@@ -224,9 +238,9 @@ async fn usecase_delete_me_deletes_identity_provider_and_user_row() -> Result<()
     let identity_provider = dummy_identity_provider();
     let uc = DeleteMeUsecase::new(repo.to_owned(), identity_provider.to_owned());
 
-    let output = uc.run("valid".into(), 1_000, 1_100).await?;
+    let output = uc.run(user_id("valid"), 1_000, 1_100).await?;
 
-    assert_eq!(output.id, "valid");
+    assert_eq!(output.id.as_str(), "valid");
     assert_eq!(
         identity_provider.deleted_uids.lock().unwrap().as_slice(),
         ["valid"]
@@ -246,7 +260,7 @@ async fn usecase_delete_me_requires_recent_login() -> Result<()> {
     let uc = DeleteMeUsecase::new(repo.to_owned(), identity_provider.to_owned());
 
     let err = uc
-        .run("valid".into(), 1_000, 1_301)
+        .run(user_id("valid"), 1_000, 1_301)
         .await
         .expect_err("should require recent login");
 

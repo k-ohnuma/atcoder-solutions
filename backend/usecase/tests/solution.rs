@@ -6,6 +6,7 @@ use chrono::Utc;
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId},
     solution::id::SolutionId,
+    user::id::UserId,
 };
 use domain::{
     error::repository::RepositoryError,
@@ -31,6 +32,10 @@ use usecase::{
     },
 };
 use uuid::Uuid;
+
+fn user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
+}
 
 struct DummySolutionRepository {
     last_problem_sort: Mutex<Option<SolutionListSort>>,
@@ -62,7 +67,7 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn vote_solution(
         &self,
-        _user_id: &str,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
@@ -70,7 +75,7 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn unvote_solution(
         &self,
-        _user_id: &str,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
@@ -82,13 +87,13 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn create_comment(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
-            user_id: user_id.to_string(),
+            user_id: user_id.clone(),
             user_name: "alice".to_string(),
             solution_id,
             body_md: body_md.to_string(),
@@ -104,7 +109,7 @@ impl SolutionRepository for DummySolutionRepository {
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
-            user_id: "uid".to_string(),
+            user_id: user_id("uid"),
             user_name: "alice".to_string(),
             solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
@@ -121,7 +126,7 @@ impl SolutionRepository for DummySolutionRepository {
             id: Uuid::now_v7().into(),
             title: "latest".to_string(),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
-            user_id: "uid".to_string(),
+            user_id: user_id("uid"),
             user_name: "alice".to_string(),
             votes_count: 1,
             created_at: Utc::now(),
@@ -140,7 +145,7 @@ impl SolutionRepository for DummySolutionRepository {
             id: Uuid::now_v7().into(),
             title: "t".to_string(),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
-            user_id: "uid".to_string(),
+            user_id: user_id("uid"),
             user_name: "alice".to_string(),
             votes_count: 3,
             created_at: Utc::now(),
@@ -171,7 +176,7 @@ impl SolutionRepository for DummySolutionRepository {
                 "A - Sample".to_string(),
             )
             .expect("valid problem title"),
-            user_id: "uid".to_string(),
+            user_id: user_id("uid"),
             user_name: "alice".to_string(),
             votes_count: 5,
             created_at: Utc::now(),
@@ -188,7 +193,7 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn has_user_voted_solution(
         &self,
-        _user_id: String,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         Ok(false)
@@ -208,16 +213,16 @@ impl SolutionRepository for DummySolutionRepository {
     async fn get_solution_user_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<String, RepositoryError> {
-        Ok(String::new())
+    ) -> Result<UserId, RepositoryError> {
+        Ok(user_id("uid"))
     }
 
     async fn comment_exists(&self, _comment_id: Uuid) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<String, RepositoryError> {
-        Ok(String::new())
+    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<UserId, RepositoryError> {
+        Ok(user_id("uid"))
     }
 }
 
@@ -276,23 +281,27 @@ impl UserRepository for DummyUserRepository {
         Ok(())
     }
 
-    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
-        Err(RepositoryError::NotFound(uid.to_string()))
+    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError> {
+        Err(RepositoryError::NotFound(uid.as_str().to_string()))
     }
 
     async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
         Ok(self.exists)
     }
 
-    async fn delete_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+    async fn delete_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
-    async fn revoke_tokens_by_uid(&self, _uid: &str) -> Result<(), RepositoryError> {
+    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
-    async fn is_token_revoked(&self, _uid: &str, _issued_at: i64) -> Result<bool, RepositoryError> {
+    async fn is_token_revoked(
+        &self,
+        _uid: &UserId,
+        _issued_at: i64,
+    ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 }
@@ -300,8 +309,7 @@ impl UserRepository for DummyUserRepository {
 #[tokio::test]
 async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
     let err = GetSolutionsByProblemIdInput::try_new("   ".to_string(), None, None)
-        .err()
-        .expect("blank problem id should be bad request");
+        .expect_err("blank problem id should be bad request");
     assert!(matches!(err, SolutionError::BadRequest(_)));
 
     Ok(())

@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{
     error::repository::RepositoryError,
-    model::{problem::id::ProblemId, solution::id::SolutionId},
+    model::{problem::id::ProblemId, solution::id::SolutionId, user::id::UserId},
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
@@ -16,17 +16,17 @@ pub trait SolutionRepository: Send + Sync {
     async fn delete_solution(&self, solution_id: SolutionId) -> Result<(), RepositoryError>;
     async fn vote_solution(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<(), RepositoryError>;
     async fn unvote_solution(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<(), RepositoryError>;
     async fn create_comment(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError>;
@@ -61,7 +61,7 @@ pub trait SolutionRepository: Send + Sync {
     ) -> Result<i64, RepositoryError>;
     async fn has_user_voted_solution(
         &self,
-        user_id: String,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<bool, RepositoryError>;
     async fn solution_exists(&self, solution_id: SolutionId) -> Result<bool, RepositoryError>;
@@ -72,7 +72,7 @@ pub trait SolutionRepository: Send + Sync {
     async fn get_solution_user_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<String, RepositoryError>;
+    ) -> Result<UserId, RepositoryError>;
     async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError>;
-    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<String, RepositoryError>;
+    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<UserId, RepositoryError>;
 }

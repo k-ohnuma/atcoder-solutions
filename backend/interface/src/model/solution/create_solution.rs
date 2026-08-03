@@ -1,4 +1,5 @@
 use domain::model::solution::id::SolutionId;
+use domain::model::user::id::UserId;
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::create::CreateSolutionInput;
 use uuid::Uuid;
@@ -14,7 +15,7 @@ pub struct CreateSolutionRequest {
 }
 
 pub fn from_req_for_input(
-    user_id: String,
+    user_id: UserId,
     req: CreateSolutionRequest,
 ) -> Result<CreateSolutionInput, usecase::error::SolutionError> {
     CreateSolutionInput::try_new(
@@ -43,6 +44,7 @@ impl From<SolutionId> for CreateSolutionResponse {
 
 #[cfg(test)]
 mod tests {
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use uuid::Uuid;
 
@@ -58,8 +60,12 @@ mod tests {
             "tags": ["dp", "graph"]
         });
         let req: CreateSolutionRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), req).expect("valid input");
-        assert_eq!(input.user_id, "uid");
+        let input = from_req_for_input(
+            UserId::try_new("uid".to_string()).expect("valid user ID"),
+            req,
+        )
+        .expect("valid input");
+        assert_eq!(input.user_id.as_str(), "uid");
         assert_eq!(input.problem_id.as_str(), "abc100_a");
         assert_eq!(input.tags.len(), 2);
     }

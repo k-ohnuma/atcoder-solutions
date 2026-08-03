@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use domain::model::user::id::UserId;
 use domain::ports::external::auth::{
     AuthError, AuthenticatorPort, CreatedIdentity, IdentityProviderPort, Principal,
 };
@@ -44,7 +45,8 @@ impl AuthenticatorPort for FirebaseAuthenticator {
             .map_err(map_token_error)?;
 
         Ok(Principal {
-            uid: get_string_claim(&claims, "sub")?,
+            uid: UserId::try_new(get_string_claim(&claims, "sub")?)
+                .map_err(|_| AuthError::Unauthorized)?,
             email: get_string_claim(&claims, "email")?,
             issued_at: get_i64_claim(&claims, "iat")?,
             auth_time: get_i64_claim(&claims, "auth_time")?,
@@ -64,11 +66,14 @@ impl IdentityProviderPort for FirebaseAuthenticator {
             .await
             .map_err(map_api_error)?;
 
-        Ok(CreatedIdentity { uid: user.uid })
+        Ok(CreatedIdentity {
+            uid: UserId::try_new(user.uid)
+                .map_err(|error| AuthError::Unexpected(error.to_string()))?,
+        })
     }
 
-    async fn delete_user(&self, uid: &str) -> Result<(), AuthError> {
-        match self.auth.delete_user(uid.to_string()).await {
+    async fn delete_user(&self, uid: &UserId) -> Result<(), AuthError> {
+        match self.auth.delete_user(uid.as_str().to_string()).await {
             Ok(()) => Ok(()),
             Err(error) => {
                 if is_user_not_found_error(&error) {

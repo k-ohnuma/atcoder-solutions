@@ -3,13 +3,14 @@ pub mod id;
 pub mod tags;
 
 use crate::model::problem::id::ProblemId;
+use crate::model::user::id::UserId;
 use content::{SolutionBody, SolutionTitle, SubmitUrl};
 use id::SolutionId;
 
 pub struct Solution {
     id: SolutionId,
     problem_id: ProblemId,
-    user_id: String,
+    user_id: UserId,
     title: SolutionTitle,
     body: SolutionBody,
     submit_url: SubmitUrl,
@@ -19,7 +20,7 @@ impl Solution {
     pub fn new(
         id: SolutionId,
         problem_id: ProblemId,
-        user_id: String,
+        user_id: UserId,
         title: SolutionTitle,
         body: SolutionBody,
         submit_url: SubmitUrl,
@@ -42,7 +43,7 @@ impl Solution {
         &self.problem_id
     }
 
-    pub fn user_id(&self) -> &str {
+    pub fn user_id(&self) -> &UserId {
         &self.user_id
     }
 

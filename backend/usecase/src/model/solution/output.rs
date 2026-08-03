@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
     solution::id::SolutionId,
+    user::id::UserId,
 };
 use domain::read_model::solution::{
     SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
@@ -12,7 +13,7 @@ pub struct SolutionListItemOutput {
     pub id: SolutionId,
     pub title: String,
     pub problem_id: ProblemId,
-    pub user_id: String,
+    pub user_id: UserId,
     pub user_name: String,
     pub votes_count: i64,
     pub created_at: DateTime<Utc>,
@@ -25,7 +26,7 @@ pub struct SolutionOutput {
     pub problem_id: ProblemId,
     pub contest_code: ContestCode,
     pub problem_title: ProblemTitle,
-    pub user_id: String,
+    pub user_id: UserId,
     pub user_name: String,
     pub tags: Vec<String>,
     pub body_md: String,
@@ -39,7 +40,7 @@ pub struct UserSolutionListItemOutput {
     pub title: String,
     pub problem_id: ProblemId,
     pub problem_title: ProblemTitle,
-    pub user_id: String,
+    pub user_id: UserId,
     pub user_name: String,
     pub votes_count: i64,
     pub created_at: DateTime<Utc>,
@@ -48,7 +49,7 @@ pub struct UserSolutionListItemOutput {
 
 pub struct CommentOutput {
     pub id: Uuid,
-    pub user_id: String,
+    pub user_id: UserId,
     pub user_name: String,
     pub solution_id: SolutionId,
     pub body_md: String,

@@ -1,14 +1,15 @@
 use async_trait::async_trait;
 
 use crate::error::repository::RepositoryError;
-use crate::model::user::User;
+use crate::model::user::{User, id::UserId};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync {
     async fn create_user(&self, user: User) -> Result<(), RepositoryError>;
-    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError>;
+    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError>;
     async fn user_name_exists(&self, user_name: &str) -> Result<bool, RepositoryError>;
-    async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError>;
-    async fn revoke_tokens_by_uid(&self, uid: &str) -> Result<(), RepositoryError>;
-    async fn is_token_revoked(&self, uid: &str, issued_at: i64) -> Result<bool, RepositoryError>;
+    async fn delete_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError>;
+    async fn revoke_tokens_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError>;
+    async fn is_token_revoked(&self, uid: &UserId, issued_at: i64)
+    -> Result<bool, RepositoryError>;
 }

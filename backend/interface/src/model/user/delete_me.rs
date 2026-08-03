@@ -9,6 +9,8 @@ pub struct DeleteMeResponse {
 
 impl From<DeleteMeOutput> for DeleteMeResponse {
     fn from(value: DeleteMeOutput) -> Self {
-        Self { id: value.id }
+        Self {
+            id: value.id.into_string(),
+        }
     }
 }

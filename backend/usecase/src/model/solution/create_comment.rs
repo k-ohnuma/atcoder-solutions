@@ -1,10 +1,9 @@
-use domain::model::solution::id::SolutionId;
+use domain::model::{solution::id::SolutionId, user::id::UserId};
 use validator::{Validate, ValidationError};
 
 #[derive(Validate)]
 pub struct CreateCommentInput {
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
-    pub user_id: String,
+    pub user_id: UserId,
     pub solution_id: SolutionId,
     #[validate(length(min = 1, max = 2000), custom(function = "validate_not_blank"))]
     pub body_md: String,

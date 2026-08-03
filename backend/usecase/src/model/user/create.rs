@@ -1,5 +1,5 @@
 use derive_new::new;
-use domain::model::user::{Role, User};
+use domain::model::user::{Role, User, id::UserId};
 use validator::{Validate, ValidationError};
 
 #[derive(Validate)]
@@ -49,7 +49,7 @@ fn validate_password_format(value: &str) -> Result<(), ValidationError> {
 }
 
 impl CreateUserInput {
-    pub fn into_user(self, uid: String) -> User {
+    pub fn into_user(self, uid: UserId) -> User {
         User {
             id: uid,
             role: Role::default(),

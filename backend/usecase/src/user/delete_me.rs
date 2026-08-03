@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::user::id::UserId;
 use domain::ports::{external::auth::IdentityProviderPort, repository::user::UserRepository};
 use tracing::error;
 
@@ -17,7 +18,7 @@ pub struct DeleteMeUsecase {
 impl DeleteMeUsecase {
     pub async fn run(
         &self,
-        uid: String,
+        uid: UserId,
         auth_time: i64,
         now_epoch_seconds: i64,
     ) -> Result<DeleteMeOutput, UserError> {
@@ -34,7 +35,7 @@ impl DeleteMeUsecase {
 
         if let Err(repository_error) = self.user_repository.delete_by_uid(&uid).await {
             error!(
-                uid = %uid,
+                uid = uid.as_str(),
                 repository_error = ?repository_error,
                 "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
             );

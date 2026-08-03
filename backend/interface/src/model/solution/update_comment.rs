@@ -1,3 +1,4 @@
+use domain::model::user::id::UserId;
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::{output::CommentOutput, update_comment::UpdateCommentInput};
 use uuid::Uuid;
@@ -9,7 +10,7 @@ pub struct UpdateCommentRequest {
 }
 
 pub fn from_req_for_input(
-    user_id: String,
+    user_id: UserId,
     comment_id: Uuid,
     req: UpdateCommentRequest,
 ) -> UpdateCommentInput {
@@ -36,7 +37,7 @@ impl From<CommentOutput> for UpdateCommentResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
             id: value.id,
-            user_id: value.user_id,
+            user_id: value.user_id.into_string(),
             user_name: value.user_name,
             solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,
@@ -49,6 +50,7 @@ impl From<CommentOutput> for UpdateCommentResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use usecase::model::solution::output::CommentOutput;
     use uuid::Uuid;
@@ -62,8 +64,12 @@ mod tests {
             "bodyMd": "updated"
         });
         let req: UpdateCommentRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), comment_id, req);
-        assert_eq!(input.user_id, "uid");
+        let input = from_req_for_input(
+            UserId::try_new("uid".to_string()).expect("valid user ID"),
+            comment_id,
+            req,
+        );
+        assert_eq!(input.user_id.as_str(), "uid");
         assert_eq!(input.comment_id, comment_id);
         assert_eq!(input.body_md, "updated");
     }
@@ -82,7 +88,7 @@ mod tests {
         let now = Utc::now();
         let dto = CommentOutput {
             id: Uuid::now_v7(),
-            user_id: "uid".to_string(),
+            user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: "alice".to_string(),
             solution_id: Uuid::now_v7().into(),
             body_md: "body".to_string(),

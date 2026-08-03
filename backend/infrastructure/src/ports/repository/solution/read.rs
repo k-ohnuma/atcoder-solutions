@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::{problem::id::ProblemId, solution::id::SolutionId},
+    model::{problem::id::ProblemId, solution::id::SolutionId, user::id::UserId},
     ports::repository::solution::SolutionRepository,
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
@@ -44,7 +44,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn vote_solution(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         let solution_id = solution_id.into_uuid();
@@ -54,7 +54,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
             VALUES ($1, $2)
             ON CONFLICT (user_id, solution_id) DO NOTHING
             "#,
-            user_id,
+            user_id.as_str(),
             solution_id
         )
         .execute(self.db.inner_ref())
@@ -66,7 +66,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn unvote_solution(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         let solution_id = solution_id.into_uuid();
@@ -75,7 +75,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
             DELETE FROM solution_votes
             WHERE user_id = $1 AND solution_id = $2
             "#,
-            user_id,
+            user_id.as_str(),
             solution_id
         )
         .execute(self.db.inner_ref())
@@ -87,7 +87,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn create_comment(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
@@ -106,7 +106,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
                 created_at,
                 updated_at
             "#,
-            user_id,
+            user_id.as_str(),
             solution_id,
             body_md
         )
@@ -114,7 +114,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(comment.into())
+        comment.try_into()
     }
 
     async fn update_comment(
@@ -146,7 +146,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(comment.into())
+        comment.try_into()
     }
 
     async fn delete_comment(&self, comment_id: Uuid) -> Result<(), RepositoryError> {
@@ -187,13 +187,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        solutions
-            .into_iter()
-            .map(|solution| {
-                SolutionListItem::try_from(solution)
-                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
-            })
-            .collect()
+        solutions.into_iter().map(TryInto::try_into).collect()
     }
 
     async fn get_solutions_by_problem_id(
@@ -250,13 +244,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
             }
         };
 
-        solutions
-            .into_iter()
-            .map(|solution| {
-                SolutionListItem::try_from(solution)
-                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
-            })
-            .collect()
+        solutions.into_iter().map(TryInto::try_into).collect()
     }
     async fn get_solution_by_solution_id(
         &self,
@@ -307,8 +295,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        SolutionDetails::try_from(solution)
-            .map_err(|error| RepositoryError::Unexpected(error.to_string()))
+        solution.try_into()
     }
 
     async fn get_solutions_by_user_name(
@@ -362,12 +349,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
             }
         };
 
-        rows.into_iter()
-            .map(|solution| {
-                UserSolutionListItem::try_from(solution)
-                    .map_err(|error| RepositoryError::Unexpected(error.to_string()))
-            })
-            .collect()
+        rows.into_iter().map(TryInto::try_into).collect()
     }
 
     async fn get_solution_votes_count(
@@ -391,7 +373,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn has_user_voted_solution(
         &self,
-        user_id: String,
+        user_id: &UserId,
         solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         let solution_id = solution_id.into_uuid();
@@ -403,7 +385,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
                     WHERE user_id = $1 AND solution_id = $2
                 ) AS "exists!"
             "#,
-            user_id,
+            user_id.as_str(),
             solution_id
         )
         .fetch_one(self.db.inner_ref())
@@ -452,13 +434,13 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(comments.into_iter().map(SolutionComment::from).collect())
+        comments.into_iter().map(TryInto::try_into).collect()
     }
 
     async fn get_solution_user_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<String, RepositoryError> {
+    ) -> Result<UserId, RepositoryError> {
         let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
@@ -472,7 +454,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(rec.user_id)
+        UserId::try_new(rec.user_id).map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
     async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError> {
@@ -493,7 +475,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(rec.exists)
     }
 
-    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<String, RepositoryError> {
+    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<UserId, RepositoryError> {
         let rec = sqlx::query!(
             r#"
                 SELECT user_id
@@ -506,6 +488,6 @@ impl SolutionRepository for SolutionRepositoryImpl {
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(rec.user_id)
+        UserId::try_new(rec.user_id).map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 }

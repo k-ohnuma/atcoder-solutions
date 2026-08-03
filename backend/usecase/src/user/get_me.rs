@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::user::id::UserId;
 use domain::ports::repository::user::UserRepository;
 
 use crate::{error::UserError, model::user::get_me::GetMeOutput};
@@ -11,7 +12,7 @@ pub struct GetMeUsecase {
 }
 
 impl GetMeUsecase {
-    pub async fn run(&self, uid: String) -> Result<GetMeOutput, UserError> {
+    pub async fn run(&self, uid: UserId) -> Result<GetMeOutput, UserError> {
         let user = self
             .user_repository
             .find_by_uid(&uid)

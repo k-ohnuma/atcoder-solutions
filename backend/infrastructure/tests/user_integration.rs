@@ -1,9 +1,13 @@
 use anyhow::Result;
 use domain::{
     error::repository::RepositoryError,
-    model::user::{Role, User},
+    model::user::{Role, User, id::UserId},
     ports::repository::user::UserRepository,
 };
+
+fn user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
+}
 use infrastructure::{database::ConnectionPool, ports::repository::user::UserRepositoryImpl};
 use sqlx::PgPool;
 
@@ -24,7 +28,7 @@ pub async fn seed_roles(pool: &PgPool) -> Result<()> {
 
 fn make_user(id: &str, name: &str) -> User {
     User {
-        id: id.into(),
+        id: user_id(id),
         user_name: name.into(),
         role: Role::default(),
     }
@@ -133,10 +137,10 @@ async fn find_by_uid(pool: PgPool) -> Result<()> {
         repo.create_user(user).await?;
     }
 
-    let user = repo.find_by_uid("id1").await?;
+    let user = repo.find_by_uid(&user_id("id1")).await?;
     assert_eq!(user.user_name, "bob1");
 
-    let user = repo.find_by_uid("id3").await?;
+    let user = repo.find_by_uid(&user_id("id3")).await?;
     assert_eq!(user.user_name, "bob3");
 
     Ok(())
@@ -156,7 +160,10 @@ async fn find_by_uid_no_record(pool: PgPool) -> Result<()> {
         repo.create_user(user).await?;
     }
 
-    let err = repo.find_by_uid("id999").await.expect_err("should error");
+    let err = repo
+        .find_by_uid(&user_id("id999"))
+        .await
+        .expect_err("should error");
     let mat = matches!(err, RepositoryError::NotFound(_));
     assert!(mat, "should be not found error");
 
@@ -170,13 +177,13 @@ async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let uid = "revoke-target";
-    repo.create_user(make_user(uid, "revoker")).await?;
+    let uid = user_id("revoke-target");
+    repo.create_user(make_user(uid.as_str(), "revoker")).await?;
 
-    let before_revoke = repo.is_token_revoked(uid, 0).await?;
+    let before_revoke = repo.is_token_revoked(&uid, 0).await?;
     assert!(!before_revoke);
 
-    repo.revoke_tokens_by_uid(uid).await?;
+    repo.revoke_tokens_by_uid(&uid).await?;
 
     let revoked_epoch = sqlx::query_scalar!(
         r#"
@@ -184,20 +191,20 @@ async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
         FROM users
         WHERE id = $1
         "#,
-        uid
+        uid.as_str()
     )
     .fetch_one(&pool)
     .await?
     .unwrap_or(0);
     assert!(revoked_epoch > 0);
 
-    let should_be_revoked = repo.is_token_revoked(uid, revoked_epoch - 1).await?;
+    let should_be_revoked = repo.is_token_revoked(&uid, revoked_epoch - 1).await?;
     assert!(should_be_revoked);
 
-    let should_not_be_revoked_same_second = repo.is_token_revoked(uid, revoked_epoch).await?;
+    let should_not_be_revoked_same_second = repo.is_token_revoked(&uid, revoked_epoch).await?;
     assert!(!should_not_be_revoked_same_second);
 
-    let should_not_be_revoked = repo.is_token_revoked(uid, revoked_epoch + 1).await?;
+    let should_not_be_revoked = repo.is_token_revoked(&uid, revoked_epoch + 1).await?;
     assert!(!should_not_be_revoked);
 
     Ok(())
@@ -210,7 +217,7 @@ async fn missing_user_is_treated_as_revoked(pool: PgPool) -> Result<()> {
     let conn = ConnectionPool::new(pool.clone());
     let repo = UserRepositoryImpl::new(conn);
 
-    let revoked = repo.is_token_revoked("missing-user", 0).await?;
+    let revoked = repo.is_token_revoked(&user_id("missing-user"), 0).await?;
     assert!(revoked);
 
     Ok(())

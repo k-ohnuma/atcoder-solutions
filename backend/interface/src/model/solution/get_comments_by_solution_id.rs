@@ -19,7 +19,7 @@ impl From<CommentOutput> for GetCommentsBySolutionIdResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
             id: value.id,
-            user_id: value.user_id,
+            user_id: value.user_id.into_string(),
             user_name: value.user_name,
             solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,

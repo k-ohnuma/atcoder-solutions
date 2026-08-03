@@ -1,4 +1,5 @@
 use domain::model::solution::id::SolutionId;
+use domain::model::user::id::UserId;
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::update::UpdateSolutionInput;
 use uuid::Uuid;
@@ -13,7 +14,7 @@ pub struct UpdateSolutionRequest {
 }
 
 pub fn from_req_for_input(
-    user_id: String,
+    user_id: UserId,
     solution_id: SolutionId,
     req: UpdateSolutionRequest,
 ) -> UpdateSolutionInput {
@@ -43,6 +44,7 @@ impl From<SolutionId> for UpdateSolutionResponse {
 
 #[cfg(test)]
 mod tests {
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use uuid::Uuid;
 
@@ -58,8 +60,12 @@ mod tests {
             "tags": ["dp"]
         });
         let req: UpdateSolutionRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), solution_id.into(), req);
-        assert_eq!(input.user_id, "uid");
+        let input = from_req_for_input(
+            UserId::try_new("uid".to_string()).expect("valid user ID"),
+            solution_id.into(),
+            req,
+        );
+        assert_eq!(input.user_id.as_str(), "uid");
         assert_eq!(input.solution_id, solution_id.into());
         assert_eq!(input.title, "new title");
     }

@@ -11,7 +11,7 @@ pub struct GetMeResponse {
 impl From<GetMeOutput> for GetMeResponse {
     fn from(value: GetMeOutput) -> Self {
         Self {
-            id: value.id,
+            id: value.id.into_string(),
             user_name: value.user_name,
         }
     }

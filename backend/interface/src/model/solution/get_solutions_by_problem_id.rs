@@ -40,7 +40,7 @@ impl From<SolutionListItemOutput> for GetSolutionsByProblemIdResponse {
             id: id.into_uuid(),
             title,
             problem_id: problem_id.into_string(),
-            user_id,
+            user_id: user_id.into_string(),
             user_name,
             votes_count,
             created_at,
@@ -52,6 +52,7 @@ impl From<SolutionListItemOutput> for GetSolutionsByProblemIdResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use usecase::model::solution::output::SolutionListItemOutput;
     use uuid::Uuid;
@@ -78,7 +79,7 @@ mod tests {
             title: "title".to_string(),
             problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
                 .expect("valid problem ID"),
-            user_id: "uid".to_string(),
+            user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: "name".to_string(),
             votes_count: 42,
             created_at: now,

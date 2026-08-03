@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::user::id::UserId;
 use domain::ports::repository::user::UserRepository;
 
 use crate::{error::UserError, model::user::revoke_tokens::RevokeTokensOutput};
@@ -11,7 +12,7 @@ pub struct RevokeTokensUsecase {
 }
 
 impl RevokeTokensUsecase {
-    pub async fn run(&self, uid: String) -> Result<RevokeTokensOutput, UserError> {
+    pub async fn run(&self, uid: UserId) -> Result<RevokeTokensOutput, UserError> {
         self.user_repository
             .revoke_tokens_by_uid(&uid)
             .await

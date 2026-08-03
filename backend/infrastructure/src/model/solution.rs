@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
 use domain::{
-    error::problem::ProblemValidationError,
+    error::repository::RepositoryError,
     model::{
         problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
         solution::id::SolutionId,
+        user::id::UserId,
     },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
@@ -23,7 +24,7 @@ pub struct SolutionListItemViewRaw {
 }
 
 impl TryFrom<SolutionListItemViewRaw> for SolutionListItem {
-    type Error = ProblemValidationError;
+    type Error = RepositoryError;
 
     fn try_from(value: SolutionListItemViewRaw) -> Result<Self, Self::Error> {
         let SolutionListItemViewRaw {
@@ -40,8 +41,10 @@ impl TryFrom<SolutionListItemViewRaw> for SolutionListItem {
         Ok(Self {
             id: SolutionId::new(id),
             title,
-            problem_id: ProblemId::try_new(problem_id)?,
-            user_id,
+            problem_id: ProblemId::try_new(problem_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            user_id: UserId::try_new(user_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name,
             votes_count,
             created_at,
@@ -63,7 +66,7 @@ pub struct UserSolutionListItemViewRaw {
 }
 
 impl TryFrom<UserSolutionListItemViewRaw> for UserSolutionListItem {
-    type Error = ProblemValidationError;
+    type Error = RepositoryError;
 
     fn try_from(value: UserSolutionListItemViewRaw) -> Result<Self, Self::Error> {
         let UserSolutionListItemViewRaw {
@@ -81,9 +84,12 @@ impl TryFrom<UserSolutionListItemViewRaw> for UserSolutionListItem {
         Ok(Self {
             id: SolutionId::new(id),
             title,
-            problem_id: ProblemId::try_new(problem_id)?,
-            problem_title: ProblemTitle::try_new(problem_title)?,
-            user_id,
+            problem_id: ProblemId::try_new(problem_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            problem_title: ProblemTitle::try_new(problem_title)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            user_id: UserId::try_new(user_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name,
             votes_count,
             created_at,
@@ -102,8 +108,10 @@ pub struct SolutionCommentViewRaw {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionCommentViewRaw> for SolutionComment {
-    fn from(value: SolutionCommentViewRaw) -> Self {
+impl TryFrom<SolutionCommentViewRaw> for SolutionComment {
+    type Error = RepositoryError;
+
+    fn try_from(value: SolutionCommentViewRaw) -> Result<Self, Self::Error> {
         let SolutionCommentViewRaw {
             id,
             user_id,
@@ -114,15 +122,16 @@ impl From<SolutionCommentViewRaw> for SolutionComment {
             updated_at,
         } = value;
 
-        Self {
+        Ok(Self {
             id,
-            user_id,
+            user_id: UserId::try_new(user_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name,
             solution_id: SolutionId::new(solution_id),
             body_md,
             created_at,
             updated_at,
-        }
+        })
     }
 }
 
@@ -142,16 +151,20 @@ pub struct SolutionDetailsViewRaw {
 }
 
 impl TryFrom<SolutionDetailsViewRaw> for SolutionDetails {
-    type Error = ProblemValidationError;
+    type Error = RepositoryError;
 
     fn try_from(value: SolutionDetailsViewRaw) -> Result<Self, Self::Error> {
         Ok(Self {
             id: SolutionId::new(value.id),
             title: value.title,
-            problem_id: ProblemId::try_new(value.problem_id)?,
-            contest_code: ContestCode::try_new(value.contest_code)?,
-            problem_title: ProblemTitle::try_new(value.problem_title)?,
-            user_id: value.user_id,
+            problem_id: ProblemId::try_new(value.problem_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            contest_code: ContestCode::try_new(value.contest_code)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            problem_title: ProblemTitle::try_new(value.problem_title)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            user_id: UserId::try_new(value.user_id)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name: value.user_name,
             tags: value.tags,
             body_md: value.body_md,

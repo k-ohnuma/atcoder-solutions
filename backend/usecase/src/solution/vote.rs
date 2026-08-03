@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
+use domain::{
+    model::{solution::id::SolutionId, user::id::UserId},
+    ports::repository::solution::SolutionRepository,
+};
 
 use crate::error::SolutionError;
 
@@ -11,7 +14,7 @@ pub struct VoteSolutionUsecase {
 }
 
 impl VoteSolutionUsecase {
-    pub async fn run(&self, user_id: String, solution_id: SolutionId) -> Result<(), SolutionError> {
+    pub async fn run(&self, user_id: UserId, solution_id: SolutionId) -> Result<(), SolutionError> {
         let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));

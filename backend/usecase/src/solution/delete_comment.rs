@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::user::id::UserId;
 use domain::ports::repository::solution::SolutionRepository;
 use uuid::Uuid;
 
@@ -12,7 +13,7 @@ pub struct DeleteCommentUsecase {
 }
 
 impl DeleteCommentUsecase {
-    pub async fn run(&self, user_id: String, comment_id: Uuid) -> Result<Uuid, SolutionError> {
+    pub async fn run(&self, user_id: UserId, comment_id: Uuid) -> Result<Uuid, SolutionError> {
         ensure_comment_owner(
             self.repository.as_ref(),
             comment_id,

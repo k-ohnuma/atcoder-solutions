@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
+use domain::{
+    model::{solution::id::SolutionId, user::id::UserId},
+    ports::repository::solution::SolutionRepository,
+};
 
 use crate::error::SolutionError;
 
@@ -13,7 +16,7 @@ pub struct GetMyVoteStatusUsecase {
 impl GetMyVoteStatusUsecase {
     pub async fn run(
         &self,
-        user_id: String,
+        user_id: UserId,
         solution_id: SolutionId,
     ) -> Result<bool, SolutionError> {
         let exists = self.repository.solution_exists(solution_id).await?;
@@ -23,7 +26,7 @@ impl GetMyVoteStatusUsecase {
 
         let voted = self
             .repository
-            .has_user_voted_solution(user_id, solution_id)
+            .has_user_voted_solution(&user_id, solution_id)
             .await?;
         Ok(voted)
     }

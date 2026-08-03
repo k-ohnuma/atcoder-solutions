@@ -31,7 +31,7 @@ impl CreateUserUsecase {
         if let Err(repository_error) = self.user_repository.create_user(user.to_owned()).await {
             if let Err(rollback_error) = self.identity_provider.delete_user(&identity.uid).await {
                 error!(
-                    uid = %identity.uid,
+                    uid = identity.uid.as_str(),
                     email = %email,
                     repository_error = ?repository_error,
                     rollback_error = ?rollback_error,

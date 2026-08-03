@@ -9,6 +9,7 @@ use domain::{
         id::SolutionId,
         tags::Tags,
     },
+    model::user::id::UserId,
     ports::repository::solution::{
         SolutionRepository,
         tx::{SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx},
@@ -31,6 +32,10 @@ use usecase::{
     },
 };
 use uuid::Uuid;
+
+fn user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
+}
 
 struct NeverCalledTxManager;
 
@@ -59,7 +64,7 @@ impl SolutionRepository for GateRepository {
 
     async fn vote_solution(
         &self,
-        _user_id: &str,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
@@ -67,7 +72,7 @@ impl SolutionRepository for GateRepository {
 
     async fn unvote_solution(
         &self,
-        _user_id: &str,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<(), RepositoryError> {
         Ok(())
@@ -79,13 +84,13 @@ impl SolutionRepository for GateRepository {
 
     async fn create_comment(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         solution_id: SolutionId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
-            user_id: user_id.to_string(),
+            user_id: user_id.clone(),
             user_name: "name".to_string(),
             solution_id,
             body_md: body_md.to_string(),
@@ -101,7 +106,7 @@ impl SolutionRepository for GateRepository {
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
-            user_id: self.comment_owner.clone(),
+            user_id: user_id(&self.comment_owner),
             user_name: "name".to_string(),
             solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
@@ -150,7 +155,7 @@ impl SolutionRepository for GateRepository {
 
     async fn has_user_voted_solution(
         &self,
-        _user_id: String,
+        _user_id: &UserId,
         _solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         Ok(false)
@@ -170,16 +175,16 @@ impl SolutionRepository for GateRepository {
     async fn get_solution_user_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<String, RepositoryError> {
-        Ok(self.solution_owner.clone())
+    ) -> Result<UserId, RepositoryError> {
+        Ok(user_id(&self.solution_owner))
     }
 
     async fn comment_exists(&self, _comment_id: Uuid) -> Result<bool, RepositoryError> {
         Ok(self.comment_exists)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<String, RepositoryError> {
-        Ok(self.comment_owner.clone())
+    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<UserId, RepositoryError> {
+        Ok(user_id(&self.comment_owner))
     }
 }
 
@@ -194,7 +199,7 @@ async fn update_solution_forbidden_for_non_owner() -> Result<()> {
     });
     let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
-        user_id: "attacker".to_string(),
+        user_id: user_id("attacker"),
         solution_id: Uuid::now_v7().into(),
         title: "title".to_string(),
         body_md: "body".to_string(),
@@ -218,7 +223,7 @@ async fn delete_solution_forbidden_for_non_owner() -> Result<()> {
     let uc = DeleteSolutionUsecase::new(repository);
 
     let err = uc
-        .run("attacker".to_string(), Uuid::now_v7().into())
+        .run(user_id("attacker"), Uuid::now_v7().into())
         .await
         .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
@@ -235,7 +240,7 @@ async fn update_comment_forbidden_for_non_owner() -> Result<()> {
     });
     let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
-        user_id: "attacker".to_string(),
+        user_id: user_id("attacker"),
         comment_id: Uuid::now_v7(),
         body_md: "body".to_string(),
     };
@@ -256,7 +261,7 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
     let uc = DeleteCommentUsecase::new(repository);
 
     let err = uc
-        .run("attacker".to_string(), Uuid::now_v7())
+        .run(user_id("attacker"), Uuid::now_v7())
         .await
         .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
@@ -273,7 +278,7 @@ async fn vote_returns_not_found_when_solution_not_found() -> Result<()> {
     });
     let uc = VoteSolutionUsecase::new(repository);
     let err = uc
-        .run("uid".to_string(), Uuid::now_v7().into())
+        .run(user_id("uid"), Uuid::now_v7().into())
         .await
         .expect_err("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
@@ -290,7 +295,7 @@ async fn unvote_returns_not_found_when_solution_not_found() -> Result<()> {
     });
     let uc = UnvoteSolutionUsecase::new(repository);
     let err = uc
-        .run("uid".to_string(), Uuid::now_v7().into())
+        .run(user_id("uid"), Uuid::now_v7().into())
         .await
         .expect_err("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
@@ -307,7 +312,7 @@ async fn create_comment_returns_not_found_when_solution_not_found() -> Result<()
     });
     let uc = CreateCommentUsecase::new(repository);
     let input = CreateCommentInput {
-        user_id: "uid".to_string(),
+        user_id: user_id("uid"),
         solution_id: Uuid::now_v7().into(),
         body_md: "body".to_string(),
     };
@@ -328,7 +333,7 @@ async fn update_solution_not_found_is_returned_before_owner_check() -> Result<()
     });
     let uc = UpdateSolutionUsecase::new(txm, repository);
     let input = UpdateSolutionInput {
-        user_id: "owner".to_string(),
+        user_id: user_id("owner"),
         solution_id: Uuid::now_v7().into(),
         title: "title".to_string(),
         body_md: "body".to_string(),
@@ -351,7 +356,7 @@ async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()>
     });
     let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
-        user_id: "owner".to_string(),
+        user_id: user_id("owner"),
         comment_id: Uuid::now_v7(),
         body_md: "body".to_string(),
     };

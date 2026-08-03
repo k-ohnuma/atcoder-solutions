@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
+use domain::{
+    model::{solution::id::SolutionId, user::id::UserId},
+    ports::repository::solution::SolutionRepository,
+};
 
 use crate::{error::SolutionError, solution::authorization::ensure_solution_owner};
 
@@ -13,7 +16,7 @@ pub struct DeleteSolutionUsecase {
 impl DeleteSolutionUsecase {
     pub async fn run(
         &self,
-        user_id: String,
+        user_id: UserId,
         solution_id: SolutionId,
     ) -> Result<SolutionId, SolutionError> {
         ensure_solution_owner(

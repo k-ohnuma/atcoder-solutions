@@ -65,7 +65,7 @@ impl SolutionRepositoryTx for SolutionUnitOfWorkImpl {
                VALUES ($1,$2,$3,$4,$5,$6)"#,
             solution_id,
             solution.problem_id().as_str(),
-            solution.user_id(),
+            solution.user_id().as_str(),
             solution.body().as_str(),
             solution.submit_url().as_str(),
             solution.title().as_str()

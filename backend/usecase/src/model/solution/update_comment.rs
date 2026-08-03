@@ -1,10 +1,11 @@
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
 
+use domain::model::user::id::UserId;
+
 #[derive(Validate)]
 pub struct UpdateCommentInput {
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
-    pub user_id: String,
+    pub user_id: UserId,
     pub comment_id: Uuid,
     #[validate(length(min = 1, max = 2000), custom(function = "validate_not_blank"))]
     pub body_md: String,

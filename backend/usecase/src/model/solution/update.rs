@@ -1,20 +1,12 @@
-use domain::model::solution::id::SolutionId;
-use validator::{Validate, ValidationError};
+use domain::model::{solution::id::SolutionId, user::id::UserId};
+use validator::Validate;
 
 #[derive(Validate)]
 pub struct UpdateSolutionInput {
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
-    pub user_id: String,
+    pub user_id: UserId,
     pub solution_id: SolutionId,
     pub title: String,
     pub body_md: String,
     pub submit_url: String,
     pub tags: Vec<String>,
-}
-
-fn validate_not_blank(value: &str) -> Result<(), ValidationError> {
-    if value.trim().is_empty() {
-        return Err(ValidationError::new("blank"));
-    }
-    Ok(())
 }

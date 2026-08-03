@@ -9,6 +9,8 @@ pub struct RevokeTokensResponse {
 
 impl From<RevokeTokensOutput> for RevokeTokensResponse {
     fn from(value: RevokeTokensOutput) -> Self {
-        Self { id: value.id }
+        Self {
+            id: value.id.into_string(),
+        }
     }
 }

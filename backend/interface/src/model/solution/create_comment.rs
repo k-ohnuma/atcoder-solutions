@@ -25,7 +25,7 @@ impl From<CommentOutput> for CreateCommentResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
             id: value.id,
-            user_id: value.user_id,
+            user_id: value.user_id.into_string(),
             user_name: value.user_name,
             solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,
@@ -38,6 +38,7 @@ impl From<CommentOutput> for CreateCommentResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use uuid::Uuid;
 
@@ -68,7 +69,7 @@ mod tests {
         let now = Utc::now();
         let dto = CommentOutput {
             id: Uuid::now_v7(),
-            user_id: "uid".to_string(),
+            user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: "alice".to_string(),
             solution_id: Uuid::now_v7().into(),
             body_md: "body".to_string(),

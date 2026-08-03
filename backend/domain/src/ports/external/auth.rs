@@ -1,15 +1,17 @@
 use async_trait::async_trait;
 use thiserror::Error;
 
+use crate::model::user::id::UserId;
+
 pub struct Principal {
-    pub uid: String,
+    pub uid: UserId,
     pub email: String,
     pub issued_at: i64,
     pub auth_time: i64,
 }
 
 pub struct CreatedIdentity {
-    pub uid: String,
+    pub uid: UserId,
 }
 
 #[derive(Error, Debug)]
@@ -34,5 +36,5 @@ pub trait AuthenticatorPort: Send + Sync {
 #[async_trait]
 pub trait IdentityProviderPort: Send + Sync {
     async fn create_user(&self, email: &str, password: &str) -> Result<CreatedIdentity, AuthError>;
-    async fn delete_user(&self, uid: &str) -> Result<(), AuthError>;
+    async fn delete_user(&self, uid: &UserId) -> Result<(), AuthError>;
 }
