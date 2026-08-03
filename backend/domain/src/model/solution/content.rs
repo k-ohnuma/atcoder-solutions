@@ -58,7 +58,7 @@ impl SubmitUrl {
                 max: MAX_SUBMIT_URL_LENGTH,
             });
         }
-        if !url.is_empty() && !(url.starts_with("https://") || url.starts_with("http://")) {
+        if !(url.is_empty() || url.starts_with("https://") || url.starts_with("http://")) {
             return Err(SolutionValidationError::InvalidSubmitUrl);
         }
         Ok(Self(url.to_string()))
