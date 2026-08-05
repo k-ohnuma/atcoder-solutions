@@ -4,7 +4,7 @@ use domain::{
     model::{
         problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
         solution::id::SolutionId,
-        user::id::UserId,
+        user::{id::UserId, name::UserName},
     },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
@@ -45,7 +45,8 @@ impl TryFrom<SolutionListItemViewRaw> for SolutionListItem {
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_id: UserId::try_new(user_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
-            user_name,
+            user_name: UserName::try_new(user_name)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             votes_count,
             created_at,
             updated_at,
@@ -90,7 +91,8 @@ impl TryFrom<UserSolutionListItemViewRaw> for UserSolutionListItem {
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_id: UserId::try_new(user_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
-            user_name,
+            user_name: UserName::try_new(user_name)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             votes_count,
             created_at,
             updated_at,
@@ -126,7 +128,8 @@ impl TryFrom<SolutionCommentViewRaw> for SolutionComment {
             id,
             user_id: UserId::try_new(user_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
-            user_name,
+            user_name: UserName::try_new(user_name)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             solution_id: SolutionId::new(solution_id),
             body_md,
             created_at,
@@ -165,7 +168,8 @@ impl TryFrom<SolutionDetailsViewRaw> for SolutionDetails {
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_id: UserId::try_new(value.user_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
-            user_name: value.user_name,
+            user_name: UserName::try_new(value.user_name)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             tags: value.tags,
             body_md: value.body_md,
             submit_url: value.submit_url,

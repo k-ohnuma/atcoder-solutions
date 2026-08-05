@@ -17,14 +17,6 @@ fn validate_limit(limit: Option<i32>) -> Result<Option<i32>, SolutionError> {
     }
 }
 
-fn normalize_required_string(value: String, error_message: &str) -> Result<String, SolutionError> {
-    let normalized = value.trim();
-    if normalized.is_empty() {
-        return Err(SolutionError::BadRequest(error_message.to_string()));
-    }
-    Ok(normalized.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use domain::read_model::solution::SolutionListSort;
@@ -108,12 +100,12 @@ mod tests {
     }
 
     #[test]
-    fn user_name_input_normalizes_values() {
+    fn user_name_input_accepts_valid_values() {
         let input =
-            GetSolutionsByUserNameInput::try_new(" alice ".to_string(), Some("votes".to_string()))
+            GetSolutionsByUserNameInput::try_new("alice".to_string(), Some("votes".to_string()))
                 .expect("valid");
 
-        assert_eq!(input.user_name, "alice");
+        assert_eq!(input.user_name.as_str(), "alice");
         assert!(matches!(input.sort, SolutionListSort::Votes));
     }
 }

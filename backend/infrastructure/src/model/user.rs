@@ -3,7 +3,7 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use domain::{
     error::repository::RepositoryError,
-    model::user::{Role, User, id::UserId},
+    model::user::{Role, User, id::UserId, name::UserName},
 };
 
 pub struct UserRow {
@@ -23,7 +23,8 @@ impl TryFrom<UserRow> for User {
             id: UserId::try_new(value.id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             role,
-            user_name: value.user_name,
+            user_name: UserName::try_new(value.user_name)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
         })
     }
 }

@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
     solution::id::SolutionId,
-    user::id::UserId,
+    user::{id::UserId, name::UserName},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,7 +19,7 @@ pub struct SolutionListItem {
     pub title: String,
     pub problem_id: ProblemId,
     pub user_id: UserId,
-    pub user_name: String,
+    pub user_name: UserName,
     pub votes_count: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -32,7 +32,7 @@ pub struct UserSolutionListItem {
     pub problem_id: ProblemId,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
-    pub user_name: String,
+    pub user_name: UserName,
     pub votes_count: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -46,7 +46,7 @@ pub struct SolutionDetails {
     pub contest_code: ContestCode,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
-    pub user_name: String,
+    pub user_name: UserName,
     pub tags: Vec<String>,
     pub body_md: String,
     pub submit_url: String,
@@ -58,7 +58,7 @@ pub struct SolutionDetails {
 pub struct SolutionComment {
     pub id: Uuid,
     pub user_id: UserId,
-    pub user_name: String,
+    pub user_name: UserName,
     pub solution_id: SolutionId,
     pub body_md: String,
     pub created_at: DateTime<Utc>,

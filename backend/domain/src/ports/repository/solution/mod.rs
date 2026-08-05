@@ -3,7 +3,11 @@ use uuid::Uuid;
 
 use crate::{
     error::repository::RepositoryError,
-    model::{problem::id::ProblemId, solution::id::SolutionId, user::id::UserId},
+    model::{
+        problem::id::ProblemId,
+        solution::id::SolutionId,
+        user::{id::UserId, name::UserName},
+    },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
@@ -52,7 +56,7 @@ pub trait SolutionRepository: Send + Sync {
     ) -> Result<SolutionDetails, RepositoryError>;
     async fn get_solutions_by_user_name(
         &self,
-        user_name: String,
+        user_name: UserName,
         sort: SolutionListSort,
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError>;
     async fn get_solution_votes_count(

@@ -44,7 +44,7 @@ impl From<SolutionOutput> for GetSolutionBySolutionIdResponse {
             contest_code: contest_code.into_string(),
             problem_title: problem_title.into_string(),
             user_id: user_id.into_string(),
-            user_name,
+            user_name: user_name.into_string(),
             tags,
             body_md,
             submit_url,

@@ -12,7 +12,7 @@ impl From<GetMeOutput> for GetMeResponse {
     fn from(value: GetMeOutput) -> Self {
         Self {
             id: value.id.into_string(),
-            user_name: value.user_name,
+            user_name: value.user_name.into_string(),
         }
     }
 }

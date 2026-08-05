@@ -38,7 +38,7 @@ impl From<CommentOutput> for UpdateCommentResponse {
         Self {
             id: value.id,
             user_id: value.user_id.into_string(),
-            user_name: value.user_name,
+            user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,
             created_at: value.created_at,
@@ -50,7 +50,7 @@ impl From<CommentOutput> for UpdateCommentResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use domain::model::user::id::UserId;
+    use domain::model::user::{id::UserId, name::UserName};
     use serde_json::json;
     use usecase::model::solution::output::CommentOutput;
     use uuid::Uuid;
@@ -89,7 +89,7 @@ mod tests {
         let dto = CommentOutput {
             id: Uuid::now_v7(),
             user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
-            user_name: "alice".to_string(),
+            user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             solution_id: Uuid::now_v7().into(),
             body_md: "body".to_string(),
             created_at: now,

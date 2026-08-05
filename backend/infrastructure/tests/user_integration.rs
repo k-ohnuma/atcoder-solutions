@@ -1,12 +1,16 @@
 use anyhow::Result;
 use domain::{
     error::repository::RepositoryError,
-    model::user::{Role, User, id::UserId},
+    model::user::{Role, User, id::UserId, name::UserName},
     ports::repository::user::UserRepository,
 };
 
 fn user_id(value: &str) -> UserId {
     UserId::try_new(value.to_string()).expect("valid user ID")
+}
+
+fn user_name(value: &str) -> UserName {
+    UserName::try_new(value.to_string()).expect("valid user name")
 }
 use infrastructure::{database::ConnectionPool, ports::repository::user::UserRepositoryImpl};
 use sqlx::PgPool;
@@ -29,7 +33,7 @@ pub async fn seed_roles(pool: &PgPool) -> Result<()> {
 fn make_user(id: &str, name: &str) -> User {
     User {
         id: user_id(id),
-        user_name: name.into(),
+        user_name: user_name(name),
         role: Role::default(),
     }
 }
@@ -138,10 +142,10 @@ async fn find_by_uid(pool: PgPool) -> Result<()> {
     }
 
     let user = repo.find_by_uid(&user_id("id1")).await?;
-    assert_eq!(user.user_name, "bob1");
+    assert_eq!(user.user_name.as_str(), "bob1");
 
     let user = repo.find_by_uid(&user_id("id3")).await?;
-    assert_eq!(user.user_name, "bob3");
+    assert_eq!(user.user_name.as_str(), "bob3");
 
     Ok(())
 }

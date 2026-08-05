@@ -2,7 +2,11 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::{problem::id::ProblemId, solution::id::SolutionId, user::id::UserId},
+    model::{
+        problem::id::ProblemId,
+        solution::id::SolutionId,
+        user::{id::UserId, name::UserName},
+    },
     ports::repository::solution::SolutionRepository,
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
@@ -300,7 +304,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn get_solutions_by_user_name(
         &self,
-        user_name: String,
+        user_name: UserName,
         sort: SolutionListSort,
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
         let user_name_ref = user_name.as_str();

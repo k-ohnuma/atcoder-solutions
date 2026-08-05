@@ -4,7 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
-    model::user::{Role, User, id::UserId},
+    model::user::{Role, User, id::UserId, name::UserName},
     ports::{
         external::auth::{AuthError, CreatedIdentity, IdentityProviderPort},
         repository::user::UserRepository,
@@ -13,6 +13,10 @@ use domain::{
 
 fn user_id(value: &str) -> UserId {
     UserId::try_new(value.to_string()).expect("valid user ID")
+}
+
+fn user_name(value: &str) -> UserName {
+    UserName::try_new(value.to_string()).expect("valid user name")
 }
 use usecase::{
     error::UserError,
@@ -76,13 +80,13 @@ impl UserRepository for DummyUserRepository {
             return Ok(User {
                 id: uid.clone(),
                 role: Role::default(),
-                user_name: "valid user".into(),
+                user_name: user_name("valid_user"),
             });
         }
         Err(RepositoryError::NotFound("Not found".into()))
     }
 
-    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
+    async fn user_name_exists(&self, _user_name: &UserName) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
@@ -116,16 +120,16 @@ async fn usecase_create_user_ok() -> Result<()> {
     let identity_provider = dummy_identity_provider();
     let uc = CreateUserUsecase::new(repo.to_owned(), identity_provider);
 
-    let input = CreateUserInput {
-        user_name: "user_name".into(),
-        email: "user@example.com".into(),
-        password: "Password1".into(),
-    };
+    let input = CreateUserInput::try_new(
+        "user_name".into(),
+        "user@example.com".into(),
+        "Password1".into(),
+    )?;
 
     let t = uc.run(input).await;
     assert!(t.is_ok());
     let output = t.unwrap();
-    assert_eq!(output.user_name, "user_name");
+    assert_eq!(output.user_name.as_str(), "user_name");
 
     let calls = repo.calls.lock().unwrap();
     assert!(calls.len() == 1);
@@ -134,7 +138,7 @@ async fn usecase_create_user_ok() -> Result<()> {
     let m = &user.role;
 
     assert!(matches!(m, Role::User));
-    assert_eq!(user.user_name, "user_name");
+    assert_eq!(user.user_name.as_str(), "user_name");
     assert_eq!(user.id.as_str(), "valid");
 
     Ok(())
@@ -149,11 +153,11 @@ async fn usecase_create_user_conflict() -> Result<()> {
     let identity_provider = dummy_identity_provider();
     let uc = CreateUserUsecase::new(repo.to_owned(), identity_provider.to_owned());
 
-    let input = CreateUserInput {
-        user_name: "user_name".into(),
-        email: "conflict@example.com".into(),
-        password: "Password1".into(),
-    };
+    let input = CreateUserInput::try_new(
+        "user_name".into(),
+        "conflict@example.com".into(),
+        "Password1".into(),
+    )?;
 
     let t = uc.run(input).await.expect_err("conf");
 
@@ -168,20 +172,9 @@ async fn usecase_create_user_conflict() -> Result<()> {
 
 #[tokio::test]
 async fn usecase_create_user_bad_request_when_user_name_blank() -> Result<()> {
-    let repo = Arc::new(DummyUserRepository {
-        calls: Mutex::new(vec![]),
-        deleted_uids: Mutex::new(vec![]),
-    });
-    let identity_provider = dummy_identity_provider();
-    let uc = CreateUserUsecase::new(repo, identity_provider);
-
-    let input = CreateUserInput {
-        user_name: "   ".into(),
-        email: "user@example.com".into(),
-        password: "Password1".into(),
-    };
-
-    let err = uc.run(input).await.expect_err("should be bad request");
+    let err = CreateUserInput::try_new("   ".into(), "user@example.com".into(), "Password1".into())
+        .err()
+        .expect("should be bad request");
     assert!(matches!(err, UserError::BadRequest(_)));
 
     Ok(())
@@ -189,20 +182,13 @@ async fn usecase_create_user_bad_request_when_user_name_blank() -> Result<()> {
 
 #[tokio::test]
 async fn usecase_create_user_bad_request_when_user_name_contains_non_ascii() -> Result<()> {
-    let repo = Arc::new(DummyUserRepository {
-        calls: Mutex::new(vec![]),
-        deleted_uids: Mutex::new(vec![]),
-    });
-    let identity_provider = dummy_identity_provider();
-    let uc = CreateUserUsecase::new(repo, identity_provider);
-
-    let input = CreateUserInput {
-        user_name: "日本語name".into(),
-        email: "user@example.com".into(),
-        password: "Password1".into(),
-    };
-
-    let err = uc.run(input).await.expect_err("should be bad request");
+    let err = CreateUserInput::try_new(
+        "日本語name".into(),
+        "user@example.com".into(),
+        "Password1".into(),
+    )
+    .err()
+    .expect("should be bad request");
     assert!(matches!(err, UserError::BadRequest(_)));
 
     Ok(())
@@ -217,11 +203,11 @@ async fn usecase_create_user_bad_request_when_password_is_weak() -> Result<()> {
     let identity_provider = dummy_identity_provider();
     let uc = CreateUserUsecase::new(repo, identity_provider);
 
-    let input = CreateUserInput {
-        user_name: "user_name".into(),
-        email: "user@example.com".into(),
-        password: "password".into(),
-    };
+    let input = CreateUserInput::try_new(
+        "user_name".into(),
+        "user@example.com".into(),
+        "password".into(),
+    )?;
 
     let err = uc.run(input).await.expect_err("should be bad request");
     assert!(matches!(err, UserError::BadRequest(_)));

@@ -9,7 +9,7 @@ use domain::{
         id::SolutionId,
         tags::Tags,
     },
-    model::user::id::UserId,
+    model::user::{id::UserId, name::UserName},
     ports::repository::solution::{
         SolutionRepository,
         tx::{SolutionRepositoryTx, SolutionTxManager, SolutionUnitOfWork, TagRepositoryTx},
@@ -35,6 +35,10 @@ use uuid::Uuid;
 
 fn user_id(value: &str) -> UserId {
     UserId::try_new(value.to_string()).expect("valid user ID")
+}
+
+fn user_name(value: &str) -> UserName {
+    UserName::try_new(value.to_string()).expect("valid user name")
 }
 
 struct NeverCalledTxManager;
@@ -91,7 +95,7 @@ impl SolutionRepository for GateRepository {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
             user_id: user_id.clone(),
-            user_name: "name".to_string(),
+            user_name: user_name("name"),
             solution_id,
             body_md: body_md.to_string(),
             created_at: chrono::Utc::now(),
@@ -107,7 +111,7 @@ impl SolutionRepository for GateRepository {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
             user_id: user_id(&self.comment_owner),
-            user_name: "name".to_string(),
+            user_name: user_name("name"),
             solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
             created_at: chrono::Utc::now(),
@@ -140,7 +144,7 @@ impl SolutionRepository for GateRepository {
 
     async fn get_solutions_by_user_name(
         &self,
-        _user_name: String,
+        _user_name: UserName,
         _sort: SolutionListSort,
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
         Ok(vec![])

@@ -20,7 +20,7 @@ impl From<CommentOutput> for GetCommentsBySolutionIdResponse {
         Self {
             id: value.id,
             user_id: value.user_id.into_string(),
-            user_name: value.user_name,
+            user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
             body_md: value.body_md,
             created_at: value.created_at,

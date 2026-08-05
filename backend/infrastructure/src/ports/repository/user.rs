@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_new::new;
 use domain::{
     error::repository::RepositoryError,
-    model::user::{User, id::UserId},
+    model::user::{User, id::UserId, name::UserName},
     ports::repository::user::UserRepository,
 };
 use sqlx::Row;
@@ -27,7 +27,7 @@ impl UserRepository for UserRepositoryImpl {
             "#,
             user.id.as_str(),
             user.role.to_string(),
-            user.user_name,
+            user.user_name.as_str(),
         )
         .fetch_optional(self.db.inner_ref())
         .await
@@ -36,7 +36,7 @@ impl UserRepository for UserRepositoryImpl {
         if inserted.is_none() {
             return Err(RepositoryError::Conflict(format!(
                 "user_name: {}",
-                user.user_name
+                user.user_name.as_str()
             )));
         }
         Ok(())
@@ -58,7 +58,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user_row.try_into()?)
     }
 
-    async fn user_name_exists(&self, user_name: &str) -> Result<bool, RepositoryError> {
+    async fn user_name_exists(&self, user_name: &UserName) -> Result<bool, RepositoryError> {
         let rec = sqlx::query!(
             r#"
                 SELECT EXISTS(
@@ -67,7 +67,7 @@ impl UserRepository for UserRepositoryImpl {
                     WHERE user_name = $1
                 ) AS "exists!"
             "#,
-            user_name
+            user_name.as_str()
         )
         .fetch_one(self.db.inner_ref())
         .await

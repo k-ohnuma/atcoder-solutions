@@ -1,4 +1,7 @@
-use domain::{error::repository::RepositoryError, ports::external::auth::AuthError};
+use domain::{
+    error::{repository::RepositoryError, user::UserValidationError},
+    ports::external::auth::AuthError,
+};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -42,5 +45,11 @@ impl From<AuthError> for UserError {
             }
             AuthError::Unexpected(msg) => UserError::Internal(msg),
         }
+    }
+}
+
+impl From<UserValidationError> for UserError {
+    fn from(value: UserValidationError) -> Self {
+        UserError::BadRequest(value.to_string())
     }
 }

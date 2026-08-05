@@ -1,5 +1,6 @@
 use domain::error::{
-    problem::ProblemValidationError, repository::RepositoryError, solution::SolutionValidationError,
+    problem::ProblemValidationError, repository::RepositoryError,
+    solution::SolutionValidationError, user::UserValidationError,
 };
 use thiserror::Error;
 
@@ -37,6 +38,12 @@ impl From<SolutionValidationError> for SolutionError {
 
 impl From<ProblemValidationError> for SolutionError {
     fn from(value: ProblemValidationError) -> Self {
+        SolutionError::BadRequest(value.to_string())
+    }
+}
+
+impl From<UserValidationError> for SolutionError {
+    fn from(value: UserValidationError) -> Self {
         SolutionError::BadRequest(value.to_string())
     }
 }

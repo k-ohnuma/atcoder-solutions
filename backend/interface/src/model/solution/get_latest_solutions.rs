@@ -41,7 +41,7 @@ impl From<SolutionListItemOutput> for GetLatestSolutionsResponse {
             title,
             problem_id: problem_id.into_string(),
             user_id: user_id.into_string(),
-            user_name,
+            user_name: user_name.into_string(),
             votes_count,
             created_at,
             updated_at,

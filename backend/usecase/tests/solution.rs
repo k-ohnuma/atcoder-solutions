@@ -6,7 +6,7 @@ use chrono::Utc;
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId},
     solution::id::SolutionId,
-    user::id::UserId,
+    user::{id::UserId, name::UserName},
 };
 use domain::{
     error::repository::RepositoryError,
@@ -35,6 +35,10 @@ use uuid::Uuid;
 
 fn user_id(value: &str) -> UserId {
     UserId::try_new(value.to_string()).expect("valid user ID")
+}
+
+fn user_name(value: &str) -> UserName {
+    UserName::try_new(value.to_string()).expect("valid user name")
 }
 
 struct DummySolutionRepository {
@@ -94,7 +98,7 @@ impl SolutionRepository for DummySolutionRepository {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
             user_id: user_id.clone(),
-            user_name: "alice".to_string(),
+            user_name: user_name("alice"),
             solution_id,
             body_md: body_md.to_string(),
             created_at: Utc::now(),
@@ -110,7 +114,7 @@ impl SolutionRepository for DummySolutionRepository {
         Ok(SolutionComment {
             id: Uuid::now_v7(),
             user_id: user_id("uid"),
-            user_name: "alice".to_string(),
+            user_name: user_name("alice"),
             solution_id: Uuid::now_v7().into(),
             body_md: body_md.to_string(),
             created_at: Utc::now(),
@@ -127,7 +131,7 @@ impl SolutionRepository for DummySolutionRepository {
             title: "latest".to_string(),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: user_id("uid"),
-            user_name: "alice".to_string(),
+            user_name: user_name("alice"),
             votes_count: 1,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -146,7 +150,7 @@ impl SolutionRepository for DummySolutionRepository {
             title: "t".to_string(),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: user_id("uid"),
-            user_name: "alice".to_string(),
+            user_name: user_name("alice"),
             votes_count: 3,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -164,7 +168,7 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn get_solutions_by_user_name(
         &self,
-        _user_name: String,
+        _user_name: UserName,
         sort: SolutionListSort,
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
         *self.last_user_sort.lock().unwrap() = Some(sort);
@@ -177,7 +181,7 @@ impl SolutionRepository for DummySolutionRepository {
             )
             .expect("valid problem title"),
             user_id: user_id("uid"),
-            user_name: "alice".to_string(),
+            user_name: user_name("alice"),
             votes_count: 5,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -285,7 +289,7 @@ impl UserRepository for DummyUserRepository {
         Err(RepositoryError::NotFound(uid.as_str().to_string()))
     }
 
-    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
+    async fn user_name_exists(&self, _user_name: &UserName) -> Result<bool, RepositoryError> {
         Ok(self.exists)
     }
 
