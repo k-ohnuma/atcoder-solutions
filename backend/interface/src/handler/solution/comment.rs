@@ -1,12 +1,9 @@
 use axum::extract::{Path, State};
 use registry::Registry;
-use usecase::{
-    model::solution::create_comment::CreateCommentInput,
-    solution::{
-        create_comment::CreateCommentUsecase, delete_comment::DeleteCommentUsecase,
-        get_comments_by_solution_id::GetCommentsBySolutionIdUsecase,
-        update_comment::UpdateCommentUsecase,
-    },
+use usecase::solution::{
+    create_comment::CreateCommentUsecase, delete_comment::DeleteCommentUsecase,
+    get_comments_by_solution_id::GetCommentsBySolutionIdUsecase,
+    update_comment::UpdateCommentUsecase,
 };
 use uuid::Uuid;
 
@@ -14,7 +11,10 @@ use crate::{
     error::IntoApiResult,
     http::{ApiJson, ApiResult, AuthUser, TurnstileGuard},
     model::solution::{
-        create_comment::{CreateCommentRequest, CreateCommentResponse},
+        create_comment::{
+            CreateCommentRequest, CreateCommentResponse,
+            from_req_for_input as from_req_for_create_comment,
+        },
         delete_comment::DeleteCommentResponse,
         get_comments_by_solution_id::GetCommentsBySolutionIdResponse,
         update_comment::{
@@ -33,11 +33,7 @@ pub async fn create_comment_handler(
     ApiJson(req): ApiJson<CreateCommentRequest>,
 ) -> ApiResult<CreateCommentResponse> {
     let uc = CreateCommentUsecase::new(registry.solution_repository());
-    let input = CreateCommentInput {
-        user_id: user.uid,
-        solution_id: solution_id.into(),
-        body_md: req.body_md,
-    };
+    let input = from_req_for_create_comment(user.uid, solution_id.into(), req).into_api_result()?;
     let created = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(CreateCommentResponse::from(created)))
 }
@@ -49,7 +45,7 @@ pub async fn update_comment_handler(
     ApiJson(req): ApiJson<UpdateCommentRequest>,
 ) -> ApiResult<UpdateCommentResponse> {
     let uc = UpdateCommentUsecase::new(registry.solution_repository());
-    let input = from_req_for_update_comment(user.uid, comment_id.into(), req);
+    let input = from_req_for_update_comment(user.uid, comment_id.into(), req).into_api_result()?;
     let updated = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(UpdateCommentResponse::from(updated)))
 }

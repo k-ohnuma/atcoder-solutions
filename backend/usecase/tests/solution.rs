@@ -5,7 +5,9 @@ use async_trait::async_trait;
 use chrono::Utc;
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId},
-    solution::{comment_id::CommentId, id::SolutionId},
+    solution::{
+        comment_body::CommentBody, comment_id::CommentId, content::SolutionTitle, id::SolutionId,
+    },
     user::{id::UserId, name::UserName},
 };
 use domain::{
@@ -39,6 +41,10 @@ fn user_id(value: &str) -> UserId {
 
 fn user_name(value: &str) -> UserName {
     UserName::try_new(value.to_string()).expect("valid user name")
+}
+
+fn solution_title(value: &str) -> SolutionTitle {
+    SolutionTitle::try_new(value.to_string()).expect("valid solution title")
 }
 
 struct DummySolutionRepository {
@@ -93,14 +99,14 @@ impl SolutionRepository for DummySolutionRepository {
         &self,
         user_id: &UserId,
         solution_id: SolutionId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7().into(),
             user_id: user_id.clone(),
             user_name: user_name("alice"),
             solution_id,
-            body_md: body_md.to_string(),
+            body: body.clone(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
         })
@@ -109,14 +115,14 @@ impl SolutionRepository for DummySolutionRepository {
     async fn update_comment(
         &self,
         _comment_id: CommentId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7().into(),
             user_id: user_id("uid"),
             user_name: user_name("alice"),
             solution_id: Uuid::now_v7().into(),
-            body_md: body_md.to_string(),
+            body: body.clone(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
         })
@@ -128,7 +134,7 @@ impl SolutionRepository for DummySolutionRepository {
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![SolutionListItem {
             id: Uuid::now_v7().into(),
-            title: "latest".to_string(),
+            title: solution_title("latest"),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: user_id("uid"),
             user_name: user_name("alice"),
@@ -147,7 +153,7 @@ impl SolutionRepository for DummySolutionRepository {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {
             id: Uuid::now_v7().into(),
-            title: "t".to_string(),
+            title: solution_title("t"),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             user_id: user_id("uid"),
             user_name: user_name("alice"),
@@ -174,7 +180,7 @@ impl SolutionRepository for DummySolutionRepository {
         *self.last_user_sort.lock().unwrap() = Some(sort);
         Ok(vec![UserSolutionListItem {
             id: Uuid::now_v7().into(),
-            title: "t".to_string(),
+            title: solution_title("t"),
             problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
             problem_title: domain::model::problem::title::ProblemTitle::try_new(
                 "A - Sample".to_string(),
@@ -366,7 +372,7 @@ async fn get_latest_solutions_returns_items() -> Result<()> {
 
     let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
-    assert_eq!(result[0].title, "latest");
+    assert_eq!(result[0].title.as_str(), "latest");
 
     Ok(())
 }

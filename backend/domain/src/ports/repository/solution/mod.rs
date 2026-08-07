@@ -2,7 +2,7 @@ use crate::{
     error::repository::RepositoryError,
     model::{
         problem::id::ProblemId,
-        solution::{comment_id::CommentId, id::SolutionId},
+        solution::{comment_body::CommentBody, comment_id::CommentId, id::SolutionId},
         user::{id::UserId, name::UserName},
     },
     read_model::solution::{
@@ -30,12 +30,12 @@ pub trait SolutionRepository: Send + Sync {
         &self,
         user_id: &UserId,
         solution_id: SolutionId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError>;
     async fn update_comment(
         &self,
         comment_id: CommentId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError>;
     async fn delete_comment(&self, comment_id: CommentId) -> Result<(), RepositoryError>;
     async fn get_latest_solutions(

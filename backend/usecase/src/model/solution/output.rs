@@ -1,7 +1,13 @@
 use chrono::{DateTime, Utc};
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-    solution::{comment_id::CommentId, id::SolutionId},
+    solution::{
+        comment_body::CommentBody,
+        comment_id::CommentId,
+        content::{SolutionBody, SolutionTitle, SubmitUrl},
+        id::SolutionId,
+        tags::Tags,
+    },
     user::{id::UserId, name::UserName},
 };
 use domain::read_model::solution::{
@@ -10,7 +16,7 @@ use domain::read_model::solution::{
 
 pub struct SolutionListItemOutput {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub user_id: UserId,
     pub user_name: UserName,
@@ -21,22 +27,22 @@ pub struct SolutionListItemOutput {
 
 pub struct SolutionOutput {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub contest_code: ContestCode,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
     pub user_name: UserName,
-    pub tags: Vec<String>,
-    pub body_md: String,
-    pub submit_url: String,
+    pub tags: Tags,
+    pub body: SolutionBody,
+    pub submit_url: SubmitUrl,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
 pub struct UserSolutionListItemOutput {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
@@ -51,7 +57,7 @@ pub struct CommentOutput {
     pub user_id: UserId,
     pub user_name: UserName,
     pub solution_id: SolutionId,
-    pub body_md: String,
+    pub body: CommentBody,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -82,7 +88,7 @@ impl From<SolutionDetails> for SolutionOutput {
             user_id: value.user_id,
             user_name: value.user_name,
             tags: value.tags,
-            body_md: value.body_md,
+            body: value.body,
             submit_url: value.submit_url,
             created_at: value.created_at,
             updated_at: value.updated_at,
@@ -113,7 +119,7 @@ impl From<SolutionComment> for CommentOutput {
             user_id: value.user_id,
             user_name: value.user_name,
             solution_id: value.solution_id,
-            body_md: value.body_md,
+            body: value.body,
             created_at: value.created_at,
             updated_at: value.updated_at,
         }

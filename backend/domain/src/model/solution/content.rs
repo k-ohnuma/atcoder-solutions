@@ -24,6 +24,10 @@ impl SolutionTitle {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    pub fn into_string(self) -> String {
+        self.0
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -44,6 +48,10 @@ impl SolutionBody {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
     }
 }
 
@@ -66,6 +74,10 @@ impl SubmitUrl {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
     }
 }
 

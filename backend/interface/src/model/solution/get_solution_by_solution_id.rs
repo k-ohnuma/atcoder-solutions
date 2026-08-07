@@ -31,7 +31,7 @@ impl From<SolutionOutput> for GetSolutionBySolutionIdResponse {
             user_id,
             user_name,
             tags,
-            body_md,
+            body,
             submit_url,
             created_at,
             updated_at,
@@ -39,15 +39,15 @@ impl From<SolutionOutput> for GetSolutionBySolutionIdResponse {
 
         Self {
             id: id.into_uuid(),
-            title,
+            title: title.into_string(),
             problem_id: problem_id.into_string(),
             contest_code: contest_code.into_string(),
             problem_title: problem_title.into_string(),
             user_id: user_id.into_string(),
             user_name: user_name.into_string(),
-            tags,
-            body_md,
-            submit_url,
+            tags: tags.into_strings(),
+            body_md: body.into_string(),
+            submit_url: submit_url.into_string(),
             created_at,
             updated_at,
         }

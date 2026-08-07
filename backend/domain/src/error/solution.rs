@@ -14,6 +14,12 @@ pub enum SolutionValidationError {
     #[error("solution body must be {max} characters or fewer")]
     BodyTooLong { max: usize },
 
+    #[error("comment body cannot be blank")]
+    BlankCommentBody,
+
+    #[error("comment body must be {max} characters or fewer")]
+    CommentBodyTooLong { max: usize },
+
     #[error("submit URL must be {max} characters or fewer")]
     SubmitUrlTooLong { max: usize },
 

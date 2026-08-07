@@ -1,12 +1,23 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::output::CommentOutput;
+use usecase::{error::SolutionError, model::solution::create_comment::CreateCommentInput};
 use uuid::Uuid;
+
+use domain::model::{solution::id::SolutionId, user::id::UserId};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateCommentRequest {
     pub body_md: String,
+}
+
+pub fn from_req_for_input(
+    user_id: UserId,
+    solution_id: SolutionId,
+    req: CreateCommentRequest,
+) -> Result<CreateCommentInput, SolutionError> {
+    CreateCommentInput::try_new(user_id, solution_id, req.body_md)
 }
 
 #[derive(Serialize)]
@@ -28,7 +39,7 @@ impl From<CommentOutput> for CreateCommentResponse {
             user_id: value.user_id.into_string(),
             user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
-            body_md: value.body_md,
+            body_md: value.body.into_string(),
             created_at: value.created_at,
             updated_at: value.updated_at,
         }
@@ -38,7 +49,10 @@ impl From<CommentOutput> for CreateCommentResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use domain::model::user::{id::UserId, name::UserName};
+    use domain::model::{
+        solution::comment_body::CommentBody,
+        user::{id::UserId, name::UserName},
+    };
     use serde_json::json;
     use uuid::Uuid;
 
@@ -72,7 +86,7 @@ mod tests {
             user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             solution_id: Uuid::now_v7().into(),
-            body_md: "body".to_string(),
+            body: CommentBody::try_new("body".to_string()).expect("valid comment body"),
             created_at: now,
             updated_at: now,
         };

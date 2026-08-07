@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
-use validator::Validate;
 
 use crate::{
     error::SolutionError,
@@ -16,10 +15,6 @@ pub struct CreateCommentUsecase {
 
 impl CreateCommentUsecase {
     pub async fn run(&self, input: CreateCommentInput) -> Result<CommentOutput, SolutionError> {
-        input
-            .validate()
-            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
-
         let exists = self.repository.solution_exists(input.solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));
@@ -27,7 +22,7 @@ impl CreateCommentUsecase {
 
         let comment = self
             .repository
-            .create_comment(&input.user_id, input.solution_id, &input.body_md)
+            .create_comment(&input.user_id, input.solution_id, &input.body)
             .await?;
 
         Ok(CommentOutput::from(comment))

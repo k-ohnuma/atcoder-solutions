@@ -49,6 +49,10 @@ impl Tags {
     pub fn iter(&self) -> impl Iterator<Item = &TagName> {
         self.0.iter()
     }
+
+    pub fn into_strings(self) -> Vec<String> {
+        self.0.into_iter().map(|tag| tag.0).collect()
+    }
 }
 
 #[cfg(test)]

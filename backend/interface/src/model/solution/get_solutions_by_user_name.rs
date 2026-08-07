@@ -39,7 +39,7 @@ impl From<UserSolutionListItemOutput> for GetSolutionsByUserNameResponse {
 
         Self {
             id: id.into_uuid(),
-            title,
+            title: title.into_string(),
             problem_id: problem_id.into_string(),
             problem_title: problem_title.into_string(),
             user_id: user_id.into_string(),
@@ -54,7 +54,10 @@ impl From<UserSolutionListItemOutput> for GetSolutionsByUserNameResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use domain::model::user::{id::UserId, name::UserName};
+    use domain::model::{
+        solution::content::SolutionTitle,
+        user::{id::UserId, name::UserName},
+    };
     use serde_json::json;
     use usecase::model::solution::output::UserSolutionListItemOutput;
     use uuid::Uuid;
@@ -76,7 +79,7 @@ mod tests {
         let now = Utc::now();
         let dto = UserSolutionListItemOutput {
             id: id.into(),
-            title: "title".to_string(),
+            title: SolutionTitle::try_new("title".to_string()).expect("valid solution title"),
             problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
                 .expect("valid problem ID"),
             problem_title: domain::model::problem::title::ProblemTitle::try_new(

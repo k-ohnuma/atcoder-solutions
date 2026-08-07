@@ -1,6 +1,12 @@
 use crate::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-    solution::{comment_id::CommentId, id::SolutionId},
+    solution::{
+        comment_body::CommentBody,
+        comment_id::CommentId,
+        content::{SolutionBody, SolutionTitle, SubmitUrl},
+        id::SolutionId,
+        tags::Tags,
+    },
     user::{id::UserId, name::UserName},
 };
 use chrono::{DateTime, Utc};
@@ -14,7 +20,7 @@ pub enum SolutionListSort {
 #[derive(Debug, Clone)]
 pub struct SolutionListItem {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub user_id: UserId,
     pub user_name: UserName,
@@ -26,7 +32,7 @@ pub struct SolutionListItem {
 #[derive(Debug, Clone)]
 pub struct UserSolutionListItem {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
@@ -39,15 +45,15 @@ pub struct UserSolutionListItem {
 #[derive(Debug, Clone)]
 pub struct SolutionDetails {
     pub id: SolutionId,
-    pub title: String,
+    pub title: SolutionTitle,
     pub problem_id: ProblemId,
     pub contest_code: ContestCode,
     pub problem_title: ProblemTitle,
     pub user_id: UserId,
     pub user_name: UserName,
-    pub tags: Vec<String>,
-    pub body_md: String,
-    pub submit_url: String,
+    pub tags: Tags,
+    pub body: SolutionBody,
+    pub submit_url: SubmitUrl,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -58,7 +64,7 @@ pub struct SolutionComment {
     pub user_id: UserId,
     pub user_name: UserName,
     pub solution_id: SolutionId,
-    pub body_md: String,
+    pub body: CommentBody,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

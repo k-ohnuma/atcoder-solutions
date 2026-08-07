@@ -1,6 +1,9 @@
 use domain::model::{solution::comment_id::CommentId, user::id::UserId};
 use serde::{Deserialize, Serialize};
-use usecase::model::solution::{output::CommentOutput, update_comment::UpdateCommentInput};
+use usecase::{
+    error::SolutionError,
+    model::solution::{output::CommentOutput, update_comment::UpdateCommentInput},
+};
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -13,12 +16,8 @@ pub fn from_req_for_input(
     user_id: UserId,
     comment_id: CommentId,
     req: UpdateCommentRequest,
-) -> UpdateCommentInput {
-    UpdateCommentInput {
-        user_id,
-        comment_id,
-        body_md: req.body_md,
-    }
+) -> Result<UpdateCommentInput, SolutionError> {
+    UpdateCommentInput::try_new(user_id, comment_id, req.body_md)
 }
 
 #[derive(Serialize)]
@@ -40,7 +39,7 @@ impl From<CommentOutput> for UpdateCommentResponse {
             user_id: value.user_id.into_string(),
             user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
-            body_md: value.body_md,
+            body_md: value.body.into_string(),
             created_at: value.created_at,
             updated_at: value.updated_at,
         }
@@ -50,7 +49,10 @@ impl From<CommentOutput> for UpdateCommentResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use domain::model::user::{id::UserId, name::UserName};
+    use domain::model::{
+        solution::comment_body::CommentBody,
+        user::{id::UserId, name::UserName},
+    };
     use serde_json::json;
     use usecase::model::solution::output::CommentOutput;
     use uuid::Uuid;
@@ -68,10 +70,11 @@ mod tests {
             UserId::try_new("uid".to_string()).expect("valid user ID"),
             comment_id.into(),
             req,
-        );
+        )
+        .expect("valid input");
         assert_eq!(input.user_id.as_str(), "uid");
         assert_eq!(input.comment_id.into_uuid(), comment_id);
-        assert_eq!(input.body_md, "updated");
+        assert_eq!(input.body.as_str(), "updated");
     }
 
     #[test]
@@ -91,7 +94,7 @@ mod tests {
             user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             solution_id: Uuid::now_v7().into(),
-            body_md: "body".to_string(),
+            body: CommentBody::try_new("body".to_string()).expect("valid comment body"),
             created_at: now,
             updated_at: now,
         };

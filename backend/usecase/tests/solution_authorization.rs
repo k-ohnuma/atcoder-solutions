@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
     model::solution::{
+        comment_body::CommentBody,
         comment_id::CommentId,
         content::{SolutionBody, SolutionTitle, SubmitUrl},
         id::SolutionId,
@@ -91,14 +92,14 @@ impl SolutionRepository for GateRepository {
         &self,
         user_id: &UserId,
         solution_id: SolutionId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7().into(),
             user_id: user_id.clone(),
             user_name: user_name("name"),
             solution_id,
-            body_md: body_md.to_string(),
+            body: body.clone(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
         })
@@ -107,14 +108,14 @@ impl SolutionRepository for GateRepository {
     async fn update_comment(
         &self,
         _comment_id: CommentId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
             id: Uuid::now_v7().into(),
             user_id: user_id(&self.comment_owner),
             user_name: user_name("name"),
             solution_id: Uuid::now_v7().into(),
-            body_md: body_md.to_string(),
+            body: body.clone(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
         })
@@ -244,11 +245,11 @@ async fn update_comment_forbidden_for_non_owner() -> Result<()> {
         comment_owner: "owner".to_string(),
     });
     let uc = UpdateCommentUsecase::new(repository);
-    let input = UpdateCommentInput {
-        user_id: user_id("attacker"),
-        comment_id: Uuid::now_v7().into(),
-        body_md: "body".to_string(),
-    };
+    let input = UpdateCommentInput::try_new(
+        user_id("attacker"),
+        Uuid::now_v7().into(),
+        "body".to_string(),
+    )?;
 
     let err = uc.run(input).await.err().expect("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
@@ -316,11 +317,8 @@ async fn create_comment_returns_not_found_when_solution_not_found() -> Result<()
         comment_owner: "owner".to_string(),
     });
     let uc = CreateCommentUsecase::new(repository);
-    let input = CreateCommentInput {
-        user_id: user_id("uid"),
-        solution_id: Uuid::now_v7().into(),
-        body_md: "body".to_string(),
-    };
+    let input =
+        CreateCommentInput::try_new(user_id("uid"), Uuid::now_v7().into(), "body".to_string())?;
 
     let err = uc.run(input).await.err().expect("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));
@@ -360,11 +358,8 @@ async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()>
         comment_owner: "owner".to_string(),
     });
     let uc = UpdateCommentUsecase::new(repository);
-    let input = UpdateCommentInput {
-        user_id: user_id("owner"),
-        comment_id: Uuid::now_v7().into(),
-        body_md: "body".to_string(),
-    };
+    let input =
+        UpdateCommentInput::try_new(user_id("owner"), Uuid::now_v7().into(), "body".to_string())?;
 
     let err = uc.run(input).await.err().expect("should be not found");
     assert!(matches!(err, SolutionError::NotFound(_)));

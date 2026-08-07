@@ -12,7 +12,7 @@ use domain::{
     error::repository::RepositoryError,
     model::{
         problem::id::ProblemId,
-        solution::{comment_id::CommentId, id::SolutionId},
+        solution::{comment_body::CommentBody, comment_id::CommentId, id::SolutionId},
         user::{id::UserId, name::UserName},
     },
     ports::repository::solution::SolutionRepository,
@@ -91,7 +91,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         &self,
         user_id: &UserId,
         solution_id: SolutionId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         let solution_id = solution_id.into_uuid();
         let comment = sqlx::query_as!(
@@ -110,7 +110,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
             "#,
             user_id.as_str(),
             solution_id,
-            body_md
+            body.as_str()
         )
         .fetch_one(self.db.inner_ref())
         .await
@@ -122,7 +122,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn update_comment(
         &self,
         comment_id: CommentId,
-        body_md: &str,
+        body: &CommentBody,
     ) -> Result<SolutionComment, RepositoryError> {
         let comment = sqlx::query_as!(
             SolutionCommentViewRaw,
@@ -142,7 +142,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
                 c.updated_at
             "#,
             comment_id.into_uuid(),
-            body_md
+            body.as_str()
         )
         .fetch_one(self.db.inner_ref())
         .await

@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::ports::repository::solution::SolutionRepository;
-use validator::Validate;
 
 use crate::{
     error::SolutionError,
@@ -17,10 +16,6 @@ pub struct UpdateCommentUsecase {
 
 impl UpdateCommentUsecase {
     pub async fn run(&self, input: UpdateCommentInput) -> Result<CommentOutput, SolutionError> {
-        input
-            .validate()
-            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
-
         ensure_comment_owner(
             self.repository.as_ref(),
             input.comment_id,
@@ -31,7 +26,7 @@ impl UpdateCommentUsecase {
 
         let comment = self
             .repository
-            .update_comment(input.comment_id, &input.body_md)
+            .update_comment(input.comment_id, &input.body)
             .await?;
 
         Ok(CommentOutput::from(comment))

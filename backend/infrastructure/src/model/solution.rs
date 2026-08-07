@@ -3,7 +3,13 @@ use domain::{
     error::repository::RepositoryError,
     model::{
         problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-        solution::{comment_id::CommentId, id::SolutionId},
+        solution::{
+            comment_body::CommentBody,
+            comment_id::CommentId,
+            content::{SolutionBody, SolutionTitle, SubmitUrl},
+            id::SolutionId,
+            tags::Tags,
+        },
         user::{id::UserId, name::UserName},
     },
     read_model::solution::{
@@ -40,7 +46,8 @@ impl TryFrom<SolutionListItemViewRaw> for SolutionListItem {
 
         Ok(Self {
             id: SolutionId::new(id),
-            title,
+            title: SolutionTitle::try_new(title)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             problem_id: ProblemId::try_new(problem_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_id: UserId::try_new(user_id)
@@ -84,7 +91,8 @@ impl TryFrom<UserSolutionListItemViewRaw> for UserSolutionListItem {
 
         Ok(Self {
             id: SolutionId::new(id),
-            title,
+            title: SolutionTitle::try_new(title)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             problem_id: ProblemId::try_new(problem_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             problem_title: ProblemTitle::try_new(problem_title)
@@ -131,7 +139,8 @@ impl TryFrom<SolutionCommentViewRaw> for SolutionComment {
             user_name: UserName::try_new(user_name)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             solution_id: SolutionId::new(solution_id),
-            body_md,
+            body: CommentBody::try_new(body_md)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             created_at,
             updated_at,
         })
@@ -159,7 +168,8 @@ impl TryFrom<SolutionDetailsViewRaw> for SolutionDetails {
     fn try_from(value: SolutionDetailsViewRaw) -> Result<Self, Self::Error> {
         Ok(Self {
             id: SolutionId::new(value.id),
-            title: value.title,
+            title: SolutionTitle::try_new(value.title)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             problem_id: ProblemId::try_new(value.problem_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             contest_code: ContestCode::try_new(value.contest_code)
@@ -170,9 +180,12 @@ impl TryFrom<SolutionDetailsViewRaw> for SolutionDetails {
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name: UserName::try_new(value.user_name)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
-            tags: value.tags,
-            body_md: value.body_md,
-            submit_url: value.submit_url,
+            tags: Tags::try_new(value.tags)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            body: SolutionBody::try_new(value.body_md)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
+            submit_url: SubmitUrl::try_new(value.submit_url)
+                .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             created_at: value.created_at,
             updated_at: value.updated_at,
         })
