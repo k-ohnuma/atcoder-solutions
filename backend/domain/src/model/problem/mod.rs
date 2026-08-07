@@ -22,7 +22,7 @@ pub struct Problem {
     pub difficulty: Option<Difficulty>,
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy, Display)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Display)]
 pub enum ContestSeries {
     ABC,
     ARC,
@@ -32,26 +32,38 @@ pub enum ContestSeries {
     OTHER,
 }
 
+impl ContestSeries {
+    pub fn from_contest_code(value: &str) -> Self {
+        let lower = value.to_ascii_lowercase();
+        if lower.starts_with("abc") {
+            Self::ABC
+        } else if lower.starts_with("arc") {
+            Self::ARC
+        } else if lower.starts_with("agc") {
+            Self::AGC
+        } else if lower.starts_with("ahc") {
+            Self::AHC
+        } else if lower.starts_with("awc") {
+            Self::AWC
+        } else {
+            Self::OTHER
+        }
+    }
+}
+
 impl TryFrom<&str> for ContestSeries {
     type Error = ContestSeriesParseError;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let lower = value.to_ascii_lowercase();
-        if lower.starts_with("abc") {
-            Ok(ContestSeries::ABC)
-        } else if lower.starts_with("arc") {
-            Ok(ContestSeries::ARC)
-        } else if lower.starts_with("agc") {
-            Ok(ContestSeries::AGC)
-        } else if lower.starts_with("ahc") {
-            Ok(ContestSeries::AHC)
-        } else if lower.starts_with("awc") {
-            Ok(ContestSeries::AWC)
-        } else if lower.starts_with("other") {
-            Ok(ContestSeries::OTHER)
-        } else {
-            Err(ContestSeriesParseError::Invalid {
+        match value.to_ascii_uppercase().as_str() {
+            "ABC" => Ok(Self::ABC),
+            "ARC" => Ok(Self::ARC),
+            "AGC" => Ok(Self::AGC),
+            "AHC" => Ok(Self::AHC),
+            "AWC" => Ok(Self::AWC),
+            "OTHER" => Ok(Self::OTHER),
+            _ => Err(ContestSeriesParseError::Invalid {
                 input: value.into(),
-            })
+            }),
         }
     }
 }
@@ -99,5 +111,31 @@ impl ContestSeriesParseError {
         match self {
             ContestSeriesParseError::Invalid { input } => input.to_string(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ContestSeries;
+
+    #[test]
+    fn parses_series_code_by_exact_match() {
+        assert_eq!(
+            ContestSeries::try_from("abc").expect("valid series code"),
+            ContestSeries::ABC
+        );
+        assert!(ContestSeries::try_from("abc001").is_err());
+    }
+
+    #[test]
+    fn classifies_contest_code_by_prefix() {
+        assert_eq!(
+            ContestSeries::from_contest_code("abc001"),
+            ContestSeries::ABC
+        );
+        assert_eq!(
+            ContestSeries::from_contest_code("tessoku_book"),
+            ContestSeries::OTHER
+        );
     }
 }

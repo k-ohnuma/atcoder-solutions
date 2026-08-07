@@ -11,8 +11,8 @@ pub struct ContestResponse {
 impl From<ContestListItemOutput> for ContestResponse {
     fn from(value: ContestListItemOutput) -> Self {
         Self {
-            code: value.code,
-            series_code: value.series_code,
+            code: value.code.into_string(),
+            series_code: value.series.into(),
         }
     }
 }

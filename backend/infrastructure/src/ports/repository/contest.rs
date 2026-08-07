@@ -37,6 +37,6 @@ impl ContestRepository for ContestRepositoryImpl {
         .fetch_all(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
-        Ok(contests.into_iter().map(ContestListItem::from).collect())
+        contests.into_iter().map(TryInto::try_into).collect()
     }
 }

@@ -73,8 +73,7 @@ async fn seed_contest_series(pool: &PgPool) -> Result<()> {
 
 #[cfg(test)]
 async fn seed_problem(problem_tx_manager: &ProblemTransactionManager, problem: Problem) {
-    let series =
-        ContestSeries::try_from(problem.contest_code.as_str()).unwrap_or(ContestSeries::OTHER);
+    let series = ContestSeries::from_contest_code(problem.contest_code.as_str());
     let series_code: &str = series.into();
     let contests = vec![(
         problem.contest_code.as_str().to_string(),

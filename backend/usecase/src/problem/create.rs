@@ -73,8 +73,7 @@ impl ImportProblemsUsecase {
         let contests = problems
             .iter()
             .map(|problem| {
-                let series = ContestSeries::try_from(problem.contest_code.as_str())
-                    .unwrap_or(ContestSeries::OTHER);
+                let series = ContestSeries::from_contest_code(problem.contest_code.as_str());
                 let series_code: &str = series.into();
                 (
                     problem.contest_code.as_str().to_string(),
