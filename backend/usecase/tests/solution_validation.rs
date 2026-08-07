@@ -27,7 +27,7 @@ fn comment_body_length_boundaries() -> Result<()> {
 
     let ok_update = UpdateCommentInput {
         user_id: user_id("uid"),
-        comment_id: Uuid::now_v7(),
+        comment_id: Uuid::now_v7().into(),
         body_md: "a".repeat(2000),
     };
     assert!(ok_update.validate().is_ok());

@@ -1,8 +1,10 @@
 use domain::{
-    model::{solution::id::SolutionId, user::id::UserId},
+    model::{
+        solution::{comment_id::CommentId, id::SolutionId},
+        user::id::UserId,
+    },
     ports::repository::solution::SolutionRepository,
 };
-use uuid::Uuid;
 
 use crate::error::SolutionError;
 
@@ -27,7 +29,7 @@ pub async fn ensure_solution_owner(
 
 pub async fn ensure_comment_owner(
     repository: &dyn SolutionRepository,
-    comment_id: Uuid,
+    comment_id: CommentId,
     user_id: &UserId,
     forbidden_message: &str,
 ) -> Result<(), SolutionError> {

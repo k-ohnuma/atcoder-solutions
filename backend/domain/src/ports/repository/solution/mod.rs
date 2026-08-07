@@ -1,17 +1,15 @@
-use async_trait::async_trait;
-use uuid::Uuid;
-
 use crate::{
     error::repository::RepositoryError,
     model::{
         problem::id::ProblemId,
-        solution::id::SolutionId,
+        solution::{comment_id::CommentId, id::SolutionId},
         user::{id::UserId, name::UserName},
     },
     read_model::solution::{
         SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
 };
+use async_trait::async_trait;
 
 pub mod tx;
 
@@ -36,10 +34,10 @@ pub trait SolutionRepository: Send + Sync {
     ) -> Result<SolutionComment, RepositoryError>;
     async fn update_comment(
         &self,
-        comment_id: Uuid,
+        comment_id: CommentId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError>;
-    async fn delete_comment(&self, comment_id: Uuid) -> Result<(), RepositoryError>;
+    async fn delete_comment(&self, comment_id: CommentId) -> Result<(), RepositoryError>;
     async fn get_latest_solutions(
         &self,
         limit: Option<i32>,
@@ -77,6 +75,6 @@ pub trait SolutionRepository: Send + Sync {
         &self,
         solution_id: SolutionId,
     ) -> Result<UserId, RepositoryError>;
-    async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError>;
-    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<UserId, RepositoryError>;
+    async fn comment_exists(&self, comment_id: CommentId) -> Result<bool, RepositoryError>;
+    async fn get_comment_user_id(&self, comment_id: CommentId) -> Result<UserId, RepositoryError>;
 }

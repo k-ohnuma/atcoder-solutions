@@ -1,3 +1,4 @@
+use domain::model::solution::comment_id::CommentId;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -7,8 +8,10 @@ pub struct DeleteCommentResponse {
     pub comment_id: Uuid,
 }
 
-impl From<Uuid> for DeleteCommentResponse {
-    fn from(value: Uuid) -> Self {
-        Self { comment_id: value }
+impl From<CommentId> for DeleteCommentResponse {
+    fn from(value: CommentId) -> Self {
+        Self {
+            comment_id: value.into_uuid(),
+        }
     }
 }

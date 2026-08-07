@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use chrono::Utc;
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId},
-    solution::id::SolutionId,
+    solution::{comment_id::CommentId, id::SolutionId},
     user::{id::UserId, name::UserName},
 };
 use domain::{
@@ -85,7 +85,7 @@ impl SolutionRepository for DummySolutionRepository {
         Ok(())
     }
 
-    async fn delete_comment(&self, _comment_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_comment(&self, _comment_id: CommentId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
@@ -96,7 +96,7 @@ impl SolutionRepository for DummySolutionRepository {
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: user_id.clone(),
             user_name: user_name("alice"),
             solution_id,
@@ -108,11 +108,11 @@ impl SolutionRepository for DummySolutionRepository {
 
     async fn update_comment(
         &self,
-        _comment_id: Uuid,
+        _comment_id: CommentId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: user_id("uid"),
             user_name: user_name("alice"),
             solution_id: Uuid::now_v7().into(),
@@ -221,11 +221,11 @@ impl SolutionRepository for DummySolutionRepository {
         Ok(user_id("uid"))
     }
 
-    async fn comment_exists(&self, _comment_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn comment_exists(&self, _comment_id: CommentId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<UserId, RepositoryError> {
+    async fn get_comment_user_id(&self, _comment_id: CommentId) -> Result<UserId, RepositoryError> {
         Ok(user_id("uid"))
     }
 }

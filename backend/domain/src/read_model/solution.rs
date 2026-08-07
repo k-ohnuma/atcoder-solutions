@@ -1,11 +1,9 @@
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
-
 use crate::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-    solution::id::SolutionId,
+    solution::{comment_id::CommentId, id::SolutionId},
     user::{id::UserId, name::UserName},
 };
+use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SolutionListSort {
@@ -56,7 +54,7 @@ pub struct SolutionDetails {
 
 #[derive(Debug, Clone)]
 pub struct SolutionComment {
-    pub id: Uuid,
+    pub id: CommentId,
     pub user_id: UserId,
     pub user_name: UserName,
     pub solution_id: SolutionId,

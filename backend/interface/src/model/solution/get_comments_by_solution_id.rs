@@ -18,7 +18,7 @@ pub struct GetCommentsBySolutionIdResponse {
 impl From<CommentOutput> for GetCommentsBySolutionIdResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
-            id: value.id,
+            id: value.id.into_uuid(),
             user_id: value.user_id.into_string(),
             user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),

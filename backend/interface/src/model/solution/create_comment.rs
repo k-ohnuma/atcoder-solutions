@@ -24,7 +24,7 @@ pub struct CreateCommentResponse {
 impl From<CommentOutput> for CreateCommentResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
-            id: value.id,
+            id: value.id.into_uuid(),
             user_id: value.user_id.into_string(),
             user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
@@ -68,7 +68,7 @@ mod tests {
     fn create_comment_response_conversion_keeps_fields() {
         let now = Utc::now();
         let dto = CommentOutput {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             solution_id: Uuid::now_v7().into(),

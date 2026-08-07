@@ -1,25 +1,23 @@
-use async_trait::async_trait;
-use derive_new::new;
-use domain::{
-    error::repository::RepositoryError,
-    model::{
-        problem::id::ProblemId,
-        solution::id::SolutionId,
-        user::{id::UserId, name::UserName},
-    },
-    ports::repository::solution::SolutionRepository,
-    read_model::solution::{
-        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
-    },
-};
-use uuid::Uuid;
-
 use crate::error::map_sqlx_error;
 use crate::{
     database::ConnectionPool,
     model::solution::{
         SolutionCommentViewRaw, SolutionDetailsViewRaw, SolutionListItemViewRaw,
         UserSolutionListItemViewRaw,
+    },
+};
+use async_trait::async_trait;
+use derive_new::new;
+use domain::{
+    error::repository::RepositoryError,
+    model::{
+        problem::id::ProblemId,
+        solution::{comment_id::CommentId, id::SolutionId},
+        user::{id::UserId, name::UserName},
+    },
+    ports::repository::solution::SolutionRepository,
+    read_model::solution::{
+        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
     },
 };
 
@@ -123,7 +121,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
 
     async fn update_comment(
         &self,
-        comment_id: Uuid,
+        comment_id: CommentId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         let comment = sqlx::query_as!(
@@ -143,7 +141,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
                 c.created_at,
                 c.updated_at
             "#,
-            comment_id,
+            comment_id.into_uuid(),
             body_md
         )
         .fetch_one(self.db.inner_ref())
@@ -153,13 +151,13 @@ impl SolutionRepository for SolutionRepositoryImpl {
         comment.try_into()
     }
 
-    async fn delete_comment(&self, comment_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_comment(&self, comment_id: CommentId) -> Result<(), RepositoryError> {
         sqlx::query!(
             r#"
             DELETE FROM comments
             WHERE id = $1
             "#,
-            comment_id
+            comment_id.into_uuid()
         )
         .execute(self.db.inner_ref())
         .await
@@ -461,7 +459,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
         UserId::try_new(rec.user_id).map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
-    async fn comment_exists(&self, comment_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn comment_exists(&self, comment_id: CommentId) -> Result<bool, RepositoryError> {
         let rec = sqlx::query!(
             r#"
                 SELECT EXISTS(
@@ -470,7 +468,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
                     WHERE id = $1
                 ) AS "exists!"
             "#,
-            comment_id
+            comment_id.into_uuid()
         )
         .fetch_one(self.db.inner_ref())
         .await
@@ -479,14 +477,14 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(rec.exists)
     }
 
-    async fn get_comment_user_id(&self, comment_id: Uuid) -> Result<UserId, RepositoryError> {
+    async fn get_comment_user_id(&self, comment_id: CommentId) -> Result<UserId, RepositoryError> {
         let rec = sqlx::query!(
             r#"
                 SELECT user_id
                 FROM comments
                 WHERE id = $1
             "#,
-            comment_id
+            comment_id.into_uuid()
         )
         .fetch_one(self.db.inner_ref())
         .await

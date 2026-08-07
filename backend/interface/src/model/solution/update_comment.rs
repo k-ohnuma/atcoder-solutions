@@ -1,4 +1,4 @@
-use domain::model::user::id::UserId;
+use domain::model::{solution::comment_id::CommentId, user::id::UserId};
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::{output::CommentOutput, update_comment::UpdateCommentInput};
 use uuid::Uuid;
@@ -11,7 +11,7 @@ pub struct UpdateCommentRequest {
 
 pub fn from_req_for_input(
     user_id: UserId,
-    comment_id: Uuid,
+    comment_id: CommentId,
     req: UpdateCommentRequest,
 ) -> UpdateCommentInput {
     UpdateCommentInput {
@@ -36,7 +36,7 @@ pub struct UpdateCommentResponse {
 impl From<CommentOutput> for UpdateCommentResponse {
     fn from(value: CommentOutput) -> Self {
         Self {
-            id: value.id,
+            id: value.id.into_uuid(),
             user_id: value.user_id.into_string(),
             user_name: value.user_name.into_string(),
             solution_id: value.solution_id.into_uuid(),
@@ -66,11 +66,11 @@ mod tests {
         let req: UpdateCommentRequest = serde_json::from_value(raw).expect("valid json");
         let input = from_req_for_input(
             UserId::try_new("uid".to_string()).expect("valid user ID"),
-            comment_id,
+            comment_id.into(),
             req,
         );
         assert_eq!(input.user_id.as_str(), "uid");
-        assert_eq!(input.comment_id, comment_id);
+        assert_eq!(input.comment_id.into_uuid(), comment_id);
         assert_eq!(input.body_md, "updated");
     }
 
@@ -87,7 +87,7 @@ mod tests {
     fn update_comment_response_conversion_keeps_fields() {
         let now = Utc::now();
         let dto = CommentOutput {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
             user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             solution_id: Uuid::now_v7().into(),

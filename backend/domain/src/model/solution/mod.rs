@@ -1,3 +1,4 @@
+pub mod comment_id;
 pub mod content;
 pub mod id;
 pub mod tags;

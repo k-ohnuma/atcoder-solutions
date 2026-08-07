@@ -49,7 +49,7 @@ pub async fn update_comment_handler(
     ApiJson(req): ApiJson<UpdateCommentRequest>,
 ) -> ApiResult<UpdateCommentResponse> {
     let uc = UpdateCommentUsecase::new(registry.solution_repository());
-    let input = from_req_for_update_comment(user.uid, comment_id, req);
+    let input = from_req_for_update_comment(user.uid, comment_id.into(), req);
     let updated = uc.run(input).await.into_api_result()?;
     Ok(ApiResponse::ok(UpdateCommentResponse::from(updated)))
 }
@@ -60,7 +60,10 @@ pub async fn delete_comment_handler(
     AuthUser(user): AuthUser,
 ) -> ApiResult<DeleteCommentResponse> {
     let uc = DeleteCommentUsecase::new(registry.solution_repository());
-    let deleted_id = uc.run(user.uid, comment_id).await.into_api_result()?;
+    let deleted_id = uc
+        .run(user.uid, comment_id.into())
+        .await
+        .into_api_result()?;
     Ok(ApiResponse::ok(deleted_id.into()))
 }
 

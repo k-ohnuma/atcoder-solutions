@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use domain::{
     error::repository::RepositoryError,
     model::solution::{
+        comment_id::CommentId,
         content::{SolutionBody, SolutionTitle, SubmitUrl},
         id::SolutionId,
         tags::Tags,
@@ -82,7 +83,7 @@ impl SolutionRepository for GateRepository {
         Ok(())
     }
 
-    async fn delete_comment(&self, _comment_id: Uuid) -> Result<(), RepositoryError> {
+    async fn delete_comment(&self, _comment_id: CommentId) -> Result<(), RepositoryError> {
         Ok(())
     }
 
@@ -93,7 +94,7 @@ impl SolutionRepository for GateRepository {
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: user_id.clone(),
             user_name: user_name("name"),
             solution_id,
@@ -105,11 +106,11 @@ impl SolutionRepository for GateRepository {
 
     async fn update_comment(
         &self,
-        _comment_id: Uuid,
+        _comment_id: CommentId,
         body_md: &str,
     ) -> Result<SolutionComment, RepositoryError> {
         Ok(SolutionComment {
-            id: Uuid::now_v7(),
+            id: Uuid::now_v7().into(),
             user_id: user_id(&self.comment_owner),
             user_name: user_name("name"),
             solution_id: Uuid::now_v7().into(),
@@ -183,11 +184,11 @@ impl SolutionRepository for GateRepository {
         Ok(user_id(&self.solution_owner))
     }
 
-    async fn comment_exists(&self, _comment_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn comment_exists(&self, _comment_id: CommentId) -> Result<bool, RepositoryError> {
         Ok(self.comment_exists)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<UserId, RepositoryError> {
+    async fn get_comment_user_id(&self, _comment_id: CommentId) -> Result<UserId, RepositoryError> {
         Ok(user_id(&self.comment_owner))
     }
 }
@@ -245,7 +246,7 @@ async fn update_comment_forbidden_for_non_owner() -> Result<()> {
     let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
         user_id: user_id("attacker"),
-        comment_id: Uuid::now_v7(),
+        comment_id: Uuid::now_v7().into(),
         body_md: "body".to_string(),
     };
 
@@ -265,7 +266,7 @@ async fn delete_comment_forbidden_for_non_owner() -> Result<()> {
     let uc = DeleteCommentUsecase::new(repository);
 
     let err = uc
-        .run(user_id("attacker"), Uuid::now_v7())
+        .run(user_id("attacker"), Uuid::now_v7().into())
         .await
         .expect_err("should be forbidden");
     assert!(matches!(err, SolutionError::Forbidden(_)));
@@ -361,7 +362,7 @@ async fn update_comment_not_found_is_returned_before_owner_check() -> Result<()>
     let uc = UpdateCommentUsecase::new(repository);
     let input = UpdateCommentInput {
         user_id: user_id("owner"),
-        comment_id: Uuid::now_v7(),
+        comment_id: Uuid::now_v7().into(),
         body_md: "body".to_string(),
     };
 

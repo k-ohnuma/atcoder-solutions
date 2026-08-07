@@ -3,7 +3,7 @@ use domain::{
     error::repository::RepositoryError,
     model::{
         problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-        solution::id::SolutionId,
+        solution::{comment_id::CommentId, id::SolutionId},
         user::{id::UserId, name::UserName},
     },
     read_model::solution::{
@@ -125,7 +125,7 @@ impl TryFrom<SolutionCommentViewRaw> for SolutionComment {
         } = value;
 
         Ok(Self {
-            id,
+            id: CommentId::new(id),
             user_id: UserId::try_new(user_id)
                 .map_err(|error| RepositoryError::Unexpected(error.to_string()))?,
             user_name: UserName::try_new(user_name)

@@ -1,13 +1,12 @@
 use chrono::{DateTime, Utc};
 use domain::model::{
     problem::{contest_code::ContestCode, id::ProblemId, title::ProblemTitle},
-    solution::id::SolutionId,
+    solution::{comment_id::CommentId, id::SolutionId},
     user::{id::UserId, name::UserName},
 };
 use domain::read_model::solution::{
     SolutionComment, SolutionDetails, SolutionListItem, UserSolutionListItem,
 };
-use uuid::Uuid;
 
 pub struct SolutionListItemOutput {
     pub id: SolutionId,
@@ -48,7 +47,7 @@ pub struct UserSolutionListItemOutput {
 }
 
 pub struct CommentOutput {
-    pub id: Uuid,
+    pub id: CommentId,
     pub user_id: UserId,
     pub user_name: UserName,
     pub solution_id: SolutionId,
