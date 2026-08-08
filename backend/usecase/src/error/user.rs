@@ -3,7 +3,7 @@ use domain::{
         repository::RepositoryError,
         user::{CreateUserRepositoryError, UserValidationError},
     },
-    ports::external::auth::AuthError,
+    ports::external::auth::{AuthProviderError, CreateIdentityError},
 };
 use thiserror::Error;
 
@@ -45,16 +45,26 @@ impl From<CreateUserRepositoryError> for UserError {
     }
 }
 
-impl From<AuthError> for UserError {
-    fn from(value: AuthError) -> Self {
+impl From<AuthProviderError> for UserError {
+    fn from(value: AuthProviderError) -> Self {
         match value {
-            AuthError::Unauthorized => UserError::BadRequest("unauthorized".to_string()),
-            AuthError::BadRequest(msg) => UserError::BadRequest(msg),
-            AuthError::Conflict(msg) => UserError::EmailAlreadyExists(msg),
-            AuthError::TemporarilyUnavailable => {
+            AuthProviderError::TemporarilyUnavailable => {
                 UserError::Unavailable("identity provider temporarily unavailable".to_string())
             }
-            AuthError::Unexpected(msg) => UserError::Internal(msg),
+            AuthProviderError::Unexpected(msg) => UserError::Internal(msg),
+        }
+    }
+}
+
+impl From<CreateIdentityError> for UserError {
+    fn from(value: CreateIdentityError) -> Self {
+        match value {
+            CreateIdentityError::EmailAlreadyExists => {
+                UserError::EmailAlreadyExists("email already exists".to_string())
+            }
+            CreateIdentityError::InvalidEmail => UserError::BadRequest("invalid email".to_string()),
+            CreateIdentityError::WeakPassword => UserError::BadRequest("weak password".to_string()),
+            CreateIdentityError::Provider(error) => UserError::from(error),
         }
     }
 }

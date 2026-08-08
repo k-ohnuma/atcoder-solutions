@@ -5,7 +5,7 @@ use axum::{
 };
 use domain::{
     model::user::Role,
-    ports::external::auth::{AuthError, Principal},
+    ports::external::auth::{AuthProviderError, Principal, VerifyTokenError},
 };
 use registry::Registry;
 
@@ -19,6 +19,7 @@ pub struct AdminUser(pub Principal);
 pub enum AuthRejection {
     Unauthorized,
     Unavailable(String),
+    Internal(String),
     Forbidden,
 }
 
@@ -33,6 +34,7 @@ impl From<AuthRejection> for HttpError {
         match value {
             AuthRejection::Unauthorized => HttpError::Unauthorized("Unauthorized".to_string()),
             AuthRejection::Unavailable(reason) => HttpError::ServiceUnavailable(reason),
+            AuthRejection::Internal(reason) => HttpError::Internal(reason),
             AuthRejection::Forbidden => HttpError::Forbidden("Forbidden".to_string()),
         }
     }
@@ -105,13 +107,16 @@ async fn verify_principal(state: &Registry, token: &str) -> Result<Principal, Au
         .map_err(map_token_verification_error)
 }
 
-fn map_token_verification_error(error: AuthError) -> AuthRejection {
+fn map_token_verification_error(error: VerifyTokenError) -> AuthRejection {
     match error {
-        AuthError::Unauthorized | AuthError::BadRequest(_) | AuthError::Conflict(_) => {
-            AuthRejection::Unauthorized
+        VerifyTokenError::InvalidToken => AuthRejection::Unauthorized,
+        VerifyTokenError::Provider(AuthProviderError::TemporarilyUnavailable) => {
+            AuthRejection::Unavailable(
+                "failed to verify ID token: temporarily unavailable".to_string(),
+            )
         }
-        error @ (AuthError::TemporarilyUnavailable | AuthError::Unexpected(_)) => {
-            AuthRejection::Unavailable(format!("failed to verify ID token: {error}"))
+        VerifyTokenError::Provider(AuthProviderError::Unexpected(reason)) => {
+            AuthRejection::Internal(format!("failed to verify ID token: {reason}"))
         }
     }
 }
@@ -129,27 +134,36 @@ fn bearer_token(parts: &Parts) -> Result<&str, AuthRejection> {
 
 #[cfg(test)]
 mod tests {
-    use domain::ports::external::auth::AuthError;
+    use domain::ports::external::auth::{AuthProviderError, VerifyTokenError};
 
     use super::{AuthRejection, map_token_verification_error};
 
     #[test]
-    fn unexpected_auth_error_keeps_diagnostic_context() {
-        let rejection =
-            map_token_verification_error(AuthError::Unexpected("key service failed".to_string()));
+    fn unexpected_auth_error_maps_to_internal_and_keeps_diagnostic_context() {
+        let rejection = map_token_verification_error(VerifyTokenError::Provider(
+            AuthProviderError::Unexpected("key service failed".to_string()),
+        ));
 
         assert!(matches!(
             rejection,
-            AuthRejection::Unavailable(reason)
+            AuthRejection::Internal(reason)
                 if reason == "failed to verify ID token: key service failed"
         ));
     }
 
     #[test]
     fn invalid_token_details_are_not_exposed() {
-        let rejection =
-            map_token_verification_error(AuthError::BadRequest("invalid claim".to_string()));
+        let rejection = map_token_verification_error(VerifyTokenError::InvalidToken);
 
         assert!(matches!(rejection, AuthRejection::Unauthorized));
+    }
+
+    #[test]
+    fn temporarily_unavailable_auth_provider_maps_to_unavailable() {
+        let rejection = map_token_verification_error(VerifyTokenError::Provider(
+            AuthProviderError::TemporarilyUnavailable,
+        ));
+
+        assert!(matches!(rejection, AuthRejection::Unavailable(_)));
     }
 }

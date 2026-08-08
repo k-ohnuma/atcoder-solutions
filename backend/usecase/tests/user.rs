@@ -6,7 +6,9 @@ use domain::{
     error::{repository::RepositoryError, user::CreateUserRepositoryError},
     model::user::{Role, User, id::UserId, name::UserName},
     ports::{
-        external::auth::{AuthError, CreatedIdentity, IdentityProviderPort},
+        external::auth::{
+            AuthProviderError, CreateIdentityError, CreatedIdentity, IdentityProviderPort,
+        },
         repository::user::UserRepository,
     },
 };
@@ -39,7 +41,10 @@ impl IdentityProviderPort for DummyIdentityProvider {
         &self,
         email: &str,
         _password: &str,
-    ) -> Result<CreatedIdentity, AuthError> {
+    ) -> Result<CreatedIdentity, CreateIdentityError> {
+        if email == "existing-email@example.com" {
+            return Err(CreateIdentityError::EmailAlreadyExists);
+        }
         if email == "conflict@example.com" {
             return Ok(CreatedIdentity {
                 uid: user_id("conflict"),
@@ -55,7 +60,7 @@ impl IdentityProviderPort for DummyIdentityProvider {
         })
     }
 
-    async fn delete_user(&self, uid: &UserId) -> Result<(), AuthError> {
+    async fn delete_user(&self, uid: &UserId) -> Result<(), AuthProviderError> {
         self.deleted_uids
             .lock()
             .unwrap()
@@ -177,6 +182,30 @@ async fn usecase_create_user_returns_user_name_conflict() -> Result<()> {
         ["conflict"]
     );
     //
+    Ok(())
+}
+
+#[tokio::test]
+async fn usecase_create_user_returns_email_conflict() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+        deleted_uids: Mutex::new(vec![]),
+    });
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo.to_owned(), identity_provider.to_owned());
+
+    let input = CreateUserInput::try_new(
+        "user_name".into(),
+        "existing-email@example.com".into(),
+        "Password1".into(),
+    )?;
+
+    let error = uc.run(input).await.expect_err("should conflict");
+
+    assert!(matches!(error, UserError::EmailAlreadyExists(_)));
+    assert!(repo.calls.lock().unwrap().is_empty());
+    assert!(identity_provider.deleted_uids.lock().unwrap().is_empty());
+
     Ok(())
 }
 
