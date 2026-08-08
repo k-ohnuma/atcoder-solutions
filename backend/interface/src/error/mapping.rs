@@ -38,7 +38,6 @@ impl ToHttpError for SolutionError {
             SolutionError::BadRequest(reason) => HttpError::BadRequest(reason),
             SolutionError::Forbidden(reason) => HttpError::Forbidden(reason),
             SolutionError::NotFound(reason) => HttpError::NotFound(reason),
-            SolutionError::Conflict(reason) => HttpError::Conflict(reason),
             SolutionError::Internal(reason) => {
                 tracing::error!(domain = "solution", error.message = %reason, "internal error");
                 HttpError::Internal(reason)
@@ -52,7 +51,6 @@ impl ToHttpError for UserError {
         match self {
             UserError::BadRequest(reason) => HttpError::BadRequest(reason),
             UserError::NotFound(reason) => HttpError::NotFound(reason),
-            UserError::Conflict(reason) => HttpError::Conflict(reason),
             UserError::EmailAlreadyExists(reason) => HttpError::ConflictWithCode {
                 message: reason,
                 error_code: "EMAIL_ALREADY_EXISTS",
@@ -77,7 +75,6 @@ impl ToHttpError for ContestError {
     fn to_http_error(self) -> HttpError {
         match self {
             ContestError::BadRequest(reason) => HttpError::BadRequest(reason),
-            ContestError::NotFound(reason) => HttpError::NotFound(reason),
             ContestError::Internal(reason) => {
                 tracing::error!(domain = "contest", error.message = %reason, "internal error");
                 HttpError::Internal(reason)

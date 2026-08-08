@@ -87,7 +87,8 @@ impl FromRequestParts<Registry> for AdminUser {
             .await
             .map_err(|error| {
                 AuthRejection::Unavailable(format!("failed to load authenticated user: {error}"))
-            })?;
+            })?
+            .ok_or(AuthRejection::Forbidden)?;
 
         match user.role {
             Role::Admin => Ok(AdminUser(principal)),

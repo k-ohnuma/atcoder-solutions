@@ -163,7 +163,10 @@ impl ProblemRepository for ProblemRepositoryImpl {
             .collect()
     }
 
-    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
+    async fn get_problem_by_id(
+        &self,
+        problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError> {
         let problem_id = problem_id.as_str();
         let problem = sqlx::query_as!(
             ProblemRow,
@@ -176,10 +179,12 @@ impl ProblemRepository for ProblemRepositoryImpl {
         )
         .fetch_optional(self.db.inner_ref())
         .await
-        .map_err(map_sqlx_error)?
-        .ok_or_else(|| RepositoryError::NotFound(problem_id.to_string()))?;
+        .map_err(map_sqlx_error)?;
 
-        Problem::try_from(problem).map_err(|error| RepositoryError::Unexpected(error.to_string()))
+        problem
+            .map(Problem::try_from)
+            .transpose()
+            .map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
     async fn problem_exists(&self, problem_id: &ProblemId) -> Result<bool, RepositoryError> {

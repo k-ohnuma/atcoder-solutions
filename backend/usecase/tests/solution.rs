@@ -11,7 +11,7 @@ use domain::model::{
     user::{id::UserId, name::UserName},
 };
 use domain::{
-    error::repository::RepositoryError,
+    error::{repository::RepositoryError, user::CreateUserRepositoryError},
     model::{
         problem::{ContestSeries, Problem},
         user::User,
@@ -166,7 +166,7 @@ impl SolutionRepository for DummySolutionRepository {
     async fn get_solution_by_solution_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<SolutionDetails, RepositoryError> {
+    ) -> Result<Option<SolutionDetails>, RepositoryError> {
         Err(RepositoryError::Unexpected(
             "not used in this test".to_string(),
         ))
@@ -223,16 +223,19 @@ impl SolutionRepository for DummySolutionRepository {
     async fn get_solution_user_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<UserId, RepositoryError> {
-        Ok(user_id("uid"))
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(Some(user_id("uid")))
     }
 
     async fn comment_exists(&self, _comment_id: CommentId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: CommentId) -> Result<UserId, RepositoryError> {
-        Ok(user_id("uid"))
+    async fn get_comment_user_id(
+        &self,
+        _comment_id: CommentId,
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(Some(user_id("uid")))
     }
 }
 
@@ -269,8 +272,11 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
-    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
-        Err(RepositoryError::NotFound(problem_id.as_str().to_string()))
+    async fn get_problem_by_id(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError> {
+        Ok(None)
     }
 
     async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {
@@ -287,24 +293,24 @@ impl ProblemRepository for DummyProblemRepository {
 
 #[async_trait]
 impl UserRepository for DummyUserRepository {
-    async fn create_user(&self, _user: User) -> Result<(), RepositoryError> {
+    async fn create_user(&self, _user: User) -> Result<(), CreateUserRepositoryError> {
         Ok(())
     }
 
-    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError> {
-        Err(RepositoryError::NotFound(uid.as_str().to_string()))
+    async fn find_by_uid(&self, _uid: &UserId) -> Result<Option<User>, RepositoryError> {
+        Ok(None)
     }
 
     async fn user_name_exists(&self, _user_name: &UserName) -> Result<bool, RepositoryError> {
         Ok(self.exists)
     }
 
-    async fn delete_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
-        Ok(())
+    async fn delete_by_uid(&self, _uid: &UserId) -> Result<bool, RepositoryError> {
+        Ok(true)
     }
 
-    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
-        Ok(())
+    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<bool, RepositoryError> {
+        Ok(true)
     }
 
     async fn is_token_revoked(

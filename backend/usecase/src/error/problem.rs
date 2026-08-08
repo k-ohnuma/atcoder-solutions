@@ -24,10 +24,9 @@ pub enum ProblemError {
 impl From<RepositoryError> for ProblemError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::NotFound(msg) => ProblemError::NotFound(msg),
-            RepositoryError::Conflict(msg)
-            | RepositoryError::Unavailable(msg)
-            | RepositoryError::Unexpected(msg) => ProblemError::Internal(msg),
+            RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
+                ProblemError::Internal(msg)
+            }
         }
     }
 }

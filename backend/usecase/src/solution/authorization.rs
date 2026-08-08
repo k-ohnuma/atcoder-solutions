@@ -14,12 +14,10 @@ pub async fn ensure_solution_owner(
     user_id: &UserId,
     forbidden_message: &str,
 ) -> Result<(), SolutionError> {
-    let exists = repository.solution_exists(solution_id).await?;
-    if !exists {
-        return Err(SolutionError::NotFound("solution not found".to_string()));
-    }
-
-    let owner_user_id = repository.get_solution_user_id(solution_id).await?;
+    let owner_user_id = repository
+        .get_solution_user_id(solution_id)
+        .await?
+        .ok_or_else(|| SolutionError::NotFound("solution not found".to_string()))?;
     if &owner_user_id != user_id {
         return Err(SolutionError::Forbidden(forbidden_message.to_string()));
     }
@@ -33,12 +31,10 @@ pub async fn ensure_comment_owner(
     user_id: &UserId,
     forbidden_message: &str,
 ) -> Result<(), SolutionError> {
-    let exists = repository.comment_exists(comment_id).await?;
-    if !exists {
-        return Err(SolutionError::NotFound("comment not found".to_string()));
-    }
-
-    let owner_user_id = repository.get_comment_user_id(comment_id).await?;
+    let owner_user_id = repository
+        .get_comment_user_id(comment_id)
+        .await?
+        .ok_or_else(|| SolutionError::NotFound("comment not found".to_string()))?;
     if &owner_user_id != user_id {
         return Err(SolutionError::Forbidden(forbidden_message.to_string()));
     }

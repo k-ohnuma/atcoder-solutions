@@ -13,10 +13,14 @@ pub struct RevokeTokensUsecase {
 
 impl RevokeTokensUsecase {
     pub async fn run(&self, uid: UserId) -> Result<RevokeTokensOutput, UserError> {
-        self.user_repository
+        let revoked = self
+            .user_repository
             .revoke_tokens_by_uid(&uid)
             .await
             .map_err(UserError::from)?;
+        if !revoked {
+            return Err(UserError::NotFound("user not found".to_string()));
+        }
         Ok(RevokeTokensOutput::new(uid))
     }
 }

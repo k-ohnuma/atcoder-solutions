@@ -17,7 +17,8 @@ impl GetMeUsecase {
             .user_repository
             .find_by_uid(&uid)
             .await
-            .map_err(UserError::from)?;
+            .map_err(UserError::from)?
+            .ok_or_else(|| UserError::NotFound("user not found".to_string()))?;
         Ok(GetMeOutput::new(user.id, user.user_name))
     }
 }

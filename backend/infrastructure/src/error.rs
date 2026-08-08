@@ -14,7 +14,7 @@ pub fn map_sqlx_error(err: sqlx::Error) -> RepositoryError {
     tracing::error!(error.kind = kind, error.message = %err, error.debug = ?err, "sqlx error");
 
     match err {
-        sqlx::Error::RowNotFound => RepositoryError::NotFound(err.to_string()),
+        sqlx::Error::RowNotFound => RepositoryError::Unexpected(err.to_string()),
         sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed | sqlx::Error::Io(_) => {
             RepositoryError::Unavailable(err.to_string())
         }
@@ -30,10 +30,7 @@ fn map_database_error(db_err: &dyn DatabaseError) -> RepositoryError {
         "sqlx database error"
     );
 
-    match db_err.code().as_deref() {
-        Some("23505") => RepositoryError::Conflict(db_err.message().to_string()),
-        _ => RepositoryError::Unexpected(db_err.message().to_string()),
-    }
+    RepositoryError::Unexpected(db_err.message().to_string())
 }
 
 pub fn map_reqwest_error(err: reqwest::Error) -> ExternalError {

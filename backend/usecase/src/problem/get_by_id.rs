@@ -19,6 +19,9 @@ impl GetProblemByIdUsecase {
             .get_problem_by_id(&input.problem_id)
             .await
             .map_err(ProblemError::from)
+            .and_then(|problem| {
+                problem.ok_or_else(|| ProblemError::NotFound("problem not found".to_string()))
+            })
             .map(ProblemOutput::from)
     }
 }

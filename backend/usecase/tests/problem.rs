@@ -130,8 +130,11 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
-    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError> {
-        Err(RepositoryError::NotFound(problem_id.as_str().to_string()))
+    async fn get_problem_by_id(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError> {
+        Ok(None)
     }
 
     async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {

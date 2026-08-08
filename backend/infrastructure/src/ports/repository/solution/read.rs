@@ -251,7 +251,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn get_solution_by_solution_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<SolutionDetails, RepositoryError> {
+    ) -> Result<Option<SolutionDetails>, RepositoryError> {
         let solution_id = solution_id.into_uuid();
         let solution = sqlx::query_as!(
             SolutionDetailsViewRaw,
@@ -293,11 +293,11 @@ impl SolutionRepository for SolutionRepositoryImpl {
             "#,
             solution_id
         )
-        .fetch_one(self.db.inner_ref())
+        .fetch_optional(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        solution.try_into()
+        solution.map(TryInto::try_into).transpose()
     }
 
     async fn get_solutions_by_user_name(
@@ -442,7 +442,7 @@ impl SolutionRepository for SolutionRepositoryImpl {
     async fn get_solution_user_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<UserId, RepositoryError> {
+    ) -> Result<Option<UserId>, RepositoryError> {
         let solution_id = solution_id.into_uuid();
         let rec = sqlx::query!(
             r#"
@@ -452,11 +452,13 @@ impl SolutionRepository for SolutionRepositoryImpl {
             "#,
             solution_id
         )
-        .fetch_one(self.db.inner_ref())
+        .fetch_optional(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        UserId::try_new(rec.user_id).map_err(|error| RepositoryError::Unexpected(error.to_string()))
+        rec.map(|row| UserId::try_new(row.user_id))
+            .transpose()
+            .map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 
     async fn comment_exists(&self, comment_id: CommentId) -> Result<bool, RepositoryError> {
@@ -477,7 +479,10 @@ impl SolutionRepository for SolutionRepositoryImpl {
         Ok(rec.exists)
     }
 
-    async fn get_comment_user_id(&self, comment_id: CommentId) -> Result<UserId, RepositoryError> {
+    async fn get_comment_user_id(
+        &self,
+        comment_id: CommentId,
+    ) -> Result<Option<UserId>, RepositoryError> {
         let rec = sqlx::query!(
             r#"
                 SELECT user_id
@@ -486,10 +491,12 @@ impl SolutionRepository for SolutionRepositoryImpl {
             "#,
             comment_id.into_uuid()
         )
-        .fetch_one(self.db.inner_ref())
+        .fetch_optional(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        UserId::try_new(rec.user_id).map_err(|error| RepositoryError::Unexpected(error.to_string()))
+        rec.map(|row| UserId::try_new(row.user_id))
+            .transpose()
+            .map_err(|error| RepositoryError::Unexpected(error.to_string()))
     }
 }

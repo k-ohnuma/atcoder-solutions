@@ -15,7 +15,8 @@ impl GetSolutionBySolutionIdUsecase {
         let item = self
             .repository
             .get_solution_by_solution_id(solution_id)
-            .await?;
+            .await?
+            .ok_or_else(|| SolutionError::NotFound("solution not found".to_string()))?;
         Ok(item.into())
     }
 }

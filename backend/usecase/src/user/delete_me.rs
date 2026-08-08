@@ -33,13 +33,20 @@ impl DeleteMeUsecase {
             .await
             .map_err(UserError::from)?;
 
-        if let Err(repository_error) = self.user_repository.delete_by_uid(&uid).await {
-            error!(
-                uid = uid.as_str(),
-                repository_error = ?repository_error,
-                "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
-            );
-            return Err(UserError::from(repository_error));
+        let deleted = self
+            .user_repository
+            .delete_by_uid(&uid)
+            .await
+            .map_err(|repository_error| {
+                error!(
+                    uid = uid.as_str(),
+                    repository_error = ?repository_error,
+                    "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
+                );
+                UserError::from(repository_error)
+            })?;
+        if !deleted {
+            return Err(UserError::NotFound("user not found".to_string()));
         }
         Ok(DeleteMeOutput::new(uid))
     }

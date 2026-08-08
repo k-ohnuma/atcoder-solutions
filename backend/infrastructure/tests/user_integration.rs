@@ -1,6 +1,6 @@
 use anyhow::Result;
 use domain::{
-    error::repository::RepositoryError,
+    error::{repository::RepositoryError, user::CreateUserRepositoryError},
     model::user::{Role, User, id::UserId, name::UserName},
     ports::repository::user::UserRepository,
 };
@@ -81,15 +81,10 @@ async fn create_user_conflict_on_username_returns_conflict_error(pool: PgPool) -
     let u2 = make_user("id-b", "alice");
     let err = repo.create_user(u2).await.expect_err("should conflict");
 
-    match err {
-        RepositoryError::Conflict(msg) => {
-            assert!(
-                msg.contains("alice"),
-                "message should mention user_name, got: {msg}"
-            );
-        }
-        other => panic!("expected Conflict, got {:?}", other),
-    }
+    assert!(matches!(
+        err,
+        CreateUserRepositoryError::UserNameAlreadyExists
+    ));
 
     let count = sqlx::query_scalar!("SELECT COUNT(*) FROM users WHERE user_name = $1", "alice")
         .fetch_one(&pool)
@@ -113,10 +108,10 @@ async fn create_user_same_id_is_db_error_not_conflict(pool: PgPool) -> Result<()
     let u2 = make_user("same-id", "bob2");
     let err = repo.create_user(u2).await.expect_err("pk(id) should error");
 
-    match err {
-        RepositoryError::Conflict(_msg) => {}
-        other => panic!("expected unique value violation, got {:?}", other),
-    }
+    assert!(matches!(
+        err,
+        CreateUserRepositoryError::Repository(RepositoryError::Unexpected(_))
+    ));
     let count = sqlx::query_scalar!("SELECT COUNT(*) FROM users WHERE id = $1", "same-id")
         .fetch_one(&pool)
         .await
@@ -141,10 +136,16 @@ async fn find_by_uid(pool: PgPool) -> Result<()> {
         repo.create_user(user).await?;
     }
 
-    let user = repo.find_by_uid(&user_id("id1")).await?;
+    let user = repo
+        .find_by_uid(&user_id("id1"))
+        .await?
+        .expect("user should exist");
     assert_eq!(user.user_name.as_str(), "bob1");
 
-    let user = repo.find_by_uid(&user_id("id3")).await?;
+    let user = repo
+        .find_by_uid(&user_id("id3"))
+        .await?
+        .expect("user should exist");
     assert_eq!(user.user_name.as_str(), "bob3");
 
     Ok(())
@@ -164,12 +165,8 @@ async fn find_by_uid_no_record(pool: PgPool) -> Result<()> {
         repo.create_user(user).await?;
     }
 
-    let err = repo
-        .find_by_uid(&user_id("id999"))
-        .await
-        .expect_err("should error");
-    let mat = matches!(err, RepositoryError::NotFound(_));
-    assert!(mat, "should be not found error");
+    let user = repo.find_by_uid(&user_id("id999")).await?;
+    assert!(user.is_none());
 
     Ok(())
 }
@@ -187,7 +184,7 @@ async fn revoke_tokens_and_check_revoked_status(pool: PgPool) -> Result<()> {
     let before_revoke = repo.is_token_revoked(&uid, 0).await?;
     assert!(!before_revoke);
 
-    repo.revoke_tokens_by_uid(&uid).await?;
+    assert!(repo.revoke_tokens_by_uid(&uid).await?);
 
     let revoked_epoch = sqlx::query_scalar!(
         r#"

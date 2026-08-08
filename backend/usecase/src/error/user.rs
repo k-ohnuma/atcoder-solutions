@@ -1,5 +1,8 @@
 use domain::{
-    error::{repository::RepositoryError, user::UserValidationError},
+    error::{
+        repository::RepositoryError,
+        user::{CreateUserRepositoryError, UserValidationError},
+    },
     ports::external::auth::AuthError,
 };
 use thiserror::Error;
@@ -13,8 +16,6 @@ pub enum UserError {
     #[error("{0}")]
     NotFound(String),
     #[error("{0}")]
-    Conflict(String),
-    #[error("{0}")]
     EmailAlreadyExists(String),
     #[error("{0}")]
     UserNameAlreadyExists(String),
@@ -25,11 +26,20 @@ pub enum UserError {
 impl From<RepositoryError> for UserError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::NotFound(msg) => UserError::NotFound(msg),
-            RepositoryError::Conflict(msg) => UserError::UserNameAlreadyExists(msg),
             RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
                 UserError::Internal(msg)
             }
+        }
+    }
+}
+
+impl From<CreateUserRepositoryError> for UserError {
+    fn from(value: CreateUserRepositoryError) -> Self {
+        match value {
+            CreateUserRepositoryError::UserNameAlreadyExists => {
+                UserError::UserNameAlreadyExists("user name already exists".to_string())
+            }
+            CreateUserRepositoryError::Repository(error) => UserError::from(error),
         }
     }
 }

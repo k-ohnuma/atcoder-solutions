@@ -140,7 +140,7 @@ impl SolutionRepository for GateRepository {
     async fn get_solution_by_solution_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<SolutionDetails, RepositoryError> {
+    ) -> Result<Option<SolutionDetails>, RepositoryError> {
         Err(RepositoryError::Unexpected("unused".to_string()))
     }
 
@@ -181,16 +181,19 @@ impl SolutionRepository for GateRepository {
     async fn get_solution_user_id(
         &self,
         _solution_id: SolutionId,
-    ) -> Result<UserId, RepositoryError> {
-        Ok(user_id(&self.solution_owner))
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(self.solution_exists.then(|| user_id(&self.solution_owner)))
     }
 
     async fn comment_exists(&self, _comment_id: CommentId) -> Result<bool, RepositoryError> {
         Ok(self.comment_exists)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: CommentId) -> Result<UserId, RepositoryError> {
-        Ok(user_id(&self.comment_owner))
+    async fn get_comment_user_id(
+        &self,
+        _comment_id: CommentId,
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(self.comment_exists.then(|| user_id(&self.comment_owner)))
     }
 }
 

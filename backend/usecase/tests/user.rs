@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use domain::{
-    error::repository::RepositoryError,
+    error::{repository::RepositoryError, user::CreateUserRepositoryError},
     model::user::{Role, User, id::UserId, name::UserName},
     ports::{
         external::auth::{AuthError, CreatedIdentity, IdentityProviderPort},
@@ -45,6 +45,11 @@ impl IdentityProviderPort for DummyIdentityProvider {
                 uid: user_id("conflict"),
             });
         }
+        if email == "repository-failure@example.com" {
+            return Ok(CreatedIdentity {
+                uid: user_id("repository-failure"),
+            });
+        }
         Ok(CreatedIdentity {
             uid: user_id("valid"),
         })
@@ -67,39 +72,44 @@ fn dummy_identity_provider() -> Arc<DummyIdentityProvider> {
 
 #[async_trait]
 impl UserRepository for DummyUserRepository {
-    async fn create_user(&self, user: User) -> Result<(), RepositoryError> {
+    async fn create_user(&self, user: User) -> Result<(), CreateUserRepositoryError> {
         let id = user.id.as_str();
         if id == "conflict" {
-            return Err(RepositoryError::Conflict("already exist".into()));
+            return Err(CreateUserRepositoryError::UserNameAlreadyExists);
+        }
+        if id == "repository-failure" {
+            return Err(CreateUserRepositoryError::Repository(
+                RepositoryError::Unexpected("users primary key already exists".to_string()),
+            ));
         }
         self.calls.lock().unwrap().push(user);
         Ok(())
     }
-    async fn find_by_uid(&self, uid: &UserId) -> Result<User, RepositoryError> {
+    async fn find_by_uid(&self, uid: &UserId) -> Result<Option<User>, RepositoryError> {
         if uid.as_str() == "valid id" {
-            return Ok(User {
+            return Ok(Some(User {
                 id: uid.clone(),
                 role: Role::default(),
                 user_name: user_name("valid_user"),
-            });
+            }));
         }
-        Err(RepositoryError::NotFound("Not found".into()))
+        Ok(None)
     }
 
     async fn user_name_exists(&self, _user_name: &UserName) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn delete_by_uid(&self, uid: &UserId) -> Result<(), RepositoryError> {
+    async fn delete_by_uid(&self, uid: &UserId) -> Result<bool, RepositoryError> {
         self.deleted_uids
             .lock()
             .unwrap()
             .push(uid.as_str().to_string());
-        Ok(())
+        Ok(true)
     }
 
-    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<(), RepositoryError> {
-        Ok(())
+    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<bool, RepositoryError> {
+        Ok(true)
     }
 
     async fn is_token_revoked(
@@ -145,7 +155,7 @@ async fn usecase_create_user_ok() -> Result<()> {
 }
 
 #[tokio::test]
-async fn usecase_create_user_conflict() -> Result<()> {
+async fn usecase_create_user_returns_user_name_conflict() -> Result<()> {
     let repo = Arc::new(DummyUserRepository {
         calls: Mutex::new(vec![]),
         deleted_uids: Mutex::new(vec![]),
@@ -159,14 +169,40 @@ async fn usecase_create_user_conflict() -> Result<()> {
         "Password1".into(),
     )?;
 
-    let t = uc.run(input).await.expect_err("conf");
+    let error = uc.run(input).await.expect_err("should conflict");
 
-    matches!(t, UserError::Conflict(_));
+    assert!(matches!(error, UserError::UserNameAlreadyExists(_)));
     assert_eq!(
         identity_provider.deleted_uids.lock().unwrap().as_slice(),
         ["conflict"]
     );
     //
+    Ok(())
+}
+
+#[tokio::test]
+async fn usecase_create_user_maps_repository_failure_to_internal_error() -> Result<()> {
+    let repo = Arc::new(DummyUserRepository {
+        calls: Mutex::new(vec![]),
+        deleted_uids: Mutex::new(vec![]),
+    });
+    let identity_provider = dummy_identity_provider();
+    let uc = CreateUserUsecase::new(repo, identity_provider.to_owned());
+
+    let input = CreateUserInput::try_new(
+        "user_name".into(),
+        "repository-failure@example.com".into(),
+        "Password1".into(),
+    )?;
+
+    let error = uc.run(input).await.expect_err("should fail");
+
+    assert!(matches!(error, UserError::Internal(_)));
+    assert_eq!(
+        identity_provider.deleted_uids.lock().unwrap().as_slice(),
+        ["repository-failure"]
+    );
+
     Ok(())
 }
 
