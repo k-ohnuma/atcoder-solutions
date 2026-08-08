@@ -13,15 +13,16 @@ pub enum SolutionError {
     #[error("{0}")]
     Internal(String),
     #[error("{0}")]
+    Unavailable(String),
+    #[error("{0}")]
     NotFound(String),
 }
 
 impl From<RepositoryError> for SolutionError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
-                SolutionError::Internal(msg)
-            }
+            RepositoryError::Unavailable(msg) => SolutionError::Unavailable(msg),
+            RepositoryError::Unexpected(msg) => SolutionError::Internal(msg),
         }
     }
 }

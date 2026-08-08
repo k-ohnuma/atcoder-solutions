@@ -14,6 +14,8 @@ pub enum UserError {
     #[error("{0}")]
     Internal(String),
     #[error("{0}")]
+    Unavailable(String),
+    #[error("{0}")]
     NotFound(String),
     #[error("{0}")]
     EmailAlreadyExists(String),
@@ -26,9 +28,8 @@ pub enum UserError {
 impl From<RepositoryError> for UserError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
-                UserError::Internal(msg)
-            }
+            RepositoryError::Unavailable(msg) => UserError::Unavailable(msg),
+            RepositoryError::Unexpected(msg) => UserError::Internal(msg),
         }
     }
 }
@@ -51,7 +52,7 @@ impl From<AuthError> for UserError {
             AuthError::BadRequest(msg) => UserError::BadRequest(msg),
             AuthError::Conflict(msg) => UserError::EmailAlreadyExists(msg),
             AuthError::TemporarilyUnavailable => {
-                UserError::Internal("identity provider temporarily unavailable".to_string())
+                UserError::Unavailable("identity provider temporarily unavailable".to_string())
             }
             AuthError::Unexpected(msg) => UserError::Internal(msg),
         }

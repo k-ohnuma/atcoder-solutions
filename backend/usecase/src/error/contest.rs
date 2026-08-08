@@ -7,14 +7,15 @@ pub enum ContestError {
     BadRequest(String),
     #[error("{0}")]
     Internal(String),
+    #[error("{0}")]
+    Unavailable(String),
 }
 
 impl From<RepositoryError> for ContestError {
     fn from(value: RepositoryError) -> Self {
         match value {
-            RepositoryError::Unavailable(msg) | RepositoryError::Unexpected(msg) => {
-                ContestError::Internal(msg)
-            }
+            RepositoryError::Unavailable(msg) => ContestError::Unavailable(msg),
+            RepositoryError::Unexpected(msg) => ContestError::Internal(msg),
         }
     }
 }
