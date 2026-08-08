@@ -51,7 +51,7 @@ pub trait SolutionRepository: Send + Sync {
     async fn get_solution_by_solution_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<SolutionDetails, RepositoryError>;
+    ) -> Result<Option<SolutionDetails>, RepositoryError>;
     async fn get_solutions_by_user_name(
         &self,
         user_name: UserName,
@@ -74,7 +74,10 @@ pub trait SolutionRepository: Send + Sync {
     async fn get_solution_user_id(
         &self,
         solution_id: SolutionId,
-    ) -> Result<UserId, RepositoryError>;
+    ) -> Result<Option<UserId>, RepositoryError>;
     async fn comment_exists(&self, comment_id: CommentId) -> Result<bool, RepositoryError>;
-    async fn get_comment_user_id(&self, comment_id: CommentId) -> Result<UserId, RepositoryError>;
+    async fn get_comment_user_id(
+        &self,
+        comment_id: CommentId,
+    ) -> Result<Option<UserId>, RepositoryError>;
 }

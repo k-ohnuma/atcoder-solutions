@@ -1,5 +1,16 @@
 use thiserror::Error;
 
+use super::repository::RepositoryError;
+
+#[derive(Debug, Error)]
+pub enum CreateUserRepositoryError {
+    #[error("user name already exists")]
+    UserNameAlreadyExists,
+
+    #[error(transparent)]
+    Repository(#[from] RepositoryError),
+}
+
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum UserValidationError {
     #[error("userId cannot be empty")]

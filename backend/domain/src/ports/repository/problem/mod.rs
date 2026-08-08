@@ -26,7 +26,10 @@ pub trait ProblemRepository: Send + Sync {
         series: ContestSeries,
         query: &str,
     ) -> Result<Vec<Problem>, RepositoryError>;
-    async fn get_problem_by_id(&self, problem_id: &ProblemId) -> Result<Problem, RepositoryError>;
+    async fn get_problem_by_id(
+        &self,
+        problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError>;
     async fn problem_exists(&self, problem_id: &ProblemId) -> Result<bool, RepositoryError>;
     async fn get_problems_by_contest(
         &self,
