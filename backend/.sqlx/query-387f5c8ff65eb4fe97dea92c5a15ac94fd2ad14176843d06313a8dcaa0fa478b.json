@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT user_id\n                FROM comments\n                WHERE id = $1\n            ",
+  "query": "\n            SELECT user_id\n            FROM comments\n            WHERE id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "ed26086a6fc79e1e208a896f8353f09e8e465974333af01d12778a9ad4799b54"
+  "hash": "387f5c8ff65eb4fe97dea92c5a15ac94fd2ad14176843d06313a8dcaa0fa478b"
 }
