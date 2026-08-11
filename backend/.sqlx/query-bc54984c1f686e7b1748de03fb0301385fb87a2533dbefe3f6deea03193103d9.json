@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        DELETE FROM solution_votes\n        WHERE user_id = $1 AND solution_id = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bc54984c1f686e7b1748de03fb0301385fb87a2533dbefe3f6deea03193103d9"
+}

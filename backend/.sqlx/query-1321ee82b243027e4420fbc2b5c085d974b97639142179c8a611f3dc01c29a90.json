@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT COUNT(*) AS \"count!\" FROM solution_votes\n                WHERE solution_id = $1\n            ",
+  "query": "\n            SELECT COUNT(*) AS \"count!\" FROM solution_votes\n            WHERE solution_id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       null
     ]
   },
-  "hash": "0f7204232ed1a45c35cd85ba93fe8a2e32467b098b85873d2b50b848db14a195"
+  "hash": "1321ee82b243027e4420fbc2b5c085d974b97639142179c8a611f3dc01c29a90"
 }

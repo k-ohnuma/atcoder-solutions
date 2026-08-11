@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE comments\n            SET body_md = $2\n            WHERE id = $1\n            RETURNING id, user_id, solution_id, body_md, created_at, updated_at\n            ",
+  "query": "\n            SELECT c.id, c.user_id, u.user_name, c.solution_id, c.body_md, c.created_at, c.updated_at\n            FROM comments c\n            JOIN users u ON c.user_id = u.id\n            WHERE c.solution_id = $1\n            ORDER BY c.created_at ASC\n        ",
   "describe": {
     "columns": [
       {
@@ -15,29 +15,33 @@
       },
       {
         "ordinal": 2,
+        "name": "user_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
         "name": "solution_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "body_md",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -46,8 +50,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "8fa21332f80109c0656f9f98e6ed9216f1247e3141939bd18eedd8fc713859ad"
+  "hash": "47d882f9b01d80a0d68a39e6b398505bc8365a8893b46cd1d18ac34208199fa0"
 }

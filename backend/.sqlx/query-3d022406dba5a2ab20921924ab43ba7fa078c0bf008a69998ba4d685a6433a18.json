@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                        SELECT s.id, s.title, s.problem_id, s.user_id, u.user_name,\n                               COUNT(sv.user_id) AS \"votes_count!\",\n                               s.created_at, s.updated_at\n                        FROM solutions s\n                        JOIN users u on s.user_id = u.id\n                        LEFT JOIN solution_votes sv ON sv.solution_id = s.id\n                        WHERE s.problem_id = $1\n                        GROUP BY s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at\n                        ORDER BY s.created_at DESC\n                        LIMIT COALESCE($2, 2147483647)\n                    ",
+  "query": "\n                    SELECT s.id, s.title, s.problem_id, s.user_id, u.user_name,\n                           COUNT(sv.user_id) AS \"votes_count!\",\n                           s.created_at, s.updated_at\n                    FROM solutions s\n                    JOIN users u on s.user_id = u.id\n                    LEFT JOIN solution_votes sv ON sv.solution_id = s.id\n                    WHERE s.problem_id = $1\n                    GROUP BY s.id, s.title, s.problem_id, s.user_id, u.user_name, s.created_at, s.updated_at\n                    ORDER BY \"votes_count!\" DESC, s.created_at DESC\n                    LIMIT COALESCE($2, 2147483647)\n                ",
   "describe": {
     "columns": [
       {
@@ -61,5 +61,5 @@
       false
     ]
   },
-  "hash": "1657d5b3445e3c74ee832749985b773ffdc2850e78d9636c12a365e764d9b032"
+  "hash": "3d022406dba5a2ab20921924ab43ba7fa078c0bf008a69998ba4d685a6433a18"
 }
