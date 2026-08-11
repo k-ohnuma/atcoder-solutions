@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use usecase::model::user::{
-    UserError,
-    create::{CreateUserInput, CreateUserOutput},
+use usecase::{
+    error::UserError,
+    model::user::create::{CreateUserInput, CreateUserOutput},
 };
 
 #[derive(Deserialize, Clone)]
@@ -15,11 +15,7 @@ pub struct CreateUserRequest {
 pub fn try_from_create_user_request_for_create_user_input(
     req: CreateUserRequest,
 ) -> Result<CreateUserInput, UserError> {
-    Ok(CreateUserInput {
-        user_name: req.user_name,
-        email: req.email,
-        password: req.password,
-    })
+    CreateUserInput::try_new(req.user_name, req.email, req.password)
 }
 
 #[derive(Serialize)]
@@ -31,7 +27,7 @@ pub struct CreateUserResponse {
 impl From<CreateUserOutput> for CreateUserResponse {
     fn from(value: CreateUserOutput) -> Self {
         Self {
-            user_name: value.user_name,
+            user_name: value.user_name.into_string(),
         }
     }
 }

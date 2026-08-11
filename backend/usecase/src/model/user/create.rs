@@ -1,15 +1,10 @@
 use derive_new::new;
-use domain::model::user::{Role, User};
+use domain::model::user::{Role, User, id::UserId, name::UserName};
 use validator::{Validate, ValidationError};
 
 #[derive(Validate)]
 pub struct CreateUserInput {
-    #[validate(
-        length(min = 1, max = 120),
-        custom(function = "validate_not_blank"),
-        custom(function = "validate_user_name_format")
-    )]
-    pub user_name: String,
+    pub user_name: UserName,
     #[validate(email)]
     pub email: String,
     #[validate(
@@ -27,13 +22,6 @@ fn validate_not_blank(value: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-fn validate_user_name_format(value: &str) -> Result<(), ValidationError> {
-    if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-        return Ok(());
-    }
-    Err(ValidationError::new("invalid_user_name_format"))
-}
-
 fn validate_password_format(value: &str) -> Result<(), ValidationError> {
     let has_lowercase = value.chars().any(|c| c.is_ascii_lowercase());
     let has_uppercase = value.chars().any(|c| c.is_ascii_uppercase());
@@ -49,7 +37,19 @@ fn validate_password_format(value: &str) -> Result<(), ValidationError> {
 }
 
 impl CreateUserInput {
-    pub fn into_user(self, uid: String) -> User {
+    pub fn try_new(
+        user_name: String,
+        email: String,
+        password: String,
+    ) -> Result<Self, crate::error::UserError> {
+        Ok(Self {
+            user_name: UserName::try_new(user_name)?,
+            email,
+            password,
+        })
+    }
+
+    pub fn into_user(self, uid: UserId) -> User {
         User {
             id: uid,
             role: Role::default(),
@@ -60,5 +60,5 @@ impl CreateUserInput {
 
 #[derive(new, Debug)]
 pub struct CreateUserOutput {
-    pub user_name: String,
+    pub user_name: UserName,
 }

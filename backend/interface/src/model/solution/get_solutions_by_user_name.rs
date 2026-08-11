@@ -1,21 +1,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use usecase::{dto::solution::UserSolutionListItemView, model::solution::SolutionListSort};
+use usecase::model::solution::output::UserSolutionListItemOutput;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSolutionsByUserNameRequest {
     pub sort_by: Option<String>,
-}
-
-impl GetSolutionsByUserNameRequest {
-    pub fn list_sort(&self) -> SolutionListSort {
-        match self.sort_by.as_deref() {
-            Some("votes") => SolutionListSort::Votes,
-            _ => SolutionListSort::Latest,
-        }
-    }
 }
 
 #[derive(Serialize)]
@@ -32,9 +23,9 @@ pub struct GetSolutionsByUserNameResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<UserSolutionListItemView> for GetSolutionsByUserNameResponse {
-    fn from(value: UserSolutionListItemView) -> Self {
-        let UserSolutionListItemView {
+impl From<UserSolutionListItemOutput> for GetSolutionsByUserNameResponse {
+    fn from(value: UserSolutionListItemOutput) -> Self {
+        let UserSolutionListItemOutput {
             id,
             title,
             problem_id,
@@ -47,12 +38,12 @@ impl From<UserSolutionListItemView> for GetSolutionsByUserNameResponse {
         } = value;
 
         Self {
-            id,
-            title,
-            problem_id,
-            problem_title,
-            user_id,
-            user_name,
+            id: id.into_uuid(),
+            title: title.into_string(),
+            problem_id: problem_id.into_string(),
+            problem_title: problem_title.into_string(),
+            user_id: user_id.into_string(),
+            user_name: user_name.into_string(),
             votes_count,
             created_at,
             updated_at,
@@ -63,25 +54,15 @@ impl From<UserSolutionListItemView> for GetSolutionsByUserNameResponse {
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use domain::model::{
+        solution::content::SolutionTitle,
+        user::{id::UserId, name::UserName},
+    };
     use serde_json::json;
-    use usecase::{dto::solution::UserSolutionListItemView, model::solution::SolutionListSort};
+    use usecase::model::solution::output::UserSolutionListItemOutput;
     use uuid::Uuid;
 
     use super::{GetSolutionsByUserNameRequest, GetSolutionsByUserNameResponse};
-
-    #[test]
-    fn list_sort_defaults_to_latest() {
-        let req = GetSolutionsByUserNameRequest { sort_by: None };
-        assert!(matches!(req.list_sort(), SolutionListSort::Latest));
-    }
-
-    #[test]
-    fn list_sort_votes_is_mapped() {
-        let req = GetSolutionsByUserNameRequest {
-            sort_by: Some("votes".to_string()),
-        };
-        assert!(matches!(req.list_sort(), SolutionListSort::Votes));
-    }
 
     #[test]
     fn deserialize_camel_case_sort_by() {
@@ -96,13 +77,17 @@ mod tests {
     fn response_conversion_keeps_problem_title() {
         let id = Uuid::now_v7();
         let now = Utc::now();
-        let dto = UserSolutionListItemView {
-            id,
-            title: "title".to_string(),
-            problem_id: "abc100_a".to_string(),
-            problem_title: "A - Sample".to_string(),
-            user_id: "uid".to_string(),
-            user_name: "alice".to_string(),
+        let dto = UserSolutionListItemOutput {
+            id: id.into(),
+            title: SolutionTitle::try_new("title".to_string()).expect("valid solution title"),
+            problem_id: domain::model::problem::id::ProblemId::try_new("abc100_a".to_string())
+                .expect("valid problem ID"),
+            problem_title: domain::model::problem::title::ProblemTitle::try_new(
+                "A - Sample".to_string(),
+            )
+            .expect("valid problem title"),
+            user_id: UserId::try_new("uid".to_string()).expect("valid user ID"),
+            user_name: UserName::try_new("alice".to_string()).expect("valid user name"),
             votes_count: 7,
             created_at: now,
             updated_at: now,

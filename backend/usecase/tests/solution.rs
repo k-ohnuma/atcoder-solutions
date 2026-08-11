@@ -3,13 +3,31 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Utc;
-use domain::error::repository::RepositoryError;
-use usecase::{
-    model::solution::{
-        SolutionComment, SolutionDetails, SolutionError, SolutionListItem, SolutionListSort,
-        UserSolutionListItem,
+use domain::model::{
+    problem::{contest_code::ContestCode, id::ProblemId},
+    solution::{
+        comment_body::CommentBody, comment_id::CommentId, content::SolutionTitle, id::SolutionId,
     },
-    service::solution::SolutionService,
+    user::{id::UserId, name::UserName},
+};
+use domain::{
+    error::{repository::RepositoryError, user::CreateUserRepositoryError},
+    model::{
+        problem::{ContestSeries, Problem},
+        user::User,
+    },
+    ports::repository::{
+        problem::ProblemRepository, solution::SolutionRepository, user::UserRepository,
+    },
+    read_model::solution::{
+        SolutionComment, SolutionDetails, SolutionListItem, SolutionListSort, UserSolutionListItem,
+    },
+};
+use usecase::{
+    error::SolutionError,
+    model::solution::list::{
+        GetLatestSolutionsInput, GetSolutionsByProblemIdInput, GetSolutionsByUserNameInput,
+    },
     solution::{
         get_by_problem_id::GetSolutionsByProblemIdUsecase,
         get_by_user_name::GetSolutionsByUserNameUsecase, get_latest::GetLatestSolutionsUsecase,
@@ -17,36 +35,109 @@ use usecase::{
 };
 use uuid::Uuid;
 
-struct DummySolutionService {
-    problem_exists: bool,
-    user_exists: bool,
+fn user_id(value: &str) -> UserId {
+    UserId::try_new(value.to_string()).expect("valid user ID")
+}
+
+fn user_name(value: &str) -> UserName {
+    UserName::try_new(value.to_string()).expect("valid user name")
+}
+
+fn solution_title(value: &str) -> SolutionTitle {
+    SolutionTitle::try_new(value.to_string()).expect("valid solution title")
+}
+
+struct DummySolutionRepository {
     last_problem_sort: Mutex<Option<SolutionListSort>>,
     last_user_sort: Mutex<Option<SolutionListSort>>,
 }
 
-impl DummySolutionService {
-    fn new(problem_exists: bool, user_exists: bool) -> Self {
+impl DummySolutionRepository {
+    fn new() -> Self {
         Self {
-            problem_exists,
-            user_exists,
             last_problem_sort: Mutex::new(None),
             last_user_sort: Mutex::new(None),
         }
     }
 }
 
+struct DummyProblemRepository {
+    exists: bool,
+}
+
+struct DummyUserRepository {
+    exists: bool,
+}
+
 #[async_trait]
-impl SolutionService for DummySolutionService {
+impl SolutionRepository for DummySolutionRepository {
+    async fn delete_solution(&self, _solution_id: SolutionId) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn vote_solution(
+        &self,
+        _user_id: &UserId,
+        _solution_id: SolutionId,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn unvote_solution(
+        &self,
+        _user_id: &UserId,
+        _solution_id: SolutionId,
+    ) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn delete_comment(&self, _comment_id: CommentId) -> Result<(), RepositoryError> {
+        Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        user_id: &UserId,
+        solution_id: SolutionId,
+        body: &CommentBody,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7().into(),
+            user_id: user_id.clone(),
+            user_name: user_name("alice"),
+            solution_id,
+            body: body.clone(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        })
+    }
+
+    async fn update_comment(
+        &self,
+        _comment_id: CommentId,
+        body: &CommentBody,
+    ) -> Result<SolutionComment, RepositoryError> {
+        Ok(SolutionComment {
+            id: Uuid::now_v7().into(),
+            user_id: user_id("uid"),
+            user_name: user_name("alice"),
+            solution_id: Uuid::now_v7().into(),
+            body: body.clone(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        })
+    }
+
     async fn get_latest_solutions(
         &self,
         _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         Ok(vec![SolutionListItem {
-            id: Uuid::now_v7(),
-            title: "latest".to_string(),
-            problem_id: "abc100_a".to_string(),
-            user_id: "uid".to_string(),
-            user_name: "alice".to_string(),
+            id: Uuid::now_v7().into(),
+            title: solution_title("latest"),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
+            user_id: user_id("uid"),
+            user_name: user_name("alice"),
             votes_count: 1,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -55,17 +146,17 @@ impl SolutionService for DummySolutionService {
 
     async fn get_solutions_by_problem_id(
         &self,
-        _problem_id: String,
+        _problem_id: ProblemId,
         sort: SolutionListSort,
         _limit: Option<i32>,
     ) -> Result<Vec<SolutionListItem>, RepositoryError> {
         *self.last_problem_sort.lock().unwrap() = Some(sort);
         Ok(vec![SolutionListItem {
-            id: Uuid::now_v7(),
-            title: "t".to_string(),
-            problem_id: "abc100_a".to_string(),
-            user_id: "uid".to_string(),
-            user_name: "alice".to_string(),
+            id: Uuid::now_v7().into(),
+            title: solution_title("t"),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
+            user_id: user_id("uid"),
+            user_name: user_name("alice"),
             votes_count: 3,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -74,8 +165,8 @@ impl SolutionService for DummySolutionService {
 
     async fn get_solution_by_solution_id(
         &self,
-        _solution_id: Uuid,
-    ) -> Result<SolutionDetails, RepositoryError> {
+        _solution_id: SolutionId,
+    ) -> Result<Option<SolutionDetails>, RepositoryError> {
         Err(RepositoryError::Unexpected(
             "not used in this test".to_string(),
         ))
@@ -83,81 +174,158 @@ impl SolutionService for DummySolutionService {
 
     async fn get_solutions_by_user_name(
         &self,
-        _user_name: String,
+        _user_name: UserName,
         sort: SolutionListSort,
     ) -> Result<Vec<UserSolutionListItem>, RepositoryError> {
         *self.last_user_sort.lock().unwrap() = Some(sort);
         Ok(vec![UserSolutionListItem {
-            id: Uuid::now_v7(),
-            title: "t".to_string(),
-            problem_id: "abc100_a".to_string(),
-            problem_title: "A - Sample".to_string(),
-            user_id: "uid".to_string(),
-            user_name: "alice".to_string(),
+            id: Uuid::now_v7().into(),
+            title: solution_title("t"),
+            problem_id: ProblemId::try_new("abc100_a".to_string()).expect("valid problem ID"),
+            problem_title: domain::model::problem::title::ProblemTitle::try_new(
+                "A - Sample".to_string(),
+            )
+            .expect("valid problem title"),
+            user_id: user_id("uid"),
+            user_name: user_name("alice"),
             votes_count: 5,
             created_at: Utc::now(),
             updated_at: Utc::now(),
         }])
     }
 
-    async fn user_name_exists(&self, _user_name: &str) -> Result<bool, RepositoryError> {
-        Ok(self.user_exists)
-    }
-
-    async fn get_solution_votes_count(&self, _solution_id: Uuid) -> Result<i64, RepositoryError> {
+    async fn get_solution_votes_count(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<i64, RepositoryError> {
         Ok(0)
     }
 
     async fn has_user_voted_solution(
         &self,
-        _user_id: String,
-        _solution_id: Uuid,
+        _user_id: &UserId,
+        _solution_id: SolutionId,
     ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn solution_exists(&self, _solution_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn solution_exists(&self, _solution_id: SolutionId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
     async fn get_comments_by_solution_id(
         &self,
-        _solution_id: Uuid,
+        _solution_id: SolutionId,
     ) -> Result<Vec<SolutionComment>, RepositoryError> {
         Ok(vec![])
     }
 
-    async fn get_solution_user_id(&self, _solution_id: Uuid) -> Result<String, RepositoryError> {
-        Ok(String::new())
+    async fn get_solution_user_id(
+        &self,
+        _solution_id: SolutionId,
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(Some(user_id("uid")))
     }
 
-    async fn comment_exists(&self, _comment_id: Uuid) -> Result<bool, RepositoryError> {
+    async fn comment_exists(&self, _comment_id: CommentId) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
-    async fn get_comment_user_id(&self, _comment_id: Uuid) -> Result<String, RepositoryError> {
-        Ok(String::new())
+    async fn get_comment_user_id(
+        &self,
+        _comment_id: CommentId,
+    ) -> Result<Option<UserId>, RepositoryError> {
+        Ok(Some(user_id("uid")))
+    }
+}
+
+#[async_trait]
+impl ProblemRepository for DummyProblemRepository {
+    async fn get_problem_ids_with_difficulty(
+        &self,
+        _problem_ids: &[ProblemId],
+    ) -> Result<Vec<ProblemId>, RepositoryError> {
+        Ok(vec![])
     }
 
-    async fn get_user_name_by_id(&self, _user_id: &str) -> Result<String, RepositoryError> {
-        Ok(String::new())
+    async fn get_contest_codes_by_series(
+        &self,
+        _series: ContestSeries,
+        _limit: i64,
+        _offset: i64,
+    ) -> Result<Vec<ContestCode>, RepositoryError> {
+        Ok(vec![])
     }
 
-    async fn problem_exists(&self, _problem_id: &str) -> Result<bool, RepositoryError> {
-        Ok(self.problem_exists)
+    async fn get_problems_by_contest_codes(
+        &self,
+        _contest_codes: &[ContestCode],
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn search_problems_by_contest_series(
+        &self,
+        _series: ContestSeries,
+        _query: &str,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+
+    async fn get_problem_by_id(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError> {
+        Ok(None)
+    }
+
+    async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {
+        Ok(self.exists)
+    }
+
+    async fn get_problems_by_contest(
+        &self,
+        _contest: &ContestCode,
+    ) -> Result<Vec<Problem>, RepositoryError> {
+        Ok(vec![])
+    }
+}
+
+#[async_trait]
+impl UserRepository for DummyUserRepository {
+    async fn create_user(&self, _user: User) -> Result<(), CreateUserRepositoryError> {
+        Ok(())
+    }
+
+    async fn find_by_uid(&self, _uid: &UserId) -> Result<Option<User>, RepositoryError> {
+        Ok(None)
+    }
+
+    async fn user_name_exists(&self, _user_name: &UserName) -> Result<bool, RepositoryError> {
+        Ok(self.exists)
+    }
+
+    async fn delete_by_uid(&self, _uid: &UserId) -> Result<bool, RepositoryError> {
+        Ok(true)
+    }
+
+    async fn revoke_tokens_by_uid(&self, _uid: &UserId) -> Result<bool, RepositoryError> {
+        Ok(true)
+    }
+
+    async fn is_token_revoked(
+        &self,
+        _uid: &UserId,
+        _issued_at: i64,
+    ) -> Result<bool, RepositoryError> {
+        Ok(false)
     }
 }
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service);
-
-    let err = uc
-        .run("   ".to_string(), SolutionListSort::Latest, None)
-        .await
-        .err()
-        .expect("blank problem id should be bad request");
+    let err = GetSolutionsByProblemIdInput::try_new("   ".to_string(), None, None)
+        .expect_err("blank problem id should be bad request");
     assert!(matches!(err, SolutionError::BadRequest(_)));
 
     Ok(())
@@ -165,11 +333,14 @@ async fn get_solutions_by_problem_id_rejects_blank_problem_id() -> Result<()> {
 
 #[tokio::test]
 async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(false, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new());
+    let problem_repository = Arc::new(DummyProblemRepository { exists: false });
+    let uc = GetSolutionsByProblemIdUsecase::new(repository, problem_repository);
+    let input =
+        GetSolutionsByProblemIdInput::try_new("abc100_a".to_string(), None, None).expect("valid");
 
     let err = uc
-        .run("abc100_a".to_string(), SolutionListSort::Latest, None)
+        .run(input)
         .await
         .err()
         .expect("unknown problem should be not found");
@@ -179,40 +350,48 @@ async fn get_solutions_by_problem_id_returns_not_found_for_unknown_problem() -> 
 }
 
 #[tokio::test]
-async fn get_solutions_by_problem_id_passes_sort_to_service() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByProblemIdUsecase::new(service.clone());
+async fn get_solutions_by_problem_id_passes_sort_to_repository() -> Result<()> {
+    let repository = Arc::new(DummySolutionRepository::new());
+    let problem_repository = Arc::new(DummyProblemRepository { exists: true });
+    let uc = GetSolutionsByProblemIdUsecase::new(repository.clone(), problem_repository);
+    let input = GetSolutionsByProblemIdInput::try_new(
+        "abc100_a".to_string(),
+        Some("votes".to_string()),
+        None,
+    )
+    .expect("valid");
 
-    let result = uc
-        .run("abc100_a".to_string(), SolutionListSort::Votes, None)
-        .await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].votes_count, 3);
 
-    let sort = *service.last_problem_sort.lock().unwrap();
+    let sort = *repository.last_problem_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
     Ok(())
 }
 
 #[tokio::test]
 async fn get_latest_solutions_returns_items() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetLatestSolutionsUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new());
+    let uc = GetLatestSolutionsUsecase::new(repository);
+    let input = GetLatestSolutionsInput::try_new(None, Some(10)).expect("valid");
 
-    let result = uc.run(Some(10)).await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
-    assert_eq!(result[0].title, "latest");
+    assert_eq!(result[0].title.as_str(), "latest");
 
     Ok(())
 }
 
 #[tokio::test]
 async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, false));
-    let uc = GetSolutionsByUserNameUsecase::new(service);
+    let repository = Arc::new(DummySolutionRepository::new());
+    let user_repository = Arc::new(DummyUserRepository { exists: false });
+    let uc = GetSolutionsByUserNameUsecase::new(repository, user_repository);
+    let input = GetSolutionsByUserNameInput::try_new("alice".to_string(), None).expect("valid");
 
     let err = uc
-        .run("alice".to_string(), SolutionListSort::Latest)
+        .run(input)
         .await
         .err()
         .expect("unknown user should be not found");
@@ -221,15 +400,19 @@ async fn get_solutions_by_user_name_returns_not_found_for_unknown_user() -> Resu
 }
 
 #[tokio::test]
-async fn get_solutions_by_user_name_passes_sort_to_service() -> Result<()> {
-    let service = Arc::new(DummySolutionService::new(true, true));
-    let uc = GetSolutionsByUserNameUsecase::new(service.clone());
+async fn get_solutions_by_user_name_passes_sort_to_repository() -> Result<()> {
+    let repository = Arc::new(DummySolutionRepository::new());
+    let user_repository = Arc::new(DummyUserRepository { exists: true });
+    let uc = GetSolutionsByUserNameUsecase::new(repository.clone(), user_repository);
+    let input =
+        GetSolutionsByUserNameInput::try_new("alice".to_string(), Some("votes".to_string()))
+            .expect("valid");
 
-    let result = uc.run("alice".to_string(), SolutionListSort::Votes).await?;
+    let result = uc.run(input).await?;
     assert_eq!(result.len(), 1);
-    assert_eq!(result[0].problem_title, "A - Sample");
+    assert_eq!(result[0].problem_title.as_str(), "A - Sample");
 
-    let sort = *service.last_user_sort.lock().unwrap();
+    let sort = *repository.last_user_sort.lock().unwrap();
     assert!(matches!(sort, Some(SolutionListSort::Votes)));
     Ok(())
 }

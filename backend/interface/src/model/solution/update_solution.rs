@@ -1,3 +1,5 @@
+use domain::model::solution::id::SolutionId;
+use domain::model::user::id::UserId;
 use serde::{Deserialize, Serialize};
 use usecase::model::solution::update::UpdateSolutionInput;
 use uuid::Uuid;
@@ -12,8 +14,8 @@ pub struct UpdateSolutionRequest {
 }
 
 pub fn from_req_for_input(
-    user_id: String,
-    solution_id: Uuid,
+    user_id: UserId,
+    solution_id: SolutionId,
     req: UpdateSolutionRequest,
 ) -> UpdateSolutionInput {
     UpdateSolutionInput {
@@ -32,14 +34,17 @@ pub struct UpdateSolutionResponse {
     pub solution_id: Uuid,
 }
 
-impl From<Uuid> for UpdateSolutionResponse {
-    fn from(value: Uuid) -> Self {
-        Self { solution_id: value }
+impl From<SolutionId> for UpdateSolutionResponse {
+    fn from(value: SolutionId) -> Self {
+        Self {
+            solution_id: value.into_uuid(),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use domain::model::user::id::UserId;
     use serde_json::json;
     use uuid::Uuid;
 
@@ -55,9 +60,13 @@ mod tests {
             "tags": ["dp"]
         });
         let req: UpdateSolutionRequest = serde_json::from_value(raw).expect("valid json");
-        let input = from_req_for_input("uid".to_string(), solution_id, req);
-        assert_eq!(input.user_id, "uid");
-        assert_eq!(input.solution_id, solution_id);
+        let input = from_req_for_input(
+            UserId::try_new("uid".to_string()).expect("valid user ID"),
+            solution_id.into(),
+            req,
+        );
+        assert_eq!(input.user_id.as_str(), "uid");
+        assert_eq!(input.solution_id, solution_id.into());
         assert_eq!(input.title, "new title");
     }
 
@@ -77,7 +86,8 @@ mod tests {
     #[test]
     fn serialize_update_solution_response_as_camel_case() {
         let solution_id = Uuid::now_v7();
-        let resp = UpdateSolutionResponse::from(solution_id);
+        let resp =
+            UpdateSolutionResponse::from(domain::model::solution::id::SolutionId::new(solution_id));
         let v = serde_json::to_value(resp).expect("serialize");
         let got = v
             .get("solutionId")

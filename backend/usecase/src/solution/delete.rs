@@ -1,34 +1,33 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::tx::SolutionTxManager;
-use uuid::Uuid;
+use domain::{
+    model::{solution::id::SolutionId, user::id::UserId},
+    ports::repository::solution::SolutionRepository,
+};
 
-use crate::{model::solution::SolutionError, service::solution::SolutionService};
+use crate::{error::SolutionError, solution::authorization::ensure_solution_owner};
 
 #[derive(new)]
 pub struct DeleteSolutionUsecase {
-    txm: Arc<dyn SolutionTxManager>,
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl DeleteSolutionUsecase {
-    pub async fn run(&self, user_id: String, solution_id: Uuid) -> Result<Uuid, SolutionError> {
-        let exists = self.service.solution_exists(solution_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("solution not found".to_string()));
-        }
+    pub async fn run(
+        &self,
+        user_id: UserId,
+        solution_id: SolutionId,
+    ) -> Result<SolutionId, SolutionError> {
+        ensure_solution_owner(
+            self.repository.as_ref(),
+            solution_id,
+            &user_id,
+            "you cannot delete this solution",
+        )
+        .await?;
 
-        let owner_user_id = self.service.get_solution_user_id(solution_id).await?;
-        if owner_user_id != user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot delete this solution".to_string(),
-            ));
-        }
-
-        let mut uow = self.txm.begin().await?;
-        uow.solutions().delete(solution_id).await?;
-        uow.commit().await?;
+        self.repository.delete_solution(solution_id).await?;
 
         Ok(solution_id)
     }

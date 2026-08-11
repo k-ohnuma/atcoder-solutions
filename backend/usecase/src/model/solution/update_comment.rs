@@ -1,18 +1,24 @@
-use uuid::Uuid;
-use validator::{Validate, ValidationError};
+use domain::model::{
+    solution::{comment_body::CommentBody, comment_id::CommentId},
+    user::id::UserId,
+};
 
-#[derive(Validate)]
 pub struct UpdateCommentInput {
-    #[validate(length(min = 1, max = 120), custom(function = "validate_not_blank"))]
-    pub user_id: String,
-    pub comment_id: Uuid,
-    #[validate(length(min = 1, max = 2000), custom(function = "validate_not_blank"))]
-    pub body_md: String,
+    pub user_id: UserId,
+    pub comment_id: CommentId,
+    pub body: CommentBody,
 }
 
-fn validate_not_blank(value: &str) -> Result<(), ValidationError> {
-    if value.trim().is_empty() {
-        return Err(ValidationError::new("blank"));
+impl UpdateCommentInput {
+    pub fn try_new(
+        user_id: UserId,
+        comment_id: CommentId,
+        body: String,
+    ) -> Result<Self, crate::error::SolutionError> {
+        Ok(Self {
+            user_id,
+            comment_id,
+            body: CommentBody::try_new(body)?,
+        })
     }
-    Ok(())
 }

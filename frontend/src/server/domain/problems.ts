@@ -1,4 +1,5 @@
 import z from "zod";
+import type { DifficultyBand } from "@/shared/model/problem";
 import { Resp } from "../response";
 
 export const contestSeries = z.enum(["ABC", "ARC", "AGC", "AHC", "AWC", "OTHER"]);
@@ -10,6 +11,7 @@ export interface Problem {
   problemIndex: string;
   title: string;
   difficulty?: number | null;
+  difficultyBand?: DifficultyBand | null;
 }
 export interface ContestProblemGroup {
   contestId: string;

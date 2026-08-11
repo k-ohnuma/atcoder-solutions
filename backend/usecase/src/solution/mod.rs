@@ -1,3 +1,5 @@
+mod authorization;
+
 pub mod create;
 pub mod create_comment;
 pub mod delete;

@@ -5,9 +5,9 @@ use domain::ports::{external::auth::IdentityProviderPort, repository::user::User
 use tracing::error;
 use validator::Validate;
 
-use crate::model::user::{
-    UserError,
-    create::{CreateUserInput, CreateUserOutput},
+use crate::{
+    error::UserError,
+    model::user::create::{CreateUserInput, CreateUserOutput},
 };
 
 #[derive(new)]
@@ -31,7 +31,7 @@ impl CreateUserUsecase {
         if let Err(repository_error) = self.user_repository.create_user(user.to_owned()).await {
             if let Err(rollback_error) = self.identity_provider.delete_user(&identity.uid).await {
                 error!(
-                    uid = %identity.uid,
+                    uid = identity.uid.as_str(),
                     email = %email,
                     repository_error = ?repository_error,
                     rollback_error = ?rollback_error,

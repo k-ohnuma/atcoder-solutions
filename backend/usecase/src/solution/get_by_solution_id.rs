@@ -1,23 +1,22 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use uuid::Uuid;
+use domain::{model::solution::id::SolutionId, ports::repository::solution::SolutionRepository};
 
-use crate::{
-    dto::solution::SolutionView, model::solution::SolutionError, service::solution::SolutionService,
-};
+use crate::{error::SolutionError, model::solution::output::SolutionOutput};
 
 #[derive(new)]
 pub struct GetSolutionBySolutionIdUsecase {
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl GetSolutionBySolutionIdUsecase {
-    pub async fn run(&self, solution_id: Uuid) -> Result<SolutionView, SolutionError> {
+    pub async fn run(&self, solution_id: SolutionId) -> Result<SolutionOutput, SolutionError> {
         let item = self
-            .service
+            .repository
             .get_solution_by_solution_id(solution_id)
-            .await?;
+            .await?
+            .ok_or_else(|| SolutionError::NotFound("solution not found".to_string()))?;
         Ok(item.into())
     }
 }

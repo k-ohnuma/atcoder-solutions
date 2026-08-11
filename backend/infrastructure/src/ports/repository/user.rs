@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use derive_new::new;
 use domain::{
-    error::repository::RepositoryError, model::user::User, ports::repository::user::UserRepository,
+    error::{repository::RepositoryError, user::CreateUserRepositoryError},
+    model::user::{User, id::UserId, name::UserName},
+    ports::repository::user::UserRepository,
 };
 use sqlx::Row;
 
@@ -15,7 +17,7 @@ pub struct UserRepositoryImpl {
 
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn create_user(&self, user: User) -> Result<(), RepositoryError> {
+    async fn create_user(&self, user: User) -> Result<(), CreateUserRepositoryError> {
         let inserted = sqlx::query_scalar!(
             r#"
             INSERT INTO users (id, role, user_name)
@@ -23,23 +25,21 @@ impl UserRepository for UserRepositoryImpl {
             ON CONFLICT (user_name) DO NOTHING
             RETURNING id
             "#,
-            user.id,
+            user.id.as_str(),
             user.role.to_string(),
-            user.user_name,
+            user.user_name.as_str(),
         )
         .fetch_optional(self.db.inner_ref())
         .await
-        .map_err(map_sqlx_error)?;
+        .map_err(map_sqlx_error)
+        .map_err(CreateUserRepositoryError::from)?;
 
         if inserted.is_none() {
-            return Err(RepositoryError::UniqueViolation(format!(
-                "user_name: {}",
-                user.user_name
-            )));
+            return Err(CreateUserRepositoryError::UserNameAlreadyExists);
         }
         Ok(())
     }
-    async fn find_by_uid(&self, uid: &str) -> Result<User, RepositoryError> {
+    async fn find_by_uid(&self, uid: &UserId) -> Result<Option<User>, RepositoryError> {
         let user_row = sqlx::query_as!(
             UserRow,
             r#"
@@ -47,37 +47,49 @@ impl UserRepository for UserRepositoryImpl {
             FROM users
             WHERE id = $1
             "#,
-            uid,
+            uid.as_str(),
+        )
+        .fetch_optional(self.db.inner_ref())
+        .await
+        .map_err(map_sqlx_error)?;
+
+        user_row.map(TryInto::try_into).transpose()
+    }
+
+    async fn user_name_exists(&self, user_name: &UserName) -> Result<bool, RepositoryError> {
+        let rec = sqlx::query!(
+            r#"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM users
+                    WHERE user_name = $1
+                ) AS "exists!"
+            "#,
+            user_name.as_str()
         )
         .fetch_one(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        Ok(user_row.try_into()?)
+        Ok(rec.exists)
     }
 
-    async fn delete_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
+    async fn delete_by_uid(&self, uid: &UserId) -> Result<bool, RepositoryError> {
         let result = sqlx::query!(
             r#"
             DELETE FROM users
             WHERE id = $1
             "#,
-            uid
+            uid.as_str()
         )
         .execute(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        if result.rows_affected() == 0 {
-            return Err(RepositoryError::NotFound(format!(
-                "user not found: {}",
-                uid
-            )));
-        }
-        Ok(())
+        Ok(result.rows_affected() > 0)
     }
 
-    async fn revoke_tokens_by_uid(&self, uid: &str) -> Result<(), RepositoryError> {
+    async fn revoke_tokens_by_uid(&self, uid: &UserId) -> Result<bool, RepositoryError> {
         let result = sqlx::query(
             r#"
             UPDATE users
@@ -85,21 +97,19 @@ impl UserRepository for UserRepositoryImpl {
             WHERE id = $1
             "#,
         )
-        .bind(uid)
+        .bind(uid.as_str())
         .execute(self.db.inner_ref())
         .await
         .map_err(map_sqlx_error)?;
 
-        if result.rows_affected() == 0 {
-            return Err(RepositoryError::NotFound(format!(
-                "user not found: {}",
-                uid
-            )));
-        }
-        Ok(())
+        Ok(result.rows_affected() > 0)
     }
 
-    async fn is_token_revoked(&self, uid: &str, issued_at: i64) -> Result<bool, RepositoryError> {
+    async fn is_token_revoked(
+        &self,
+        uid: &UserId,
+        issued_at: i64,
+    ) -> Result<bool, RepositoryError> {
         let revoked = sqlx::query(
             r#"
             SELECT COALESCE(
@@ -110,7 +120,7 @@ impl UserRepository for UserRepositoryImpl {
             WHERE id = $1
             "#,
         )
-        .bind(uid)
+        .bind(uid.as_str())
         .bind(issued_at)
         .fetch_optional(self.db.inner_ref())
         .await

@@ -1,5 +1,5 @@
 use serde::Serialize;
-use usecase::dto::contests::ContestListItemView;
+use usecase::model::contests::output::ContestListItemOutput;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -8,11 +8,11 @@ pub struct ContestResponse {
     pub series_code: String,
 }
 
-impl From<ContestListItemView> for ContestResponse {
-    fn from(value: ContestListItemView) -> Self {
+impl From<ContestListItemOutput> for ContestResponse {
+    fn from(value: ContestListItemOutput) -> Self {
         Self {
-            code: value.code,
-            series_code: value.series_code,
+            code: value.code.into_string(),
+            series_code: value.series.into(),
         }
     }
 }

@@ -1,56 +1,42 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::ports::repository::solution::tx::SolutionTxManager;
-use uuid::Uuid;
-use validator::Validate;
+use domain::model::solution::{
+    content::{SolutionBody, SolutionTitle, SubmitUrl},
+    id::SolutionId,
+    tags::Tags,
+};
+use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
 
 use crate::{
-    model::solution::{SolutionError, update::UpdateSolutionInput},
-    service::solution::SolutionService,
+    error::SolutionError, model::solution::update::UpdateSolutionInput,
+    solution::authorization::ensure_solution_owner,
 };
 
 #[derive(new)]
 pub struct UpdateSolutionUsecase {
     txm: Arc<dyn SolutionTxManager>,
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl UpdateSolutionUsecase {
-    pub async fn run(&self, input: UpdateSolutionInput) -> Result<Uuid, SolutionError> {
-        input
-            .validate()
-            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
+    pub async fn run(&self, input: UpdateSolutionInput) -> Result<SolutionId, SolutionError> {
+        ensure_solution_owner(
+            self.repository.as_ref(),
+            input.solution_id,
+            &input.user_id,
+            "you cannot update this solution",
+        )
+        .await?;
 
-        let exists = self.service.solution_exists(input.solution_id).await?;
-        if !exists {
-            return Err(SolutionError::NotFound("solution not found".to_string()));
-        }
-
-        let owner_user_id = self.service.get_solution_user_id(input.solution_id).await?;
-        if owner_user_id != input.user_id {
-            return Err(SolutionError::Forbidden(
-                "you cannot update this solution".to_string(),
-            ));
-        }
-
-        let tags = input
-            .tags
-            .into_iter()
-            .filter(|e| !e.trim().is_empty())
-            .collect::<Vec<_>>();
-        if tags.iter().any(|tag| tag.chars().count() > 24) {
-            return Err(SolutionError::BadRequest("tag is too long".to_string()));
-        }
+        let tags = Tags::try_new(input.tags)?;
+        let title = SolutionTitle::try_new(input.title)?;
+        let body = SolutionBody::try_new(input.body_md)?;
+        let submit_url = SubmitUrl::try_new(input.submit_url)?;
 
         let mut uow = self.txm.begin().await?;
         uow.solutions()
-            .update(
-                input.solution_id,
-                &input.title,
-                &input.body_md,
-                &input.submit_url,
-            )
+            .update(input.solution_id, &title, &body, &submit_url)
             .await?;
 
         let tag_ids = uow.tags().upsert(&tags).await?;

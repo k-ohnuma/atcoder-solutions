@@ -1,55 +1,52 @@
-use axum::{Json, extract::State};
+use axum::extract::State;
 use chrono::Utc;
 use registry::Registry;
-use shared::{error::http::HttpError, response::ApiResponse};
 use usecase::user::{
     create_user::CreateUserUsecase, delete_me::DeleteMeUsecase, get_me::GetMeUsecase,
     revoke_tokens::RevokeTokensUsecase,
 };
 
 use crate::{
-    error::ToHttpError,
-    http::{ApiJson, AuthUser, TurnstileGuard},
+    error::IntoApiResult,
+    http::{ApiJson, ApiResult, AuthUser, TurnstileGuard},
     model::user::create_user::{
         CreateUserRequest, CreateUserResponse, try_from_create_user_request_for_create_user_input,
     },
     model::user::delete_me::DeleteMeResponse,
     model::user::get_me::GetMeResponse,
     model::user::revoke_tokens::RevokeTokensResponse,
+    response::ApiResponse,
 };
 
 pub async fn create_user_handler(
     State(registry): State<Registry>,
     _turnstile_guard: TurnstileGuard,
     ApiJson(req): ApiJson<CreateUserRequest>,
-) -> Result<Json<ApiResponse<CreateUserResponse>>, HttpError> {
+) -> ApiResult<CreateUserResponse> {
     let create_user_input =
-        try_from_create_user_request_for_create_user_input(req).map_err(|e| e.to_http_error())?;
+        try_from_create_user_request_for_create_user_input(req).into_api_result()?;
     let repo = CreateUserUsecase::new(
         registry.user_repository(),
         registry.identity_provider_port(),
     );
-    let res = repo
-        .run(create_user_input)
-        .await
-        .map_err(|e| e.to_http_error())?;
+    let res = repo.run(create_user_input).await.into_api_result()?;
 
-    Ok(Json(ApiResponse::ok(res.into())))
+    Ok(ApiResponse::ok(res.into()))
 }
 
 pub async fn get_me_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-) -> Result<Json<ApiResponse<GetMeResponse>>, HttpError> {
+) -> ApiResult<GetMeResponse> {
     let uc = GetMeUsecase::new(registry.user_repository());
-    let me = uc.run(user.uid).await.map_err(|e| e.to_http_error())?;
-    Ok(Json(ApiResponse::ok(me.into())))
+    let me = uc.run(user.uid).await.into_api_result()?;
+    Ok(ApiResponse::ok(me.into()))
 }
 
 pub async fn delete_me_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-) -> Result<Json<ApiResponse<DeleteMeResponse>>, HttpError> {
+) -> ApiResult<DeleteMeResponse> {
     let uc = DeleteMeUsecase::new(
         registry.user_repository(),
         registry.identity_provider_port(),
@@ -57,15 +54,15 @@ pub async fn delete_me_handler(
     let deleted = uc
         .run(user.uid, user.auth_time, Utc::now().timestamp())
         .await
-        .map_err(|e| e.to_http_error())?;
-    Ok(Json(ApiResponse::ok(deleted.into())))
+        .into_api_result()?;
+    Ok(ApiResponse::ok(deleted.into()))
 }
 
 pub async fn revoke_tokens_handler(
     State(registry): State<Registry>,
     AuthUser(user): AuthUser,
-) -> Result<Json<ApiResponse<RevokeTokensResponse>>, HttpError> {
+) -> ApiResult<RevokeTokensResponse> {
     let uc = RevokeTokensUsecase::new(registry.user_repository());
-    let revoked = uc.run(user.uid).await.map_err(|e| e.to_http_error())?;
-    Ok(Json(ApiResponse::ok(revoked.into())))
+    let revoked = uc.run(user.uid).await.into_api_result()?;
+    Ok(ApiResponse::ok(revoked.into()))
 }

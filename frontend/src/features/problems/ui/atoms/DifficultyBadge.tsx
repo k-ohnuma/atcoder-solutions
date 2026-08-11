@@ -1,31 +1,22 @@
 import { Badge } from "@/components/ui/badge";
+import type { DifficultyBand } from "@/shared/model/problem";
 
-function difficultyBadgeClass(difficulty?: number | null): string {
-  if (difficulty === null || difficulty === undefined) {
+const difficultyBandClass: Record<DifficultyBand, string> = {
+  gray: "border-transparent bg-[#808080] text-white",
+  brown: "border-transparent bg-[#804000] text-white",
+  green: "border-transparent bg-[#008000] text-white",
+  cyan: "border-transparent bg-[#00C0C0] text-white",
+  blue: "border-transparent bg-[#0000FF] text-white",
+  yellow: "border-transparent bg-[#C0C000] text-white",
+  orange: "border-transparent bg-[#FF8000] text-white",
+  red: "border-transparent bg-[#FF0000] text-white",
+};
+
+function difficultyBadgeClass(difficultyBand?: DifficultyBand | null): string {
+  if (!difficultyBand) {
     return "";
   }
-  if (difficulty < 400) {
-    return "border-transparent bg-[#808080] text-white";
-  }
-  if (difficulty < 800) {
-    return "border-transparent bg-[#804000] text-white";
-  }
-  if (difficulty < 1200) {
-    return "border-transparent bg-[#008000] text-white";
-  }
-  if (difficulty < 1600) {
-    return "border-transparent bg-[#00C0C0] text-white";
-  }
-  if (difficulty < 2000) {
-    return "border-transparent bg-[#0000FF] text-white";
-  }
-  if (difficulty < 2400) {
-    return "border-transparent bg-[#C0C000] text-white";
-  }
-  if (difficulty < 2800) {
-    return "border-transparent bg-[#FF8000] text-white";
-  }
-  return "border-transparent bg-[#FF0000] text-white";
+  return difficultyBandClass[difficultyBand];
 }
 
 const compactBadgeClass = "mb-1 px-1.5 py-0 text-[12px] leading-tight";
@@ -33,16 +24,18 @@ const compactBadgeClass = "mb-1 px-1.5 py-0 text-[12px] leading-tight";
 export function DifficultyBadge({
   problemIndex,
   difficulty,
+  difficultyBand,
   label = problemIndex,
 }: {
   problemIndex: string;
   difficulty?: number | null;
+  difficultyBand?: DifficultyBand | null;
   label?: string | number;
 }) {
   return (
     <Badge
       variant="outline"
-      className={`${compactBadgeClass} ${difficultyBadgeClass(difficulty)}`}
+      className={`${compactBadgeClass} ${difficultyBadgeClass(difficultyBand)}`}
       title={`Difficulty: ${difficulty ?? "N/A"}`}
     >
       {label}

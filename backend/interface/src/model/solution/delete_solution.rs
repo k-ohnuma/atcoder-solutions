@@ -1,3 +1,4 @@
+use domain::model::solution::id::SolutionId;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -7,8 +8,10 @@ pub struct DeleteSolutionResponse {
     pub solution_id: Uuid,
 }
 
-impl From<Uuid> for DeleteSolutionResponse {
-    fn from(value: Uuid) -> Self {
-        Self { solution_id: value }
+impl From<SolutionId> for DeleteSolutionResponse {
+    fn from(value: SolutionId) -> Self {
+        Self {
+            solution_id: value.into_uuid(),
+        }
     }
 }

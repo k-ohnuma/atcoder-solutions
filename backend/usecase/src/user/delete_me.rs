@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use derive_new::new;
+use domain::model::user::id::UserId;
 use domain::ports::{external::auth::IdentityProviderPort, repository::user::UserRepository};
 use tracing::error;
 
-use crate::model::user::{UserError, delete_me::DeleteMeOutput};
+use crate::{error::UserError, model::user::delete_me::DeleteMeOutput};
 
 const RECENT_LOGIN_MAX_AGE_SECONDS: i64 = 5 * 60;
 
@@ -17,7 +18,7 @@ pub struct DeleteMeUsecase {
 impl DeleteMeUsecase {
     pub async fn run(
         &self,
-        uid: String,
+        uid: UserId,
         auth_time: i64,
         now_epoch_seconds: i64,
     ) -> Result<DeleteMeOutput, UserError> {
@@ -32,13 +33,20 @@ impl DeleteMeUsecase {
             .await
             .map_err(UserError::from)?;
 
-        if let Err(repository_error) = self.user_repository.delete_by_uid(&uid).await {
-            error!(
-                uid = %uid,
-                repository_error = ?repository_error,
-                "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
-            );
-            return Err(UserError::from(repository_error));
+        let deleted = self
+            .user_repository
+            .delete_by_uid(&uid)
+            .await
+            .map_err(|repository_error| {
+                error!(
+                    uid = uid.as_str(),
+                    repository_error = ?repository_error,
+                    "Firebase Auth user was deleted, but database user deletion failed; administrative cleanup may be required"
+                );
+                UserError::from(repository_error)
+            })?;
+        if !deleted {
+            return Err(UserError::NotFound("user not found".to_string()));
         }
         Ok(DeleteMeOutput::new(uid))
     }

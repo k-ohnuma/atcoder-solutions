@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use usecase::dto::solution::SolutionListItemView;
+use usecase::model::solution::output::SolutionListItemOutput;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -23,9 +23,9 @@ pub struct GetLatestSolutionsResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<SolutionListItemView> for GetLatestSolutionsResponse {
-    fn from(value: SolutionListItemView) -> Self {
-        let SolutionListItemView {
+impl From<SolutionListItemOutput> for GetLatestSolutionsResponse {
+    fn from(value: SolutionListItemOutput) -> Self {
+        let SolutionListItemOutput {
             id,
             title,
             problem_id,
@@ -37,11 +37,11 @@ impl From<SolutionListItemView> for GetLatestSolutionsResponse {
         } = value;
 
         Self {
-            id,
-            title,
-            problem_id,
-            user_id,
-            user_name,
+            id: id.into_uuid(),
+            title: title.into_string(),
+            problem_id: problem_id.into_string(),
+            user_id: user_id.into_string(),
+            user_name: user_name.into_string(),
             votes_count,
             created_at,
             updated_at,

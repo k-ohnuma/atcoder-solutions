@@ -1,25 +1,32 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use uuid::Uuid;
+use domain::{
+    model::{solution::id::SolutionId, user::id::UserId},
+    ports::repository::solution::SolutionRepository,
+};
 
-use crate::{model::solution::SolutionError, service::solution::SolutionService};
+use crate::error::SolutionError;
 
 #[derive(new)]
 pub struct GetMyVoteStatusUsecase {
-    service: Arc<dyn SolutionService>,
+    repository: Arc<dyn SolutionRepository>,
 }
 
 impl GetMyVoteStatusUsecase {
-    pub async fn run(&self, user_id: String, solution_id: Uuid) -> Result<bool, SolutionError> {
-        let exists = self.service.solution_exists(solution_id).await?;
+    pub async fn run(
+        &self,
+        user_id: UserId,
+        solution_id: SolutionId,
+    ) -> Result<bool, SolutionError> {
+        let exists = self.repository.solution_exists(solution_id).await?;
         if !exists {
             return Err(SolutionError::NotFound("solution not found".to_string()));
         }
 
         let voted = self
-            .service
-            .has_user_voted_solution(user_id, solution_id)
+            .repository
+            .has_user_voted_solution(&user_id, solution_id)
             .await?;
         Ok(voted)
     }

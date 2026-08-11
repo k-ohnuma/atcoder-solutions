@@ -2,8 +2,12 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use async_trait::async_trait;
+use domain::model::problem::{
+    contest_code::ContestCode, difficulty::Difficulty, id::ProblemId, index::ProblemIndex,
+    title::ProblemTitle,
+};
 use domain::{
-    error::{external::ExternalError, repository::RepositoryError},
+    error::{atcoder_problems::AtcoderProblemsError, repository::RepositoryError},
     model::problem::Problem,
     ports::{
         external::atcoder_problems::AtcoderProblemsPort,
@@ -21,11 +25,14 @@ struct DummyAtcoderProblemsPort {
 
 #[async_trait]
 impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
-    async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError> {
+    async fn fetch_problems(&self) -> Result<Vec<Problem>, AtcoderProblemsError> {
         Ok(self.item.to_owned())
     }
 
-    async fn fetch_difficulty(&self, _problem_id: &str) -> Result<Option<i32>, ExternalError> {
+    async fn fetch_difficulty(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<Difficulty>, AtcoderProblemsError> {
         Ok(None)
     }
 }
@@ -34,8 +41,8 @@ impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
 struct TxCalls {
     contests: Vec<(String, String)>,
     problems: Vec<Problem>,
-    contests_bulk_calls: usize,
-    problems_bulk_calls: usize,
+    contest_upsert_calls: usize,
+    problem_upsert_calls: usize,
     commits: usize,
 }
 
@@ -45,50 +52,19 @@ struct DummyProblemUow {
 
 #[async_trait]
 impl ProblemRepositoryTx for DummyProblemUow {
-    async fn upsert_contest(
-        &mut self,
-        contest_code: &str,
-        series_code: &str,
-    ) -> Result<(), RepositoryError> {
-        self.shared
-            .lock()
-            .unwrap()
-            .contests
-            .push((contest_code.to_string(), series_code.to_string()));
-        Ok(())
-    }
-
-    async fn upsert_problem(
-        &mut self,
-        problem_id: &str,
-        contest_code: &str,
-        problem_index: &str,
-        title: &str,
-        difficulty: Option<i32>,
-    ) -> Result<(), RepositoryError> {
-        self.shared.lock().unwrap().problems.push(Problem {
-            id: problem_id.to_string(),
-            contest_code: contest_code.to_string(),
-            problem_index: problem_index.to_string(),
-            title: title.to_string(),
-            difficulty,
-        });
-        Ok(())
-    }
-
-    async fn upsert_contests_bulk(
+    async fn upsert_contests(
         &mut self,
         contests: &[(String, String)],
     ) -> Result<(), RepositoryError> {
         let mut calls = self.shared.lock().unwrap();
-        calls.contests_bulk_calls += 1;
+        calls.contest_upsert_calls += 1;
         calls.contests.extend(contests.iter().cloned());
         Ok(())
     }
 
-    async fn upsert_problems_bulk(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
+    async fn upsert_problems(&mut self, problems: &[Problem]) -> Result<(), RepositoryError> {
         let mut calls = self.shared.lock().unwrap();
-        calls.problems_bulk_calls += 1;
+        calls.problem_upsert_calls += 1;
         calls.problems.extend(problems.iter().cloned());
         Ok(())
     }
@@ -102,10 +78,6 @@ impl ProblemUnitOfWork for DummyProblemUow {
 
     async fn commit(self: Box<Self>) -> Result<(), RepositoryError> {
         self.shared.lock().unwrap().commits += 1;
-        Ok(())
-    }
-
-    async fn rollback(self: Box<Self>) -> Result<(), RepositoryError> {
         Ok(())
     }
 }
@@ -127,21 +99,10 @@ struct DummyProblemRepository;
 
 #[async_trait]
 impl ProblemRepository for DummyProblemRepository {
-    async fn create_records(&self, _problems: Vec<Problem>) -> Result<(), RepositoryError> {
-        Ok(())
-    }
-
     async fn get_problem_ids_with_difficulty(
         &self,
-        _problem_ids: &[String],
-    ) -> Result<Vec<String>, RepositoryError> {
-        Ok(vec![])
-    }
-
-    async fn get_problems_by_contest_series(
-        &self,
-        _series: domain::model::problem::ContestSeries,
-    ) -> Result<Vec<Problem>, RepositoryError> {
+        _problem_ids: &[ProblemId],
+    ) -> Result<Vec<ProblemId>, RepositoryError> {
         Ok(vec![])
     }
 
@@ -150,13 +111,13 @@ impl ProblemRepository for DummyProblemRepository {
         _series: domain::model::problem::ContestSeries,
         _limit: i64,
         _offset: i64,
-    ) -> Result<Vec<String>, RepositoryError> {
+    ) -> Result<Vec<ContestCode>, RepositoryError> {
         Ok(vec![])
     }
 
     async fn get_problems_by_contest_codes(
         &self,
-        _contest_codes: &[String],
+        _contest_codes: &[ContestCode],
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -169,13 +130,20 @@ impl ProblemRepository for DummyProblemRepository {
         Ok(vec![])
     }
 
-    async fn get_problem_by_id(&self, problem_id: &str) -> Result<Problem, RepositoryError> {
-        Err(RepositoryError::NotFound(problem_id.to_string()))
+    async fn get_problem_by_id(
+        &self,
+        _problem_id: &ProblemId,
+    ) -> Result<Option<Problem>, RepositoryError> {
+        Ok(None)
+    }
+
+    async fn problem_exists(&self, _problem_id: &ProblemId) -> Result<bool, RepositoryError> {
+        Ok(false)
     }
 
     async fn get_problems_by_contest(
         &self,
-        _contest: &str,
+        _contest: &ContestCode,
     ) -> Result<Vec<Problem>, RepositoryError> {
         Ok(vec![])
     }
@@ -186,24 +154,31 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
     let port = Arc::new(DummyAtcoderProblemsPort {
         item: vec![
             Problem {
-                id: "abc234_a".into(),
-                contest_code: "abc234".into(),
-                problem_index: "A".into(),
-                title: "A - Example".into(),
+                id: ProblemId::try_new("abc234_a".to_string())?,
+                contest_code: ContestCode::try_new("abc234".to_string())?,
+                problem_index: ProblemIndex::try_new("A".to_string())?,
+                title: ProblemTitle::try_new("A - Example".to_string())?,
                 difficulty: None,
             },
             Problem {
-                id: "abc234_b".into(),
-                contest_code: "abc234".into(),
-                problem_index: "B".into(),
-                title: "B - Example".into(),
+                id: ProblemId::try_new("abc234_b".to_string())?,
+                contest_code: ContestCode::try_new("abc234".to_string())?,
+                problem_index: ProblemIndex::try_new("B".to_string())?,
+                title: ProblemTitle::try_new("B - Example".to_string())?,
                 difficulty: None,
             },
             Problem {
-                id: "awc001_a".into(),
-                contest_code: "awc001".into(),
-                problem_index: "A".into(),
-                title: "AWC - Example".into(),
+                id: ProblemId::try_new("awc001_a".to_string())?,
+                contest_code: ContestCode::try_new("awc001".to_string())?,
+                problem_index: ProblemIndex::try_new("A".to_string())?,
+                title: ProblemTitle::try_new("AWC - Example".to_string())?,
+                difficulty: None,
+            },
+            Problem {
+                id: ProblemId::try_new("tessoku_a1".to_string())?,
+                contest_code: ContestCode::try_new("tessoku-book".to_string())?,
+                problem_index: ProblemIndex::try_new("A1".to_string())?,
+                title: ProblemTitle::try_new("Tessoku - Example".to_string())?,
                 difficulty: None,
             },
         ],
@@ -219,15 +194,20 @@ async fn usecase_imports_problems_in_single_uow() -> Result<()> {
 
     let calls = calls.lock().unwrap();
     assert_eq!(calls.commits, 1);
-    assert_eq!(calls.contests_bulk_calls, 1);
-    assert_eq!(calls.problems_bulk_calls, 1);
-    assert_eq!(calls.problems.len(), 3);
-    assert_eq!(calls.contests.len(), 2);
+    assert_eq!(calls.contest_upsert_calls, 1);
+    assert_eq!(calls.problem_upsert_calls, 1);
+    assert_eq!(calls.problems.len(), 4);
+    assert_eq!(calls.contests.len(), 3);
     assert!(calls.contests.contains(&("abc234".into(), "ABC".into())));
     assert!(calls.contests.contains(&("awc001".into(), "AWC".into())));
+    assert!(
+        calls
+            .contests
+            .contains(&("tessoku-book".into(), "OTHER".into()))
+    );
 
     let sent = &calls.problems[0];
-    assert_eq!(sent.id, "abc234_a");
-    assert_eq!(sent.title, "A - Example");
+    assert_eq!(sent.id.as_str(), "abc234_a");
+    assert_eq!(sent.title.as_str(), "A - Example");
     Ok(())
 }

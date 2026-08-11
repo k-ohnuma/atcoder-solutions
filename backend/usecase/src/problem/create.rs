@@ -11,7 +11,7 @@ use domain::{
 };
 use tracing::{info, warn};
 
-use crate::model::problem::create::ImportProblemsUsecaseError;
+use crate::error::problem::ImportProblemsUsecaseError;
 
 const PROBLEM_UPSERT_CHUNK_SIZE: usize = 500;
 
@@ -37,18 +37,18 @@ impl ImportProblemsUsecase {
             .get_problem_ids_with_difficulty(all_problem_ids.as_slice())
             .await?
             .into_iter()
-            .collect::<HashSet<String>>();
+            .collect::<HashSet<_>>();
 
         let mut difficulty_fetch_target_count = 0usize;
         for problem in &mut problems {
-            if existing_difficulty_problem_ids.contains(problem.id.as_str()) {
+            if existing_difficulty_problem_ids.contains(&problem.id) {
                 continue;
             }
 
             difficulty_fetch_target_count += 1;
             match self
                 .atcoder_problems_port
-                .fetch_difficulty(problem.id.as_str())
+                .fetch_difficulty(&problem.id)
                 .await
             {
                 Ok(difficulty) => {
@@ -56,7 +56,7 @@ impl ImportProblemsUsecase {
                 }
                 Err(error) => {
                     warn!(
-                        problem_id = problem.id,
+                        problem_id = problem.id.as_str(),
                         error = ?error,
                         "failed to fetch problem difficulty. keep null and continue"
                     );
@@ -73,10 +73,12 @@ impl ImportProblemsUsecase {
         let contests = problems
             .iter()
             .map(|problem| {
-                let series = ContestSeries::try_from(problem.contest_code.as_str())
-                    .unwrap_or(ContestSeries::OTHER);
+                let series = ContestSeries::from_contest_code(problem.contest_code.as_str());
                 let series_code: &str = series.into();
-                (problem.contest_code.clone(), series_code.to_string())
+                (
+                    problem.contest_code.as_str().to_string(),
+                    series_code.to_string(),
+                )
             })
             .collect::<HashSet<(String, String)>>();
 
@@ -86,7 +88,7 @@ impl ImportProblemsUsecase {
             contests = contests.len(),
             "problem import upserting contests"
         );
-        uow.problems().upsert_contests_bulk(&contests).await?;
+        uow.problems().upsert_contests(&contests).await?;
         info!(
             total = problems.len(),
             chunk_size = PROBLEM_UPSERT_CHUNK_SIZE,
@@ -94,7 +96,7 @@ impl ImportProblemsUsecase {
         );
 
         for (chunk_index, chunk) in problems.chunks(PROBLEM_UPSERT_CHUNK_SIZE).enumerate() {
-            uow.problems().upsert_problems_bulk(chunk).await?;
+            uow.problems().upsert_problems(chunk).await?;
             let processed = ((chunk_index + 1) * PROBLEM_UPSERT_CHUNK_SIZE).min(problems.len());
             info!(
                 chunk = chunk_index + 1,

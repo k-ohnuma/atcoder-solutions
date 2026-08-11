@@ -1,28 +1,28 @@
 use std::sync::Arc;
 
-use derive_new::new;
-use domain::model::problem::ContestSeries;
+use domain::ports::repository::contest::ContestRepository;
 
 use crate::{
-    dto::contests::ContestListItemView, model::contests::ContestError,
-    service::contest::ContestService,
+    error::ContestError,
+    model::contests::{GetContestsBySeriesInput, output::ContestListItemOutput},
 };
+use derive_new::new;
 
 #[derive(new)]
-pub struct GetContestsBySeriesUseCase {
-    service: Arc<dyn ContestService>,
+pub struct GetContestsBySeriesUsecase {
+    repository: Arc<dyn ContestRepository>,
 }
 
-impl GetContestsBySeriesUseCase {
+impl GetContestsBySeriesUsecase {
     pub async fn run(
         &self,
-        series: ContestSeries,
-    ) -> Result<Vec<ContestListItemView>, ContestError> {
+        input: GetContestsBySeriesInput,
+    ) -> Result<Vec<ContestListItemOutput>, ContestError> {
         let items = self
-            .service
-            .get_contents_by_series(series)
+            .repository
+            .get_contests_by_series(input.series)
             .await
             .map_err(ContestError::from)?;
-        Ok(items.into_iter().map(ContestListItemView::from).collect())
+        Ok(items.into_iter().map(ContestListItemOutput::from).collect())
     }
 }
