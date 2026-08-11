@@ -38,13 +38,10 @@ usecase = { path = "./usecase/" }
 anyhow = "1.0.100"
 async-trait = "0.1.89"
 axum = { version = "0.8.6", features = ["macros"] }
-base64 = { version = "0.22.1" }
 chrono = { version = "0.4.42", features = ["serde"] }
 derive-new = "0.7.0"
 dotenvy = "0.15.7"
 error-stack = "0.7.0"
-itertools = "0.14.0"
-jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
 reqwest = { version = "0.12.23", features = [
   "gzip",
   "json",
@@ -72,8 +69,6 @@ tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
 uuid = { version = "1.18.1", features = ["v7", "serde"] }
 validator = { version = "0.20.0", features = ["derive"] }
 
-#dev-dependencies
-rstest = "0.26.1"
 wiremock = "0.5"
 
 [dependencies]
