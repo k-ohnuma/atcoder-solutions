@@ -1,4 +1,4 @@
-pub mod external;
+pub mod atcoder_problems;
 pub mod problem;
 pub mod repository;
 pub mod solution;

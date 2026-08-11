@@ -1,12 +1,13 @@
 use domain::error::{
-    external::ExternalError, problem::ProblemValidationError, repository::RepositoryError,
+    atcoder_problems::AtcoderProblemsError, problem::ProblemValidationError,
+    repository::RepositoryError,
 };
 use thiserror::Error;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ImportProblemsUsecaseError {
     #[error(transparent)]
-    Fetch(#[from] ExternalError),
+    Fetch(#[from] AtcoderProblemsError),
     #[error(transparent)]
     Repository(#[from] RepositoryError),
 }

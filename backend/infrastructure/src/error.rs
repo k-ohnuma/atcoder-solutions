@@ -1,5 +1,4 @@
-use domain::error::{external::ExternalError, repository::RepositoryError};
-use reqwest::StatusCode;
+use domain::error::repository::RepositoryError;
 use sqlx::error::DatabaseError;
 
 pub fn map_sqlx_error(err: sqlx::Error) -> RepositoryError {
@@ -31,24 +30,4 @@ fn map_database_error(db_err: &dyn DatabaseError) -> RepositoryError {
     );
 
     RepositoryError::Unexpected(db_err.message().to_string())
-}
-
-pub fn map_reqwest_error(err: reqwest::Error) -> ExternalError {
-    let url = err.url();
-    tracing::error!(error = ?err, url = ?url, "external request failed");
-
-    if err.is_timeout() || err.is_connect() {
-        return ExternalError::ExternalUnavailable;
-    }
-    if let Some(s) = err.status() {
-        return match s {
-            StatusCode::NOT_FOUND => ExternalError::NotFound,
-            StatusCode::UNAUTHORIZED => ExternalError::Unauthorized,
-            StatusCode::FORBIDDEN => ExternalError::Forbidden,
-            StatusCode::TOO_MANY_REQUESTS => ExternalError::RateLimited,
-            s if s.is_server_error() => ExternalError::ExternalUnavailable,
-            _ => ExternalError::Other(err.to_string()),
-        };
-    }
-    ExternalError::Other(err.to_string())
 }

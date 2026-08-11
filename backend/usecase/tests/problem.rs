@@ -7,7 +7,7 @@ use domain::model::problem::{
     title::ProblemTitle,
 };
 use domain::{
-    error::{external::ExternalError, repository::RepositoryError},
+    error::{atcoder_problems::AtcoderProblemsError, repository::RepositoryError},
     model::problem::Problem,
     ports::{
         external::atcoder_problems::AtcoderProblemsPort,
@@ -25,14 +25,14 @@ struct DummyAtcoderProblemsPort {
 
 #[async_trait]
 impl AtcoderProblemsPort for DummyAtcoderProblemsPort {
-    async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError> {
+    async fn fetch_problems(&self) -> Result<Vec<Problem>, AtcoderProblemsError> {
         Ok(self.item.to_owned())
     }
 
     async fn fetch_difficulty(
         &self,
         _problem_id: &ProblemId,
-    ) -> Result<Option<Difficulty>, ExternalError> {
+    ) -> Result<Option<Difficulty>, AtcoderProblemsError> {
         Ok(None)
     }
 }

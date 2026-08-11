@@ -2,18 +2,16 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use domain::{
-    error::external::ExternalError,
+    error::atcoder_problems::AtcoderProblemsError,
     model::problem::{
         Problem, contest_code::ContestCode, difficulty::Difficulty, id::ProblemId,
         index::ProblemIndex, title::ProblemTitle,
     },
     ports::external::atcoder_problems::AtcoderProblemsPort,
 };
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use serde::Deserialize;
 use tracing::warn;
-
-use crate::error::map_reqwest_error;
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
 struct ApiProblem {
@@ -95,25 +93,25 @@ impl AtcoderProblemsClient {
     async fn fetch_difficulty(
         &self,
         problem_id: &str,
-    ) -> Result<Option<Difficulty>, ExternalError> {
+    ) -> Result<Option<Difficulty>, AtcoderProblemsError> {
         let resp = self
             .client
             .get(self.difficulty_endpoint.as_str())
             .query(&[("problemId", problem_id)])
             .send()
             .await
-            .map_err(map_reqwest_error)?;
+            .map_err(map_request_error)?;
 
         if resp.status() == reqwest::StatusCode::NOT_FOUND {
             return Ok(None);
         }
-        let resp = resp.error_for_status().map_err(map_reqwest_error)?;
+        let resp = resp.error_for_status().map_err(map_request_error)?;
 
         let payload = resp.json::<ApiProblemDifficulty>().await.map_err(|e| {
             if e.is_decode() {
-                ExternalError::InvalidJson(e.to_string())
+                AtcoderProblemsError::InvalidResponse(e.to_string())
             } else {
-                map_reqwest_error(e)
+                map_request_error(e)
             }
         })?;
         Ok(payload.difficulty.map(Difficulty::new))
@@ -122,35 +120,35 @@ impl AtcoderProblemsClient {
 
 #[async_trait]
 impl AtcoderProblemsPort for AtcoderProblemsClient {
-    async fn fetch_problems(&self) -> Result<Vec<Problem>, ExternalError> {
+    async fn fetch_problems(&self) -> Result<Vec<Problem>, AtcoderProblemsError> {
         let json_endpoint = format!("{}/resources/problems.json", self.base_endpoint);
         let resp = self
             .client
             .get(json_endpoint)
             .send()
             .await
-            .map_err(map_reqwest_error)?
+            .map_err(map_request_error)?
             .error_for_status()
-            .map_err(map_reqwest_error)?;
+            .map_err(map_request_error)?;
 
         let json: Vec<ApiProblem> = resp.json().await.map_err(|e| {
             if e.is_decode() {
-                ExternalError::InvalidJson(e.to_string())
+                AtcoderProblemsError::InvalidResponse(e.to_string())
             } else {
-                map_reqwest_error(e)
+                map_request_error(e)
             }
         })?;
         Ok(json
             .into_iter()
             .map(Problem::try_from)
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|error| ExternalError::InvalidJson(error.to_string()))?)
+            .map_err(|error| AtcoderProblemsError::InvalidResponse(error.to_string()))?)
     }
 
     async fn fetch_difficulty(
         &self,
         problem_id: &ProblemId,
-    ) -> Result<Option<Difficulty>, ExternalError> {
+    ) -> Result<Option<Difficulty>, AtcoderProblemsError> {
         self.fetch_difficulty(problem_id.as_str())
             .await
             .inspect_err(|error| {
@@ -159,10 +157,27 @@ impl AtcoderProblemsPort for AtcoderProblemsClient {
     }
 }
 
+fn map_request_error(error: reqwest::Error) -> AtcoderProblemsError {
+    let url = error.url();
+    tracing::error!(error = ?error, url = ?url, "AtCoder problems request failed");
+
+    if error.is_timeout() || error.is_connect() {
+        return AtcoderProblemsError::TemporarilyUnavailable;
+    }
+    if error
+        .status()
+        .is_some_and(|status| status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error())
+    {
+        return AtcoderProblemsError::TemporarilyUnavailable;
+    }
+
+    AtcoderProblemsError::Unexpected(error.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use domain::{
-        error::external::ExternalError, model::problem::Problem,
+        error::atcoder_problems::AtcoderProblemsError, model::problem::Problem,
         ports::external::atcoder_problems::AtcoderProblemsPort,
     };
     use wiremock::{
@@ -265,8 +280,8 @@ mod tests {
             let err = client.fetch_problems().await.expect_err("should fail");
 
             match (status, err) {
-                (404, ExternalError::NotFound) => {}
-                (500..=599, ExternalError::ExternalUnavailable) => {}
+                (404, AtcoderProblemsError::Unexpected(_)) => {}
+                (500..=599, AtcoderProblemsError::TemporarilyUnavailable) => {}
                 (s, e) => panic!("unexpected mapping: status={s}, err={e:?}"),
             }
         }
@@ -285,7 +300,7 @@ mod tests {
 
         let err = client.fetch_problems().await.expect_err("should fail");
         println!("{:?}", err);
-        assert!(matches!(err, ExternalError::InvalidJson(_)));
+        assert!(matches!(err, AtcoderProblemsError::InvalidResponse(_)));
     }
 
     #[tokio::test]
