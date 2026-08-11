@@ -10,7 +10,6 @@ use domain::ports::{
     external::id::IdProviderPort,
     repository::{problem::ProblemRepository, solution::tx::SolutionTxManager},
 };
-use validator::Validate;
 
 use crate::{error::SolutionError, model::solution::create::CreateSolutionInput};
 
@@ -26,10 +25,6 @@ impl CreateSolutionUsecase {
         &self,
         input: CreateSolutionInput,
     ) -> Result<domain::model::solution::id::SolutionId, SolutionError> {
-        input
-            .validate()
-            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
-
         let problem_exists = self
             .problem_repository
             .problem_exists(&input.problem_id)

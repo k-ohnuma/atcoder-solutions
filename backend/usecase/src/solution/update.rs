@@ -7,7 +7,6 @@ use domain::model::solution::{
     tags::Tags,
 };
 use domain::ports::repository::solution::{SolutionRepository, tx::SolutionTxManager};
-use validator::Validate;
 
 use crate::{
     error::SolutionError, model::solution::update::UpdateSolutionInput,
@@ -22,10 +21,6 @@ pub struct UpdateSolutionUsecase {
 
 impl UpdateSolutionUsecase {
     pub async fn run(&self, input: UpdateSolutionInput) -> Result<SolutionId, SolutionError> {
-        input
-            .validate()
-            .map_err(|e| SolutionError::BadRequest(e.to_string()))?;
-
         ensure_solution_owner(
             self.repository.as_ref(),
             input.solution_id,

@@ -1,9 +1,7 @@
 use domain::model::{problem::id::ProblemId, user::id::UserId};
-use validator::Validate;
 
 use crate::error::SolutionError;
 
-#[derive(Validate)]
 pub struct CreateSolutionInput {
     pub user_id: UserId,
     pub title: String,
